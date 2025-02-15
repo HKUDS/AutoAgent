@@ -331,7 +331,12 @@ def function_to_json(func) -> dict:
     #         )
     #     parameters[param.name] = {"type": param_type}
     for param in signature.parameters.values():
+        if param.name == "context_variables":
+            continue
         try:
+            param_info = get_type_info(param.annotation, type_map)
+            if isinstance(param_info, dict) and "additionalProperties" in param_info:
+                del param_info["additionalProperties"]
             parameters[param.name] = get_type_info(param.annotation, type_map)
         except KeyError as e:
             raise KeyError(f"Unknown type annotation {param.annotation} for parameter {param.name}: {str(e)}")
@@ -341,6 +346,13 @@ def function_to_json(func) -> dict:
         for param in signature.parameters.values()
         if param.default == inspect._empty
     ]
+
+    if not parameters:
+        parameters["dummy"] = {
+            "type": "string",
+            "description": "Dummy parameter (not used). Added to satisfy non-empty schema requirements."
+        }
+        required = []
 
     return {
         "type": "function",
