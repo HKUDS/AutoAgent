@@ -154,6 +154,7 @@ class MetaChain:
                 "tools": tools or None,
                 "tool_choice": agent.tool_choice,
                 "stream": stream,
+                "base_url": API_BASE_URL
             }
             NO_SENDER_MODE = False
             for not_sender_model in NOT_SUPPORT_SENDER:
