@@ -20,7 +20,7 @@
   <hr>
 </div>
 
-Welcome to AutoAgent! AutoAgent is a **Fully-Automated** and highly **Self-Developing** framework that enables users to create and deploy LLM agents through **Natural Language Alone**. 
+Welcome to AutoAgent! AutoAgent is a **Fully-Automated** and highly **Self-Developing** framework that enables users to create and deploy LLM agents through **Natural Language Alone**.
 
 ## ✨Key Features
 
@@ -28,7 +28,7 @@ Welcome to AutoAgent! AutoAgent is a **Fully-Automated** and highly **Self-Devel
 </br>AutoAgent has ranked the **#1** spot among open-sourced methods, delivering comparable performance to **OpenAI's Deep Research**.
 
 * 📚 Agentic-RAG with Native Self-Managing Vector Database
-</br>AutoAgent equipped with a native self-managing vector database, outperforms industry-leading solutions like **LangChain**. 
+</br>AutoAgent equipped with a native self-managing vector database, outperforms industry-leading solutions like **LangChain**.
 
 * ✨ Agent and Workflow Create with Ease
 </br>AutoAgent leverages natural language to effortlessly build ready-to-use **tools**, **agents** and **workflows** - no coding required.
@@ -36,10 +36,10 @@ Welcome to AutoAgent! AutoAgent is a **Fully-Automated** and highly **Self-Devel
 * 🌐 Universal LLM Support
 </br>AutoAgent seamlessly integrates with **A Wide Range** of LLMs (e.g., OpenAI, Anthropic, Deepseek, vLLM, Grok, Huggingface ...)
 
-* 🔀 Flexible Interaction 
+* 🔀 Flexible Interaction
 </br>Benefit from support for both **function-calling** and **ReAct** interaction modes.
 
-* 🤖 Dynamic, Extensible, Lightweight 
+* 🤖 Dynamic, Extensible, Lightweight
 </br>AutoAgent is your **Personal AI Assistant**, designed to be dynamic, extensible, customized, and lightweight.
 
 🚀 Unlock the Future of LLM Agents. Try 🔥AutoAgent🔥 Now!
@@ -91,7 +91,7 @@ Welcome to AutoAgent! AutoAgent is a **Fully-Automated** and highly **Self-Devel
 
 ### 1. `user mode` (SOTA 🏆 Open Deep Research)
 
-AutoAgent have an out-of-the-box multi-agent system, which you could choose `user mode` in the start page to use it. This multi-agent system is a general AI assistant, having the same functionality with **OpenAI's Deep Research** and the comparable performance with it in [GAIA](https://gaia-benchmark-leaderboard.hf.space/) benchmark. 
+AutoAgent have an out-of-the-box multi-agent system, which you could choose `user mode` in the start page to use it. This multi-agent system is a general AI assistant, having the same functionality with **OpenAI's Deep Research** and the comparable performance with it in [GAIA](https://gaia-benchmark-leaderboard.hf.space/) benchmark.
 
 - 🚀 **High Performance**: Matches Deep Research using Claude 3.5 rather than OpenAI's o3 model.
 - 🔄 **Model Flexibility**: Compatible with any LLM (including Deepseek-R1, Grok, Gemini, etc.)
@@ -243,7 +243,7 @@ XAI_API_KEY=
 
 #### Command Options:
 
-You can run `auto main` to start full part of AutoAgent, including `user mode`, `agent editor` and `workflow editor`. Btw, you can also run `auto deep-research` to start more lightweight `user mode`, just like the [Auto-Deep-Research](https://github.com/HKUDS/Auto-Deep-Research) project. Some configuration of this command is shown below. 
+You can run `auto main` to start full part of AutoAgent, including `user mode`, `agent editor` and `workflow editor`. Btw, you can also run `auto deep-research` to start more lightweight `user mode`, just like the [Auto-Deep-Research](https://github.com/HKUDS/Auto-Deep-Research) project. Some configuration of this command is shown below.
 
 - `--container_name`: Name of the Docker container (default: 'deepresearch')
 - `--port`: Port for the container (default: 12346)
@@ -254,7 +254,7 @@ You can run `auto main` to start full part of AutoAgent, including `user mode`, 
 - `git_clone`: Clone the AutoAgent repository to the local environment (only support with the `auto main` command, default: True)
 - `test_pull_name`: The name of the test pull. (only support with the `auto main` command, default: 'autoagent_mirror')
 
-#### More details about `git_clone` and `test_pull_name`] 
+#### More details about `git_clone` and `test_pull_name`]
 
 In the `agent editor` and `workflow editor` mode, we should clone a mirror of the AutoAgent repository to the local agent-interactive environment and let our **AutoAgent** automatically update the AutoAgent itself, such as creating new tools, agents and workflows. So if you want to use the `agent editor` and `workflow editor` mode, you should set the `git_clone` to True and set the `test_pull_name` to 'autoagent_mirror' or other branches.
 
@@ -391,7 +391,7 @@ COMPLETION_MODEL=deepseek/deepseek-chat auto main
 ```
 
 
-After the CLI mode is started, you can see the start page of AutoAgent: 
+After the CLI mode is started, you can see the start page of AutoAgent:
 
 <div align="center">
   <!-- <img src="./assets/AutoAgentnew-intro.pdf" alt="Logo" width="100%"> -->
@@ -409,7 +409,7 @@ You can import the browser cookies to the browser environment to let the agent b
 
 #### Add your own API keys for third-party Tool Platforms
 
-If you want to create tools from the third-party tool platforms, such as RapidAPI, you should subscribe tools from the platform and add your own API keys by running [process_tool_docs.py](./process_tool_docs.py). 
+If you want to create tools from the third-party tool platforms, such as RapidAPI, you should subscribe tools from the platform and add your own API keys by running [process_tool_docs.py](./process_tool_docs.py).
 
 ```bash
 python process_tool_docs.py
@@ -477,7 +477,7 @@ A more detailed documentation is coming soon 🚀, and we will update in the [Do
 We want to build a community for AutoAgent, and we welcome everyone to join us. You can join our community by:
 
 - [Join our Slack workspace](https://join.slack.com/t/AutoAgent-workspace/shared_invite/zt-2zibtmutw-v7xOJObBf9jE2w3x7nctFQ) - Here we talk about research, architecture, and future development.
-- [Join our Discord server](https://discord.gg/z68KRvwB) - This is a community-run server for general discussion, questions, and feedback. 
+- [Join our Discord server](https://discord.gg/z68KRvwB) - This is a community-run server for general discussion, questions, and feedback.
 - [Read or post Github Issues](https://github.com/HKUDS/AutoAgent/issues) - Check out the issues we're working on, or add your own ideas.
 
 <span id='acknowledgements'/>
@@ -515,6 +515,44 @@ Rome wasn't built in a day. AutoAgent stands on the shoulders of giants, and we 
       primaryClass={cs.AI},
       url={https://arxiv.org/abs/2502.05957},
 }
+```
+
+## New Features
+
+### 🔄 Local Ollama Support
+
+AutoAgent now supports using [Ollama](https://ollama.ai/) for local model inference, enabling you to run models locally without requiring an API key or internet connection.
+
+To use Ollama:
+
+1. Install Ollama from [ollama.ai](https://ollama.ai/)
+2. Run the Ollama service (default URL is http://localhost:11434)
+3. Download the models you want to use: `ollama pull llama3` (or any other supported model)
+4. Configure AutoAgent with the following environment variables:
+   ```
+   OLLAMA_ENABLED=true
+   OLLAMA_BASE_URL=http://localhost:11434
+   OLLAMA_MODEL=llama3  # or another model you've downloaded
+   ```
+
+### 💾 Local Code Storage
+
+AutoAgent now supports saving code to local storage instead of requiring a GitHub token. This provides several benefits:
+- No need to share your GitHub token
+- Works completely offline
+- Easily access and manage your code locally
+
+Local storage features are accessible through the following tools:
+- `create_local_project`: Create a new project for storing code
+- `list_local_projects`: List all available projects
+- `save_local_file`: Save a file to a project
+- `read_local_file`: Read a file from a project
+- `list_local_files`: List files in a project directory
+
+Local storage settings can be configured with:
+```
+LOCAL_STORAGE_ENABLED=true
+LOCAL_STORAGE_PATH=./workspace  # or another path of your choice
 ```
 
 

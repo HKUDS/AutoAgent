@@ -31,24 +31,26 @@ from openai import AsyncOpenAI
 import litellm
 import inspect
 from constant import MC_MODE, FN_CALL, API_BASE_URL, NOT_SUPPORT_SENDER, ADD_USER, NON_FN_CALL
+from constant import OLLAMA_ENABLED, OLLAMA_BASE_URL, OLLAMA_MODEL
+from autoagent.tools.ollama_client import OllamaClient
 from autoagent.fn_call_converter import convert_tools_to_description, convert_non_fncall_messages_to_fncall_messages, SYSTEM_PROMPT_SUFFIX_TEMPLATE, convert_fn_messages_to_non_fn_messages, interleave_user_into_messages
 from litellm.types.utils import Message as litellmMessage
 # litellm.set_verbose=True
 # client = AsyncOpenAI()
 def should_retry_error(exception):
     if MC_MODE is False: print(f"Caught exception: {type(exception).__name__} - {str(exception)}")
-    
+
     # 匹配更多错误类型
     if isinstance(exception, (APIError, RemoteProtocolError, ConnectError)):
         return True
-    
+
     # 通过错误消息匹配
     error_msg = str(exception).lower()
     return any([
         "connection error" in error_msg,
         "server disconnected" in error_msg,
         "eof occurred" in error_msg,
-        "timeout" in error_msg, 
+        "timeout" in error_msg,
         "event loop is closed" in error_msg,  # 添加事件循环错误
         "anthropicexception" in error_msg,     # 添加 Anthropic 相关错误
     ])
@@ -59,15 +61,15 @@ def adapt_tools_for_gemini(tools):
     """为 Gemini 模型适配工具定义，确保所有 OBJECT 类型参数都有非空的 properties"""
     if tools is None:
         return None
-        
+
     adapted_tools = []
     for tool in tools:
         adapted_tool = copy.deepcopy(tool)
-        
+
         # 检查参数
         if "parameters" in adapted_tool["function"]:
             params = adapted_tool["function"]["parameters"]
-            
+
             # 处理顶层参数
             if params.get("type") == "object":
                 if "properties" not in params or not params["properties"]:
@@ -77,7 +79,7 @@ def adapt_tools_for_gemini(tools):
                             "description": "Dummy property for Gemini compatibility"
                         }
                     }
-            
+
             # 处理嵌套参数
             if "properties" in params:
                 for prop_name, prop in params["properties"].items():
@@ -89,23 +91,34 @@ def adapt_tools_for_gemini(tools):
                                     "description": "Dummy property for Gemini compatibility"
                                 }
                             }
-        
+
         adapted_tools.append(adapted_tool)
     return adapted_tools
 
 class MetaChain:
     def __init__(self, log_path: Union[str, None, MetaChainLogger] = None):
         """
-        log_path: path of log file, None
+        Initialize the MetaChain.
+
+        Args:
+            log_path: Path to log file, or instance of MetaChainLogger, or None to disable logging.
         """
-        if logger:
-            self.logger = logger
-        elif isinstance(log_path, MetaChainLogger):
+        if isinstance(log_path, MetaChainLogger):
             self.logger = log_path
         else:
-            self.logger = MetaChainLogger(log_path=log_path)
-        # if self.logger.log_path is None: self.logger.info("[Warning] Not specific log path, so log will not be saved", "...", title="Log Path", color="light_cyan3")
-        # else: self.logger.info("Log file is saved to", self.logger.log_path, "...", title="Log Path", color="light_cyan3")
+            self.logger = LoggerManager.get_logger(log_path)
+
+        # Initialize Ollama client if enabled
+        self.ollama_enabled = OLLAMA_ENABLED
+        if self.ollama_enabled:
+            self.ollama_client = OllamaClient(OLLAMA_BASE_URL)
+            # Test connection
+            models = self.ollama_client.list_models()
+            if models['status'] != 0:
+                print(f"Warning: Could not connect to Ollama: {models['message']}")
+                self.ollama_enabled = False
+            else:
+                print(f"Successfully connected to Ollama. Available models: {[m['name'] for m in models['models']]}")
     # @retry(
     #     stop=stop_after_attempt(4),
     #     wait=wait_exponential(multiplier=1, min=4, max=60),
@@ -121,6 +134,13 @@ class MetaChain:
         stream: bool,
         debug: bool,
     ) -> Message:
+        # Modify model selection to check for Ollama
+        model = model_override or agent.get("model")
+
+        # Check if we should use Ollama
+        if self.ollama_enabled and (model.startswith("ollama/") or model == OLLAMA_MODEL):
+            return self._get_ollama_completion(agent, history, model, stream, debug)
+
         context_variables = defaultdict(str, context_variables)
         instructions = (
             agent.instructions(context_variables)
@@ -130,10 +150,10 @@ class MetaChain:
         if agent.examples:
             examples = agent.examples(context_variables) if callable(agent.examples) else agent.examples
             history = examples + history
-        
+
         messages = [{"role": "system", "content": instructions}] + history
         # debug_print(debug, "Getting chat completion for...:", messages)
-        
+
         tools = [function_to_json(f) for f in agent.functions]
         # hide context_variables from model
         for tool in tools:
@@ -141,7 +161,7 @@ class MetaChain:
             params["properties"].pop(__CTX_VARS_NAME__, None)
             if __CTX_VARS_NAME__ in params["required"]:
                 params["required"].remove(__CTX_VARS_NAME__)
-        create_model = model_override or agent.model
+        create_model = model
 
         if "gemini" in create_model.lower():
             tools = adapt_tools_for_gemini(tools)
@@ -171,7 +191,7 @@ class MetaChain:
             if tools and create_params['model'].startswith("gpt"):
                 create_params["parallel_tool_calls"] = agent.parallel_tool_calls
             completion_response = completion(**create_params)
-        else: 
+        else:
             # create_model = model_override or agent.model
             assert agent.tool_choice == "required", f"Non-function calling mode MUST use tool_choice = 'required' rather than {agent.tool_choice}"
             last_content = messages[-1]["content"]
@@ -203,11 +223,84 @@ class MetaChain:
             converted_message = convert_non_fncall_messages_to_fncall_messages(last_message, tools)
             if "tool_calls" in converted_message[0]:
                 converted_tool_calls = [ChatCompletionMessageToolCall(**tool_call) for tool_call in converted_message[0]["tool_calls"]]
-            else: 
+            else:
                 converted_tool_calls = None
             completion_response.choices[0].message = litellmMessage(content = converted_message[0]["content"], role = "assistant", tool_calls = converted_tool_calls)
 
         return completion_response
+
+    def _get_ollama_completion(self, agent, history, model, stream, debug):
+        """
+        Get completion from Ollama
+
+        Args:
+            agent: The agent
+            history: Conversation history
+            model: Model name
+            stream: Whether to stream the response
+            debug: Whether to print debug information
+
+        Returns:
+            Message: The response message
+        """
+        if debug:
+            print(f"Using Ollama for model: {model}")
+
+        # Extract actual model name if using 'ollama/' prefix
+        if model.startswith("ollama/"):
+            model_name = model[len("ollama/"):]
+        else:
+            model_name = model
+
+        # Convert history to Ollama format
+        ollama_messages = []
+        for message in history:
+            if message["role"] == "system":
+                system_message = message["content"]
+            else:
+                ollama_messages.append({
+                    "role": message["role"],
+                    "content": message["content"]
+                })
+
+        if debug:
+            print(f"Sending to Ollama: {len(ollama_messages)} messages")
+
+        # Use chat API if we have multiple messages, otherwise use generate
+        if len(ollama_messages) > 0:
+            result = self.ollama_client.chat(
+                model=model_name,
+                messages=ollama_messages,
+                stream=stream,
+                temperature=0.7
+            )
+        else:
+            # Only system message, use generate
+            result = self.ollama_client.generate(
+                model=model_name,
+                prompt="",
+                system=system_message,
+                stream=stream,
+                temperature=0.7
+            )
+
+        if result["status"] != 0:
+            raise Exception(f"Ollama error: {result['message']}")
+
+        if stream:
+            # For streaming, return a mock message since we can't stream in this implementation
+            return {
+                "id": "ollama-response",
+                "role": "assistant",
+                "content": result["message"]["content"] if "message" in result else result["response"]
+            }
+        else:
+            # For non-streaming, return the completed message
+            return {
+                "id": "ollama-response",
+                "role": "assistant",
+                "content": result["message"]["content"] if "message" in result else result["response"]
+            }
 
     def handle_function_result(self, result, debug) -> Result:
         match result:
@@ -254,7 +347,7 @@ class MetaChain:
                 )
                 continue
             args = json.loads(tool_call.function.arguments)
-            
+
             # debug_print(
             #     debug, f"Processing tool call: {name} with arguments {args}")
             func = function_map[name]
@@ -266,7 +359,7 @@ class MetaChain:
             raw_result = function_map[name](**args)
 
             result: Result = self.handle_function_result(raw_result, debug)
-    
+
             partial_response.messages.append(
                 {
                     "role": "tool",
@@ -276,7 +369,7 @@ class MetaChain:
                 }
             )
             self.logger.pretty_print_messages(partial_response.messages[-1])
-            if result.image: 
+            if result.image:
                 assert handle_mm_func, f"handle_mm_func is not provided, but an image is returned by tool call {name}({tool_call.function.arguments})"
                 partial_response.messages.append(
                 {
@@ -294,7 +387,7 @@ class MetaChain:
                 }
                 )
             # debug_print(debug, "Tool calling: ", json.dumps(partial_response.messages[-1], indent=4), log_path=log_path, title="Tool Calling", color="green")
-            
+
             partial_response.context_variables.update(result.context_variables)
             if result.agent:
                 partial_response.agent = result.agent
@@ -449,7 +542,7 @@ class MetaChain:
                 if (not message.tool_calls and active_agent.name == enter_agent.name) or not execute_tools:
                     self.logger.info("Ending turn.", title="End Turn", color="red")
                     break
-            else: 
+            else:
                 if (message.tool_calls and message.tool_calls[0].function.name == "case_resolved") or not execute_tools:
                     self.logger.info("Ending turn with case resolved.", title="End Turn", color="red")
                     partial_response = self.handle_tool_calls(
@@ -515,10 +608,10 @@ class MetaChain:
         if agent.examples:
             examples = agent.examples(context_variables) if callable(agent.examples) else agent.examples
             history = examples + history
-        
+
         messages = [{"role": "system", "content": instructions}] + history
         # debug_print(debug, "Getting chat completion for...:", messages)
-        
+
         tools = [function_to_json(f) for f in agent.functions]
         # hide context_variables from model
         for tool in tools:
@@ -530,7 +623,7 @@ class MetaChain:
         if FN_CALL:
             create_model = model_override or agent.model
             assert litellm.supports_function_calling(model = create_model) == True, f"Model {create_model} does not support function calling, please set `FN_CALL=False` to use non-function calling mode"
-            
+
             create_params = {
                 "model": create_model,
                 "messages": messages,
@@ -554,7 +647,7 @@ class MetaChain:
             if tools and create_params['model'].startswith("gpt"):
                 create_params["parallel_tool_calls"] = agent.parallel_tool_calls
             completion_response = await acompletion(**create_params)
-        else: 
+        else:
             create_model = model_override or agent.model
             assert agent.tool_choice == "required", f"Non-function calling mode MUST use tool_choice = 'required' rather than {agent.tool_choice}"
             last_content = messages[-1]["content"]
@@ -585,7 +678,7 @@ class MetaChain:
         # response = await acompletion(**create_params)
         # response = await client.chat.completions.create(**create_params)
         return completion_response
-    
+
     async def run_async(
         self,
         agent: Agent,
@@ -629,7 +722,7 @@ class MetaChain:
                 if (not message.tool_calls and active_agent.name == enter_agent.name) or not execute_tools:
                     self.logger.info("Ending turn.", title="End Turn", color="red")
                     break
-            else: 
+            else:
                 if (message.tool_calls and message.tool_calls[0].function.name == "case_resolved") or not execute_tools:
                     self.logger.info("Ending turn with case resolved.", title="End Turn", color="red")
                     partial_response = self.handle_tool_calls(

@@ -1,19 +1,19 @@
 import os
 from dotenv import load_dotenv
 import platform
-# utils: 
+# utils:
 load_dotenv()  # 加载.env文件
 def str_to_bool(value):
     """convert string to bool"""
     true_values = {'true', 'yes', '1', 'on', 't', 'y'}
     false_values = {'false', 'no', '0', 'off', 'f', 'n'}
-    
+
     if isinstance(value, bool):
         return value
-        
+
     if value == None:
         return None
-        
+
     value = str(value).lower().strip()
     if value in true_values:
         return True
@@ -26,6 +26,15 @@ DOCKER_WORKPLACE_NAME = os.getenv('DOCKER_WORKPLACE_NAME', 'workplace')
 GITHUB_AI_TOKEN = os.getenv('GITHUB_AI_TOKEN', None)
 AI_USER = os.getenv('AI_USER', "tjb-tech")
 LOCAL_ROOT = os.getenv('LOCAL_ROOT', os.getcwd())
+
+# Add Ollama configuration settings
+OLLAMA_ENABLED = str_to_bool(os.getenv('OLLAMA_ENABLED', False))
+OLLAMA_BASE_URL = os.getenv('OLLAMA_BASE_URL', 'http://localhost:11434')
+OLLAMA_MODEL = os.getenv('OLLAMA_MODEL', 'llama3')
+
+# Add local storage settings
+LOCAL_STORAGE_ENABLED = str_to_bool(os.getenv('LOCAL_STORAGE_ENABLED', True))
+LOCAL_STORAGE_PATH = os.getenv('LOCAL_STORAGE_PATH', './workspace')
 
 DEBUG = str_to_bool(os.getenv('DEBUG', False))
 
@@ -40,7 +49,7 @@ def get_architecture():
         return "tjbtech1/metachain:amd64_latest"
     elif 'arm' in machine:
         return "tjbtech1/metachain:latest"
-    else: 
+    else:
         return "tjbtech1/metachain:latest"
 if BASE_IMAGES is None:
     BASE_IMAGES = get_architecture()
