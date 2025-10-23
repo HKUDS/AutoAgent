@@ -278,6 +278,23 @@ def get_type_info(annotation, base_type_map):
     return {"type": "string"}
 
 
+def remove_additional_properties(schema):
+    """Recursively remove additionalProperties from schema for Gemini compatibility"""
+    if isinstance(schema, dict):
+        # Remove additionalProperties from current level
+        if "additionalProperties" in schema:
+            del schema["additionalProperties"]
+        
+        # Recursively process nested objects
+        for key, value in schema.items():
+            if isinstance(value, dict):
+                remove_additional_properties(value)
+            elif isinstance(value, list):
+                for item in value:
+                    if isinstance(item, dict):
+                        remove_additional_properties(item)
+    return schema
+
 def function_to_json(func) -> dict:
     """
     Converts a Python function into a JSON-serializable dictionary
@@ -335,9 +352,9 @@ def function_to_json(func) -> dict:
             continue
         try:
             param_info = get_type_info(param.annotation, type_map)
-            if isinstance(param_info, dict) and "additionalProperties" in param_info:
-                del param_info["additionalProperties"]
-            parameters[param.name] = get_type_info(param.annotation, type_map)
+            # Recursively remove all additionalProperties for Gemini compatibility
+            param_info = remove_additional_properties(param_info)
+            parameters[param.name] = param_info
         except KeyError as e:
             raise KeyError(f"Unknown type annotation {param.annotation} for parameter {param.name}: {str(e)}")
 
