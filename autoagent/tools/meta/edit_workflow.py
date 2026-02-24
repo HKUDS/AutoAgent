@@ -128,7 +128,7 @@ def single_event_to_code(event: dict, agent_info_dict: dict) -> str:
     - listen (list[str]): the listen to the event
     - agent (dict): the agent to run
     """
-    if event["listen"] == None or len(event["listen"]) == 0:
+    if event["listen"] is None or len(event["listen"]) == 0:
         event_method = "make_event"
     else: 
         event_method = "listen_group([{}])".format(", ".join(event["listen"]))

@@ -33,7 +33,7 @@ async def run_inference(item, save_dir, workflow):
 
     if workflow == "majority_voting":
         answer = await majority_voting(prompt)
-    elif workflow == None:
+    elif workflow is None:
         agent = get_math_solver_agent(model="deepseek/deepseek-chat")
         client = MetaChain()
         messages = [
@@ -93,7 +93,7 @@ async def main(args):
 
     print(f"Total number of items to process: {len(test_dataset)}")
 
-    if args.workflow == None:
+    if args.workflow is None:
         save_dir = os.path.join(args.save_dir, "math_solver")
         save_dir = Path(save_dir)
         save_dir.mkdir(parents=True, exist_ok=True)

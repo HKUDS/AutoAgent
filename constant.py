@@ -11,7 +11,7 @@ def str_to_bool(value):
     if isinstance(value, bool):
         return value
         
-    if value == None:
+    if value is None:
         return None
         
     value = str(value).lower().strip()
