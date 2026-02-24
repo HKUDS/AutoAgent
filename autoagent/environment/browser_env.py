@@ -256,7 +256,7 @@ def _click_id(bid: str, button: Literal["left", "middle", "right"] = "left"):
                     # 等待页面完全加载
                     # 增加等待时间，确保页面完全加载
                     page.wait_for_load_state("networkidle", timeout=3000)
-            except:
+            except Exception:
                 pass
             
         return
@@ -322,7 +322,7 @@ def _checkMeetChallenge():
                       (!document.body.textContent.includes("请完成以下操作，验证您是真人。") &&
                        !document.body.textContent.includes("Verify you are human by completing the action below."))
             """, timeout=20000)
-        except:
+        except Exception:
             print("等待验证超时")
         
         # 检查是否仍在验证页面
