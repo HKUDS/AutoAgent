@@ -66,7 +66,7 @@ class LocalEnv:
                 conda_sh = Path(base_path) / "etc" / "profile.d" / "conda.sh"
                 if conda_sh.exists():
                     return str(conda_sh)
-        except:
+        except (subprocess.SubprocessError, OSError):
             pass
 
         # 3. If all fails, return None and handle in run_command
