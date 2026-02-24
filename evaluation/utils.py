@@ -263,7 +263,6 @@ def run_evaluation(
             results_queue.close()
             results_queue.join_thread()
 
-    output_fp.close()
     logger.info('\nEvaluation finished.\n')
 def _process_instance_wrapper_mp(args):
     """Wrapper for multiprocessing, especially for imap_unordered."""
