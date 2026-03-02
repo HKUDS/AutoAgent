@@ -254,7 +254,17 @@ class MetaChain:
                 )
                 continue
             args = json.loads(tool_call.function.arguments)
-            
+            if not isinstance(args, dict):
+                # The LLM occasionally returns a bare JSON value (string, number)
+                # instead of a JSON object.  Map it to the first non-context
+                # parameter so the call can still proceed.
+                func_sig = inspect.signature(function_map[name])
+                first_param = next(
+                    (p for p in func_sig.parameters if p != __CTX_VARS_NAME__),
+                    None,
+                )
+                args = {first_param: args} if first_param else {}
+
             # debug_print(
             #     debug, f"Processing tool call: {name} with arguments {args}")
             func = function_map[name]

@@ -257,6 +257,9 @@ def create_orchestrator_agent(agent_name: str, agent_description: str, sub_agent
     if agent_list.startswith("[ERROR]"):
         return "Failed to list agents. Error: " + agent_list
     agent_dict = json.loads(agent_list)
+    missing = [sa["name"] for sa in sub_agents if sa["name"] not in agent_dict]
+    if missing:
+        return f"[ERROR] Sub-agent(s) not found in registry: {missing}. Register them first."
     sub_agent_info = [agent_dict[sub_agent["name"]] for sub_agent in sub_agents]
     import_agent_str = ""
     for ainfo in sub_agent_info:
