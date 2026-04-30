@@ -81,9 +81,7 @@ html,body { height:100%; overflow:hidden; font-family:'Tajawal',sans-serif; back
 .splash-loading { color:var(--text2); font-size:.88rem }
 
 /* ===== APP ===== */
-#app { height:100vh; display:flex; flex-direction:column }
-.hidden { display:none!important }
-
+#app { height:100vh; display:flex; flex-direction:column; opacity:1 }
 .hidden { display:none!important }
 
 /* =========================================================

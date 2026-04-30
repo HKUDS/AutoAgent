@@ -67,7 +67,8 @@ window.addEventListener('DOMContentLoaded', () => {
     document.getElementById('splash').classList.add('fade-out');
     setTimeout(() => {
       document.getElementById('splash').style.display = 'none';
-      document.getElementById('app').classList.remove('hidden');
+      const appEl = document.getElementById('app');
+      if (appEl) appEl.classList.remove('hidden');
       initApp();
     }, 400);
   }, 1200);
