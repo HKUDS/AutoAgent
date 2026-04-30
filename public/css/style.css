@@ -2468,15 +2468,45 @@ a.share-btn-card {
 /* ============================================================
    🎨 QUICK CARD COLORS
    ============================================================ */
-.q-hosp::before   { background:linear-gradient(135deg,#1a6685,#27ae60); }
-.q-news::before   { background:linear-gradient(135deg,#f39c12,#d35400); }
-.q-rides::before  { background:linear-gradient(135deg,#2980b9,#1abc9c); }
+/* — hospitals — */
+.q-hosp   { border-color:rgba(26,102,133,.4); background:rgba(26,102,133,.08); }
+.q-hosp:hover   { border-color:rgba(39,174,96,.6); box-shadow:0 8px 24px rgba(26,102,133,.25); }
+.q-hosp::before { background:linear-gradient(135deg,#1a6685,#27ae60); }
+/* — news — */
+.q-news   { border-color:rgba(243,156,18,.35); background:rgba(243,156,18,.07); }
+.q-news:hover   { border-color:rgba(211,84,0,.6);  box-shadow:0 8px 24px rgba(243,156,18,.25); }
+.q-news::before { background:linear-gradient(135deg,#f39c12,#d35400); }
+/* — rides — */
+.q-rides  { border-color:rgba(41,128,185,.35); background:rgba(41,128,185,.07); }
+.q-rides:hover  { border-color:rgba(26,188,156,.6); box-shadow:0 8px 24px rgba(41,128,185,.25); }
+.q-rides::before{ background:linear-gradient(135deg,#2980b9,#1abc9c); }
+/* — weather — */
+.q-weather{ border-color:rgba(41,128,185,.35); background:rgba(142,68,173,.07); }
+.q-weather:hover{ border-color:rgba(142,68,173,.6); box-shadow:0 8px 24px rgba(142,68,173,.25); }
 .q-weather::before{ background:linear-gradient(135deg,#2980b9,#8e44ad); }
-.q-water::before  { background:linear-gradient(135deg,#2980b9,#16a085); }
-.q-study::before  { background:linear-gradient(135deg,#8e44ad,#9b59b6); }
-.q-help::before   { background:linear-gradient(135deg,#e67e22,#e74c3c); }
-.q-polls::before  { background:linear-gradient(135deg,#16a085,#1abc9c); }
-.q-hosp:hover,.q-news:hover,.q-rides:hover,.q-weather:hover,.q-water:hover,.q-study:hover,.q-help:hover,.q-polls:hover { transform:translateY(-3px) scale(1.02); }
+/* — water — */
+.q-water  { border-color:rgba(22,160,133,.35); background:rgba(22,160,133,.07); }
+.q-water:hover  { border-color:rgba(22,160,133,.6);  box-shadow:0 8px 24px rgba(22,160,133,.25); }
+.q-water::before{ background:linear-gradient(135deg,#2980b9,#16a085); }
+/* — study — */
+.q-study  { border-color:rgba(142,68,173,.35); background:rgba(142,68,173,.07); }
+.q-study:hover  { border-color:rgba(155,89,182,.6); box-shadow:0 8px 24px rgba(142,68,173,.25); }
+.q-study::before{ background:linear-gradient(135deg,#8e44ad,#9b59b6); }
+/* — help — */
+.q-help   { border-color:rgba(230,126,34,.35); background:rgba(230,126,34,.07); }
+.q-help:hover   { border-color:rgba(231,76,60,.6);  box-shadow:0 8px 24px rgba(230,126,34,.25); }
+.q-help::before { background:linear-gradient(135deg,#e67e22,#e74c3c); }
+/* — polls — */
+.q-polls  { border-color:rgba(22,160,133,.35); background:rgba(22,160,133,.07); }
+.q-polls:hover  { border-color:rgba(26,188,156,.6); box-shadow:0 8px 24px rgba(22,160,133,.25); }
+.q-polls::before{ background:linear-gradient(135deg,#16a085,#1abc9c); }
+/* — dashboard — */
+.q-dash   { border-color:rgba(52,152,219,.35); background:rgba(52,152,219,.07); }
+.q-dash:hover   { border-color:rgba(41,128,185,.6); box-shadow:0 8px 24px rgba(52,152,219,.25); }
+.q-dash::before { background:linear-gradient(135deg,#3498db,#2980b9); }
+/* — shared hover boost — */
+.q-hosp:hover,.q-news:hover,.q-rides:hover,.q-weather:hover,.q-water:hover,
+.q-study:hover,.q-help:hover,.q-polls:hover,.q-dash:hover { transform:translateY(-3px) scale(1.02); }
 
 /* ============================================================
    🖼️ ADVANCED PROFILE

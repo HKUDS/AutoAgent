@@ -61,6 +61,23 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 async function initApp() {
+  // مسح كاش localStorage القديم عند كل تشغيل جديد للتطبيق
+  try {
+    const cacheVersion = '7.2';
+    const storedVer = localStorage.getItem('_nabdh_cache_ver');
+    if (storedVer !== cacheVersion) {
+      // مسح جميع مفاتيح الكاش القديمة
+      const keysToRemove = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && (k.startsWith('_cache_') || k.startsWith('_api_') || k.startsWith('nabdh_'))) {
+          keysToRemove.push(k);
+        }
+      }
+      keysToRemove.forEach(k => localStorage.removeItem(k));
+      localStorage.setItem('_nabdh_cache_ver', cacheVersion);
+    }
+  } catch(e) {}
   connectSocket();
   // تحميل البيانات بشكل متوازٍ - لا يتوقف التطبيق إذا فشلت أي منها
   await Promise.allSettled([loadStats(), loadAlerts(), loadExchange(), loadMedicines(), loadVoice(), loadSkills(), loadMarket()]);
@@ -2283,6 +2300,7 @@ function goSection(name, pushHistory) {
   if (bnav) bnav.classList.add('active-bnav');
   const mc = document.getElementById('mainContent'); if (mc) mc.scrollTop = 0;
   currentSection = name;
+  if (name === 'leaderboard') { openLeaderboard(); return; }
   if (name === 'map') { if (!map) initMap(); else setTimeout(() => map.invalidateSize(), 150); renderMapAlerts(); updateMapCounts(); loadNearbyUsers(); loadNearbyPeople(); }
   if (name === 'medicine') renderMedicines();
   if (name === 'voice')    renderVoice();
@@ -7223,14 +7241,8 @@ function shareReferral() {
   }, 2000);
 })();
 
-// Override goSection to handle leaderboard (use window assignment to avoid hoisting)
-(function() {
-  var _origGoSection = window.goSection;
-  window.goSection = function(name, push) {
-    if (name === 'leaderboard') { openLeaderboard(); return; }
-    if (typeof _origGoSection === 'function') _origGoSection(name, push);
-  };
-})();
+// goSection leaderboard hook - safe inline check (no override needed)
+// leaderboard is handled directly inside goSection via openLeaderboard()
 
 // Hook into existing functions to award points
 // Override vote to add points
@@ -7963,57 +7975,40 @@ function scheduleIdlePrefetch() {
 }
 
 /* ── Enhanced loadAlerts with skeleton + cache ──────────── */
-const _origLoadAlerts = loadAlerts;
-async function loadAlerts(forceRefresh) {
+window._loadAlertsEnhanced = async function(forceRefresh) {
   const el = document.getElementById('homeAlerts');
-  // Show skeleton immediately
   if (el && !allAlerts.length) el.innerHTML = skeletonCards(4, 'alert');
   try {
-    allAlerts = await cachedFetch('/api/alerts', 120000, forceRefresh);
+    allAlerts = await cachedFetch('/api/alerts', 60000, forceRefresh);
     renderHomeAlerts(); updateTicker();
   } catch {
-    allAlerts = [];
-    if (el) renderHomeAlerts();
+    try { allAlerts = await fetch('/api/alerts').then(r => r.json()); } catch { allAlerts = []; }
+    renderHomeAlerts(); updateTicker();
   }
-}
+};
 
 /* ── Enhanced loadMarket with skeleton + cache ──────────── */
-const _origLoadMarket = loadMarket;
-async function loadMarket(forceRefresh) {
+window._loadMarketEnhanced = async function(forceRefresh) {
   const el = document.getElementById('marketList');
   if (el && !allMarket.length) el.innerHTML = skeletonCards(4, 'market');
   try {
-    allMarket = await cachedFetch('/api/market', 120000, forceRefresh);
+    allMarket = await cachedFetch('/api/market', 60000, forceRefresh);
     renderMarket();
   } catch {
-    allMarket = [];
+    try { allMarket = await fetch('/api/market').then(r => r.json()); } catch { allMarket = []; }
     renderMarket();
   }
-}
+};
 
 /* ── Enhanced loadStats with cache ─────────────────────── */
-const _origLoadStats = loadStats;
-async function loadStats(forceRefresh) {
+window._loadStatsEnhanced = async function(forceRefresh) {
   try {
     const s = await cachedFetch('/api/stats', 30000, forceRefresh);
     updateStats(s);
-  } catch {}
-}
-
-/* ── Image viewer with pinch zoom ───────────────────────── */
-function viewFullImage(src) {
-  let viewer = document.getElementById('fullImgViewer');
-  if (!viewer) {
-    viewer = document.createElement('div');
-    viewer.id = 'fullImgViewer';
-    viewer.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:9999;display:flex;align-items:center;justify-content:center;cursor:zoom-out';
-    viewer.innerHTML = '<img id="fullImgEl" style="max-width:96vw;max-height:96vh;object-fit:contain;border-radius:8px;transition:transform .2s"/><button style="position:absolute;top:1rem;right:1rem;background:rgba(255,255,255,.1);border:none;color:#fff;font-size:1.6rem;width:2.5rem;height:2.5rem;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center" onclick="document.getElementById(\'fullImgViewer\').remove()">✕</button>';
-    viewer.addEventListener('click', e => { if (e.target === viewer) viewer.remove(); });
-    document.body.appendChild(viewer);
+  } catch {
+    try { const s = await fetch('/api/stats').then(r=>r.json()); updateStats(s); } catch {}
   }
-  document.getElementById('fullImgEl').src = src;
-  viewer.style.display = 'flex';
-}
+};
 
 /* ── Format file size ───────────────────────────────────── */
 function fmtSize(bytes) {
@@ -8072,8 +8067,6 @@ const _debouncedPeopleSearch = debounce(function(q) {
     el.innerHTML = filtered.map(u => renderPersonCard(u)).join('');
   }
 }, 300);
-
-function smartSearch(q) { _debouncedPeopleSearch(q); }
 
 /* ── Animated counter with easing (improved) ───────────── */
 function animateCount2(id, target, duration) {
@@ -8316,19 +8309,6 @@ function openAlertDetails(alertId) {
 }
 
 /* ============================================================
-   🔔 IN-APP NOTIFICATION SYSTEM
-============================================================ */
-function showInAppNotif(msg, type, duration) {
-  const container = document.getElementById('inAppNotifContainer');
-  if (!container) return;
-  const notif = document.createElement('div');
-  notif.style.cssText = 'background:' + (type === 'error' ? 'rgba(231,76,60,.95)' : type === 'success' ? 'rgba(46,204,113,.95)' : 'rgba(26,188,156,.95)') + ';color:#fff;padding:.5rem 1rem;border-radius:2rem;font-size:.85rem;font-weight:600;max-width:90vw;text-align:center;box-shadow:0 4px 16px rgba(0,0,0,.4);animation:slideDown .3s ease;pointer-events:auto';
-  notif.textContent = msg;
-  container.appendChild(notif);
-  setTimeout(() => { notif.style.opacity = '0'; notif.style.transform = 'translateY(-10px)'; notif.style.transition = 'all .3s'; setTimeout(() => notif.remove(), 300); }, duration || 3000);
-}
-
-/* ============================================================
    📈 TOPBAR LIVE RATE UPDATE
 ============================================================ */
 // Update live USD rate from exchange rates
@@ -8354,8 +8334,14 @@ function sanitizeInput(str, maxLen) {
 /* ============================================================
    📱 HAPTIC FEEDBACK (vibration for mobile)
 ============================================================ */
-function haptic(pattern) {
-  if (navigator.vibrate) navigator.vibrate(pattern || [50]);
+function haptic(p) {
+  if (!navigator.vibrate) return;
+  if (typeof p === 'string') {
+    const patterns = { light:[10], medium:[20], heavy:[30,10,30], success:[10,5,10], error:[50,10,50] };
+    navigator.vibrate(patterns[p] || [10]);
+  } else {
+    navigator.vibrate(p || [50]);
+  }
 }
 
 /* ============================================================
@@ -8639,13 +8625,6 @@ function showEnhancedToast(msg, type = 'info', duration = 3500) {
 }
 // Override default showToast
 window.showToast = showEnhancedToast;
-
-/* ── Haptic Feedback ───────────────────────────────────────── */
-function haptic(type = 'light') {
-  if (!navigator.vibrate) return;
-  const patterns = { light: [10], medium: [20], heavy: [30, 10, 30], success: [10, 5, 10], error: [50, 10, 50] };
-  navigator.vibrate(patterns[type] || [10]);
-}
 
 /* ── Connection Quality Monitor ────────────────────────────── */
 const ConnectionMonitor = {
