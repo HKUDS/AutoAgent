@@ -415,9 +415,13 @@ document.addEventListener('click', e => {
 ============================================================ */
 function connectSocket() {
   try {
-    socket = io({ timeout: 5000, reconnectionAttempts: 3, transports: ['websocket', 'polling'] });
+    socket = io({ timeout: 8000, reconnectionAttempts: 5, transports: ['websocket', 'polling'] });
   } catch(e) { return; }
-  socket.on('connect_error', () => { /* الاتصال اختياري */ });
+  socket.on('connect', () => {
+    const offEl = document.getElementById('offlineIndicator');
+    if (offEl) offEl.classList.add('hidden');
+  });
+  socket.on('connect_error', () => { /* الاتصال اختياري - لا يوقف التطبيق */ });
   socket.on('connect_timeout', () => { /* لا يوقف التطبيق */ });
   socket.on('stats_update', s => updateStats(s));
   socket.on('new_alert', alert => onNewAlert(alert));
@@ -10039,13 +10043,15 @@ var _myHoodGroups = JSON.parse(localStorage.getItem('_myHoodGroups') || '[]');
 
 /* ── تحميل المجموعات ──────────────────────────────────── */
 async function loadHoodGroups() {
+  const el = document.getElementById('hoodGroupsList');
+  if (el) el.innerHTML = '<div class="skel-wrap"><div class="skel skel-card"></div><div class="skel skel-card"></div><div class="skel skel-card"></div></div>';
   try {
     const res = await fetch('/api/hood');
+    if (!res.ok) throw new Error('HTTP ' + res.status);
     _hoodGroups = await res.json();
     renderHoodGroups();
   } catch(e) {
-    document.getElementById('hoodGroupsList').innerHTML =
-      '<p style="text-align:center;color:var(--text2);padding:2rem">تعذّر تحميل المجموعات</p>';
+    if (el) el.innerHTML = '<div class="hood-empty"><div class="hood-empty-ico">🏘️</div><div class="hood-empty-title">أنشئ أول مجموعة حي!</div><div class="hood-empty-sub">لا توجد مجموعات بعد في هذه المنطقة.<br>اضغط على الزر أدناه لتبدأ.</div></div>';
   }
 }
 
@@ -10063,7 +10069,10 @@ function renderHoodGroups() {
     );
   }
   if (!list.length) {
-    el.innerHTML = '<div class="empty-state"><div class="es-icon">🏘️</div><div class="es-text">لا توجد مجموعات بعد — كن الأول!</div></div>';
+    const emptyMsg = _hoodSearch || _hoodFilter !== 'all'
+      ? '<div class="hood-empty"><div class="hood-empty-ico">🔍</div><div class="hood-empty-title">لا نتائج</div><div class="hood-empty-sub">جرّب تغيير الفلتر أو البحث بكلمة مختلفة</div></div>'
+      : '<div class="hood-empty"><div class="hood-empty-ico">🏘️</div><div class="hood-empty-title">أنشئ أول مجموعة حي!</div><div class="hood-empty-sub">لا توجد مجموعات بعد.<br>اضغط على الزر أعلاه لتبدأ مجموعة في حيّك.</div></div>';
+    el.innerHTML = emptyMsg;
     return;
   }
   el.innerHTML = list.map(g => hoodGroupCard(g)).join('');
@@ -10449,18 +10458,6 @@ function _timeAgo(ts) {
   } catch(e) { return ''; }
 }
 
-/* ── Load on section change ───────────────────────────── */
-(function() {
-  var _origGoSection = typeof goSection === 'function' ? goSection : null;
-  if (_origGoSection) {
-    goSection = function(name) {
-      _origGoSection(name);
-      if (name === 'hood') loadHoodGroups();
-    };
-  }
-  // also load once on DOMContentLoaded if section is hood
-  document.addEventListener('DOMContentLoaded', function() {
-    if (location.hash === '#hood') loadHoodGroups();
-  });
-})();
+/* ── Load on section change (already handled in main goSection) ── */
+/* removed duplicate hook */
 
