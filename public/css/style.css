@@ -8792,3 +8792,100 @@ button:not(:disabled) { pointer-events: auto !important; cursor: pointer !import
    🚫 BLOCK BUTTON IN DM
    ============================================================ */
 #dmBlockBtn.blocked-active{color:#e74c3c!important;}
+
+/* ============================================================
+   📡 NEARBY BANNER — إشعار الإضافات الجديدة من المنطقة
+   ============================================================ */
+.nearby-banner {
+  position: fixed;
+  top: 70px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  min-width: 280px;
+  max-width: calc(100vw - 2rem);
+  animation: nb-slidein 0.4s cubic-bezier(.22,1,.36,1) both;
+}
+.nearby-banner.nb-fadeout {
+  animation: nb-fadeout 0.5s ease forwards;
+}
+@keyframes nb-slidein {
+  from { opacity:0; transform:translateX(-50%) translateY(-20px); }
+  to   { opacity:1; transform:translateX(-50%) translateY(0); }
+}
+@keyframes nb-fadeout {
+  from { opacity:1; transform:translateX(-50%) translateY(0); }
+  to   { opacity:0; transform:translateX(-50%) translateY(-12px); }
+}
+.nearby-banner-inner {
+  display: flex;
+  align-items: center;
+  gap: .8rem;
+  background: linear-gradient(135deg, rgba(26,188,156,.95), rgba(22,160,133,.98));
+  color: #fff;
+  border-radius: 1rem;
+  padding: .75rem 1rem;
+  box-shadow: 0 8px 30px rgba(0,0,0,.35);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,.2);
+  direction: rtl;
+}
+.nearby-banner-icon {
+  font-size: 1.8rem;
+  flex-shrink: 0;
+  animation: nb-pulse 1s ease-in-out 2;
+}
+@keyframes nb-pulse {
+  0%,100% { transform: scale(1); }
+  50%      { transform: scale(1.2); }
+}
+.nearby-banner-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: .2rem;
+  font-size: .88rem;
+  line-height: 1.4;
+}
+.nearby-banner-text strong {
+  font-weight: 700;
+  font-size: .9rem;
+}
+.nearby-banner-close {
+  background: rgba(255,255,255,.2);
+  border: none;
+  color: #fff;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: .85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background .2s;
+}
+.nearby-banner-close:hover { background: rgba(255,255,255,.35); }
+
+/* ============================================================
+   🔊 SOUND SETTINGS — إعدادات الصوت
+   ============================================================ */
+.sound-test-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  background: rgba(26,188,156,.15);
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  border-radius: 2rem;
+  padding: .35rem .9rem;
+  font-size: .82rem;
+  cursor: pointer;
+  transition: all .2s;
+  font-family: inherit;
+}
+.sound-test-btn:hover {
+  background: rgba(26,188,156,.3);
+}
+
