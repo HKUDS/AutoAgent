@@ -944,10 +944,11 @@ main#mainContent{flex:1;overflow-y:auto;overflow-x:hidden;padding-bottom:72px;sc
 
 /* ===== MARKET MODAL ===== */
 .modal-overlay {
-  position:fixed; inset:0; background:rgba(0,0,0,.82); z-index:400;
+  position:fixed; inset:0; background:rgba(0,0,0,.82); z-index:5000;
   display:flex; align-items:center; justify-content:center; padding:1rem;
   backdrop-filter:blur(4px);
 }
+.modal-overlay.hidden { display:none !important; }
 .modal-box {
   background:var(--dark2); border:1px solid var(--border);
   border-radius:20px; padding:1.5rem; width:100%; max-width:420px;
@@ -1983,16 +1984,18 @@ a.share-btn-card {
 .offline-indicator {
   position: fixed;
   top: 0; left: 0; right: 0;
-  background: linear-gradient(90deg, #e74c3c, #c0392b);
+  background: linear-gradient(90deg, #e67e22, #d35400);
   color: #fff;
   text-align: center;
-  padding: .5rem 1rem;
-  font-size: .82rem;
+  padding: .4rem 1rem;
+  font-size: .8rem;
   font-weight: 600;
-  z-index: 9999;
+  z-index: 500;
+  pointer-events: none;
   animation: slideDown .3s ease;
   letter-spacing: .02em;
 }
+.offline-indicator.hidden { display: none !important; }
 @keyframes slideDown { from{transform:translateY(-100%)} to{transform:translateY(0)} }
 
 /* ── PWA Install Banner (bottom sheet) ── */
@@ -7231,14 +7234,7 @@ body.emergency-theme .bottom-nav { border-top-color:rgba(231,76,60,.5); }
 .trend-type { font-size: .9rem; flex-shrink: 0; }
 
 /* ── Connection quality banner ───────────────────────────── */
-.offline-indicator {
-  position: fixed; top: 0; left: 0; right: 0;
-  background: var(--orange); color: #fff;
-  text-align: center; padding: .4rem 1rem;
-  font-size: .85rem; font-weight: 600; z-index: 9998;
-  transition: all .3s ease; display: flex; align-items: center; justify-content: center; gap: .4rem;
-}
-.offline-indicator.hidden { display: none !important; }
+/* (merged into single definition above) */
 
 /* ── PWA Install Banner (enhanced) ──────────────────────── */
 .pwa-install-banner {
@@ -8145,19 +8141,22 @@ button:active, .btn:active { transform: scale(.96) !important; }
 /* ── Offline Banner ────────────────────────────────────────── */
 #offlineIndicator {
   position: fixed;
-  top: var(--topbar-h);
+  top: var(--topbar-h, 56px);
   left: 0; right: 0;
-  background: rgba(107,114,128,0.9);
+  background: rgba(230,126,34,0.95);
   color: #fff;
   text-align: center;
-  padding: 8px;
-  font-size: 0.82rem;
-  z-index: 900;
-  backdrop-filter: var(--blur-bg);
+  padding: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  z-index: 500;
+  pointer-events: none;
+  backdrop-filter: blur(4px);
   transform: translateY(-100%);
   transition: transform 0.3s;
 }
 #offlineIndicator.show { transform: translateY(0); }
+#offlineIndicator.hidden { display: none !important; }
 
 /* ── Notification Dropdown ─────────────────────────────────── */
 .notif-panel {
@@ -9026,12 +9025,13 @@ button:not(:disabled) { pointer-events: auto !important; cursor: pointer !import
 .gp-action-btn:hover { background: #388e3c; }
 .gp-action-btn.joined { background: var(--dark4); color: #4caf50; border: 1px solid #4caf50; }
 
-/* Create modal card */
-.modal-overlay {
-  position: fixed; inset: 0; background: rgba(0,0,0,.65);
-  z-index: 9000; display: flex; align-items: center; justify-content: center;
+/* Create modal card — hood modal uses .hood-modal-overlay instead */
+.hood-modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.75);
+  z-index: 5500; display: flex; align-items: center; justify-content: center;
   padding: 1rem;
 }
+.hood-modal-overlay.hidden { display: none !important; }
 .modal-card {
   background: var(--dark2); border: 1px solid var(--border);
   border-radius: var(--r); width: 100%; max-width: 420px;
@@ -9048,3 +9048,12 @@ button:not(:disabled) { pointer-events: auto !important; cursor: pointer !import
 }
 .modal-close:hover { color: var(--accent); }
 
+
+/* ── Hood Empty State ─────────────────────────────────────── */
+.hood-empty {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; padding: 3rem 1.5rem; text-align: center;
+}
+.hood-empty-ico  { font-size: 3rem; margin-bottom: .8rem; }
+.hood-empty-title{ font-size: 1.1rem; font-weight: 700; color: var(--text); margin-bottom: .4rem; }
+.hood-empty-sub  { font-size: .85rem; color: var(--text2); line-height: 1.6; }
