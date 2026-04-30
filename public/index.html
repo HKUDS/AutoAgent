@@ -2955,6 +2955,24 @@
         </div>
       </div>
 
+      <!-- التنبيهات الصوتية -->
+      <div class="settings-section">
+        <div class="settings-section-title">🔊 التنبيهات الصوتية</div>
+        <div class="settings-row">
+          <div class="settings-row-info">
+            <div class="settings-row-label">تفعيل الأصوات للأحداث الجديدة</div>
+            <div class="settings-row-sub">تنبيه صوتي عند كل حدث أو إضافة قريبة</div>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="soundToggle" checked onchange="toggleSound(this.checked)">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="settings-row" style="padding-top:.3rem">
+          <button class="sound-test-btn" onclick="testNotifSound()">▶ اختبار الصوت</button>
+        </div>
+      </div>
+
       <!-- إشعارات الإنجازات -->
       <div class="settings-section">
         <div class="settings-section-title">🔔 الإشعارات</div>
@@ -2970,6 +2988,7 @@
         <div class="settings-row">
           <div class="settings-row-info">
             <div class="settings-row-label">إشعارات التقارير الجديدة القريبة</div>
+            <div class="settings-row-sub">صوت + banner عند حدث في نطاق 50 كم</div>
           </div>
           <label class="toggle-switch">
             <input type="checkbox" id="settingsNearbyToggle" checked onchange="saveSettingsBool('notif_nearby',this.checked)">

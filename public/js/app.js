@@ -9354,9 +9354,12 @@ function _loadSettingsUI() {
   if (nt) nt.checked = _nabdhSettings.notif_nearby !== false;
   var dt = document.getElementById('settingsDmToggle');
   if (dt) dt.checked = _nabdhSettings.notif_dm !== false;
+  // الصوت
+  var snd = document.getElementById('soundToggle');
+  if (snd) snd.checked = _nabdhSettings.soundEnabled !== false;
   // إصدار
   var sv = document.getElementById('settingsVersion');
-  if (sv) sv.textContent = 'v7.6';
+  if (sv) sv.textContent = 'v7.7';
   // قائمة المحظورين
   _renderBlockedList();
 }
@@ -9733,4 +9736,292 @@ function _renderBlockedList() {
       '</div>';
   }).join('');
 }
+
+
+/* ============================================================
+   🔊 SOUND NOTIFICATIONS — تنبيهات صوتية للأحداث الجديدة
+   ============================================================
+   يعمل عبر Web Audio API (بدون ملفات خارجية)
+   أنواع الأصوات:
+     • alert  – تنبيه/حادثة جديدة
+     • sos    – نداء استغاثة
+     • msg    – رسالة جديدة
+     • market – منتج/إعلان جديد
+     • prayer – تنبيه صلاة
+     • nearby – إضافة من المنطقة المحيطة
+   يحترم: الوضع الهادئ + إعدادات الإشعارات
+   ============================================================ */
+
+var _audioCtx = null;
+
+function _getAudioCtx() {
+  if (!_audioCtx) {
+    try { _audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
+  }
+  return _audioCtx;
+}
+
+/** تشغيل نغمة بسيطة عبر Web Audio API */
+function _playTone(freqList, durList, waveform) {
+  if (_nabdhSettings.quietMode) return;       // الوضع الهادئ
+  var ctx = _getAudioCtx();
+  if (!ctx) return;
+  // استيقاظ السياق إذا كان معلقاً
+  if (ctx.state === 'suspended') { ctx.resume(); }
+
+  var now = ctx.currentTime;
+  var wave = waveform || 'sine';
+
+  freqList.forEach(function(freq, i) {
+    var osc  = ctx.createOscillator();
+    var gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.type      = wave;
+    osc.frequency.setValueAtTime(freq, now);
+
+    var start = now + (durList[i] ? durList.slice(0,i).reduce(function(a,b){return a+b;},0) : 0);
+    var dur   = durList[i] || 0.15;
+
+    gain.gain.setValueAtTime(0, start);
+    gain.gain.linearRampToValueAtTime(0.25, start + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.001, start + dur);
+
+    osc.start(start);
+    osc.stop(start + dur + 0.05);
+  });
+}
+
+/** خزّان أصوات حسب النوع */
+var _soundDefs = {
+  alert:  { freqs:[520, 420],        durs:[0.12, 0.18], wave:'triangle' },
+  sos:    { freqs:[880, 660, 880, 660, 880], durs:[0.1,0.08,0.1,0.08,0.2], wave:'sawtooth' },
+  msg:    { freqs:[660, 880],        durs:[0.1,  0.12], wave:'sine' },
+  market: { freqs:[440, 550, 660],   durs:[0.1,  0.1, 0.15], wave:'sine' },
+  prayer: { freqs:[330, 392, 440, 494, 523], durs:[0.15,0.15,0.15,0.15,0.3], wave:'sine' },
+  nearby: { freqs:[480, 600],        durs:[0.1,  0.15], wave:'triangle' },
+  dm:     { freqs:[700, 900],        durs:[0.08, 0.12], wave:'sine' },
+  blood:  { freqs:[440, 330, 440],   durs:[0.1,  0.08, 0.2], wave:'triangle' },
+  power:  { freqs:[220, 330],        durs:[0.15, 0.2],  wave:'square' },
+  water:  { freqs:[550, 660, 770],   durs:[0.1,  0.1,  0.12], wave:'sine' },
+  achiev: { freqs:[523, 659, 784, 1047], durs:[0.12,0.12,0.12,0.25], wave:'sine' }
+};
+
+/**
+ * الدالة الرئيسية: شغّل صوت التنبيه
+ * @param {string} type  - نوع التنبيه (alert|sos|msg|market|prayer|nearby|dm|blood|power|water|achiev)
+ * @param {string} [notifKey] - مفتاح الإعداد للتحقق (notif_nearby|notif_dm|notif_achiev)
+ */
+function playNotifSound(type, notifKey) {
+  // تحقق من الوضع الهادئ
+  if (_nabdhSettings.quietMode) return;
+  // تحقق من إعداد مخصص
+  if (notifKey && _nabdhSettings[notifKey] === false) return;
+  var def = _soundDefs[type] || _soundDefs.alert;
+  _playTone(def.freqs, def.durs, def.wave);
+}
+
+/* ── hook في onNewAlert لتشغيل الصوت ── */
+var _origOnNewAlert = typeof onNewAlert === 'function' ? onNewAlert : null;
+onNewAlert = function(alert) {
+  if (_origOnNewAlert) _origOnNewAlert(alert);
+  // تحقق من إعداد إشعارات التنبيهات القريبة
+  if (_nabdhSettings.notif_nearby === false) return;
+  // صوت حسب نوع الحدث
+  var type = 'alert';
+  if (alert.type === 'sos' || (alert.icon && alert.icon.includes('🆘'))) type = 'sos';
+  else if (alert.type === 'blood' || (alert.icon && alert.icon.includes('🩸'))) type = 'blood';
+  else if (alert.type === 'power' || alert.type === 'electricity') type = 'power';
+  else if (alert.type === 'water') type = 'water';
+  playNotifSound(type);
+};
+
+/* ── hook في socket new_market_item ── */
+var _origConnectSocket = typeof connectSocket === 'function' ? connectSocket : null;
+// نضيف الصوت مباشرة على socket events عبر مراقبة socket
+(function _patchSocketSounds(){
+  var _patchInterval = setInterval(function(){
+    if (typeof socket === 'undefined' || !socket) return;
+    clearInterval(_patchInterval);
+
+    // رسائل السوق
+    socket.on('new_market_item', function(item){
+      if (_nabdhSettings.notif_nearby !== false) playNotifSound('market');
+    });
+
+    // رسائل الدم
+    socket.on('new_blood_request', function(){
+      playNotifSound('blood');
+    });
+
+    // تنبيه SOS مباشر
+    socket.on('sos_alert', function(){
+      playNotifSound('sos');
+    });
+
+    // رسائل مباشرة
+    socket.on('dm_msg', function(){
+      if (_nabdhSettings.notif_dm !== false) playNotifSound('dm', 'notif_dm');
+    });
+
+    // تنبيهات قريبة عامة (nearby alerts update)
+    socket.on('new_alert', function(alert){
+      // الصوت يُشغَّل من onNewAlert المعدَّلة أعلاه
+    });
+
+  }, 500);
+})();
+
+/* ── hook في showToast لصوت الإنجازات ── */
+var _origShowToast = typeof showToast === 'function' ? showToast : null;
+if (_origShowToast) {
+  showToast = function(msg, type) {
+    _origShowToast(msg, type);
+    if (type === 'success' && _nabdhSettings.notif_achiev !== false) {
+      // صوت للإنجازات (النقاط / السويسترات)
+      if (typeof msg === 'string' && (msg.includes('نقطة') || msg.includes('🏆') || msg.includes('🥇') || msg.includes('مستوى'))) {
+        playNotifSound('achiev', 'notif_achiev');
+      }
+    }
+  };
+}
+
+/* ── تنبيه صوتي لصلاة الأذان (يُدمج مع المنبّه) ── */
+var _origSchedulePrayerAlarms = typeof _schedulePrayerAlarms === 'function' ? _schedulePrayerAlarms : null;
+/* نضيف الصوت داخل setTimeout الخاص بالمنبّه */
+/* يعتمد على _prayerAlarmTimes الموجود — نُعيد تعريف الدالة */
+(function _patchPrayerSound(){
+  var _patchInterval2 = setInterval(function(){
+    if (typeof _schedulePrayerAlarms !== 'function') return;
+    clearInterval(_patchInterval2);
+    var _origSched = _schedulePrayerAlarms;
+    _schedulePrayerAlarms = function(times) {
+      /* نُشغّل الأصل وبعده نُضيف الصوت */
+      _origSched(times);
+      /* نُجدول الصوت بنفس المنطق */
+      if (!_nabdhSettings.prayerAlarm) return;
+      var prayers2 = [
+        {key:'fajr'},{key:'sunrise'},{key:'dhuhr'},
+        {key:'asr'},{key:'maghrib'},{key:'isha'}
+      ];
+      var now2 = Date.now();
+      prayers2.forEach(function(p){
+        var timeStr = times[p.key];
+        if (!timeStr || timeStr === '—') return;
+        var m = timeStr.match(/(\d+):(\d+)\s*(AM|PM)?/i);
+        if (!m) return;
+        var h = parseInt(m[1]), mn = parseInt(m[2]);
+        if (m[3]) {
+          if (m[3].toUpperCase()==='PM' && h<12) h+=12;
+          if (m[3].toUpperCase()==='AM' && h===12) h=0;
+        }
+        var today2 = new Date();
+        var pTime2 = new Date(today2.getFullYear(), today2.getMonth(), today2.getDate(), h, mn, 0);
+        var alertTime2 = pTime2.getTime() - 5*60*1000;
+        var delay2 = alertTime2 - now2;
+        if (delay2 < 0) return;
+        setTimeout(function(){
+          if (!_nabdhSettings.prayerAlarm) return;
+          playNotifSound('prayer');
+        }, delay2 + 100); // 100ms بعد الإشعار
+      });
+    };
+  }, 800);
+})();
+
+/* ── إضافة زر تفعيل الصوت في الإعدادات ── */
+(function _addSoundToggleToSettings(){
+  window.addEventListener('DOMContentLoaded', function(){
+    // نضيف إعداد الصوت للـ _nabdhSettings إذا لم يكن موجوداً
+    if (_nabdhSettings.soundEnabled === undefined) {
+      _nabdhSettings.soundEnabled = true;
+      _saveSettings();
+    }
+    // نُعيّن حالة toggle الصوت من HTML إذا كان موجوداً
+    var st = document.getElementById('soundToggle');
+    if (st) st.checked = _nabdhSettings.soundEnabled !== false;
+  });
+})();
+
+/** تفعيل / إيقاف الصوت من إعدادات */
+function toggleSound(on) {
+  _nabdhSettings.soundEnabled = on;
+  _saveSettings();
+  // في حالة تفعيل — شغّل نغمة اختبار
+  if (on) {
+    // unlock AudioContext بلمسة المستخدم
+    setTimeout(function(){ playNotifSound('nearby'); }, 100);
+    showToast('🔊 الصوت مفعّل', 'success');
+  } else {
+    showToast('🔇 الصوت مُعطَّل', 'info');
+  }
+}
+
+/** اختبار الصوت من واجهة الإعدادات */
+function testNotifSound() {
+  var saved = _nabdhSettings.quietMode;
+  _nabdhSettings.quietMode = false; // override للاختبار
+  playNotifSound('nearby');
+  setTimeout(function(){ _nabdhSettings.quietMode = saved; }, 300);
+  showToast('🔊 تشغيل نغمة تجريبية...', 'info');
+}
+
+/* ── تنبيه صوتي للتنبيهات القريبة عند تحميل الصفحة ── */
+/* عند أول تحميل للتنبيهات — لا نُصدر صوت (لتفادي الإزعاج)    */
+/* الصوت فقط عند الأحداث الجديدة الفعلية في الوقت الحي          */
+
+/* ── إشعار مرئي + صوتي للإضافات الجديدة من المنطقة ── */
+/**
+ * nearbyNewAlert: يُستدعى عند وصول حدث جديد من منطقة المستخدم
+ * يُعرض إشعاراً خاصاً بالجزء العلوي مع صوت
+ */
+function nearbyNewAlert(alertObj) {
+  if (_nabdhSettings.notif_nearby === false) return;
+  // تشغيل الصوت
+  var sndType = 'nearby';
+  if (alertObj && alertObj.type === 'sos') sndType = 'sos';
+  else if (alertObj && alertObj.type === 'blood') sndType = 'blood';
+  playNotifSound(sndType);
+  // إشعار مرئي منبثق (banner) خاص بالمنطقة
+  var banner = document.createElement('div');
+  banner.className = 'nearby-banner';
+  var icon  = (alertObj && alertObj.icon) || '📡';
+  var msg   = (alertObj && alertObj.msg)  ? alertObj.msg.substring(0, 60) : 'حدث جديد';
+  var area  = (alertObj && alertObj.area) ? alertObj.area : 'منطقتك';
+  banner.innerHTML =
+    '<div class="nearby-banner-inner">' +
+      '<span class="nearby-banner-icon">' + icon + '</span>' +
+      '<div class="nearby-banner-text">' +
+        '<strong>📡 إضافة جديدة من ' + area + '</strong>' +
+        '<span>' + msg + '</span>' +
+      '</div>' +
+      '<button onclick="this.parentElement.parentElement.remove()" class="nearby-banner-close">✕</button>' +
+    '</div>';
+  document.body.appendChild(banner);
+  setTimeout(function(){ if (banner.parentNode) banner.classList.add('nb-fadeout'); }, 6000);
+  setTimeout(function(){ if (banner.parentNode) banner.remove(); }, 7000);
+}
+
+/* نُدمج nearbyNewAlert مع onNewAlert */
+var _origOnNewAlert2 = onNewAlert;
+onNewAlert = function(alert) {
+  _origOnNewAlert2(alert);
+  // تحقق من القرب الجغرافي (50 كم)
+  if (typeof userLat !== 'undefined' && userLat && alert && alert.lat && alert.lng) {
+    var R = 6371;
+    var dLat = (alert.lat - userLat) * Math.PI / 180;
+    var dLng = (alert.lng - (typeof userLng !== 'undefined' ? userLng : 0)) * Math.PI / 180;
+    var a = Math.sin(dLat/2)*Math.sin(dLat/2) +
+            Math.cos(userLat*Math.PI/180)*Math.cos(alert.lat*Math.PI/180)*
+            Math.sin(dLng/2)*Math.sin(dLng/2);
+    var distance = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    if (distance <= 50) {
+      nearbyNewAlert(alert);
+      return; // الصوت شُغِّل من nearbyNewAlert
+    }
+  }
+  // بعيد — صوت خفيف فقط
+  if (_nabdhSettings.notif_nearby !== false) playNotifSound('alert');
+};
 
