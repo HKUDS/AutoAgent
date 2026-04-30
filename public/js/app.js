@@ -46,6 +46,22 @@ function generateUID() {
 window.addEventListener('DOMContentLoaded', () => {
   updateSplash('جاري التحميل...');
   if (!myName) setTimeout(showNameModal, 2000);
+
+  // FIX: Show skeleton for homeAlerts immediately so page never looks empty
+  const _haEl = document.getElementById('homeAlerts');
+  if (_haEl) _haEl.innerHTML =
+    Array(4).fill('<div class="sk-card"><div class="sk-icon"></div><div class="sk-body">' +
+    '<div class="sk-line sk-w80"></div><div class="sk-line sk-w60"></div>' +
+    '<div class="sk-line sk-w40"></div></div></div>').join('');
+
+  // Pre-fetch alerts during splash so they show instantly on app reveal
+  fetch('/api/alerts').then(r => r.json()).then(data => {
+    allAlerts = data;
+    // Render into homeAlerts even while still in splash (hidden) so it's ready
+    renderHomeAlerts();
+    updateTicker();
+  }).catch(() => {});
+
   // تقليل وقت الـ splash من 2.8 ثانية إلى 1.2 ثانية
   setTimeout(() => {
     document.getElementById('splash').classList.add('fade-out');
@@ -2324,6 +2340,25 @@ function goSection(name, pushHistory) {
   if (name === 'polls')      { loadPolls(); }
   if (name === 'dashboard')  { loadDashboard(); }
   requestNotifPermission();
+  // Update active menu item highlight
+  _updateMenuActiveItem(name);
+}
+
+/* ── Update active menu item in side menu ─────────────── */
+function _updateMenuActiveItem(name) {
+  // Map section names to their menu item onclick handlers
+  document.querySelectorAll('#sideMenu .menu-item').forEach(item => {
+    const onclick = item.getAttribute('onclick') || '';
+    // Extract section name from onclick="goSection('X');..."
+    const m = onclick.match(/goSection\(['"]([^'"]+)['"]\)/);
+    if (m) {
+      if (m[1] === name) {
+        item.classList.add('menu-item-active');
+      } else {
+        item.classList.remove('menu-item-active');
+      }
+    }
+  });
 }
 
 /* ============================================================

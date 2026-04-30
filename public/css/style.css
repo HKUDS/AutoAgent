@@ -215,21 +215,23 @@ html,body { height:100%; overflow:hidden; font-family:'Tajawal',sans-serif; back
 .menu-item{
   padding:.78rem 1.2rem;cursor:pointer;
   color:#d1d7db;text-decoration:none;
-  transition:background .15s, transform .1s;
+  transition:background .18s ease, transform .12s ease, border-color .18s ease;
   font-size:.88rem;display:flex;align-items:center;gap:.85rem;
-  border-radius:6px;border:none;background:transparent;
+  border-radius:8px;border:none;background:transparent;
   margin:1px 6px;
+  border-right:3px solid transparent;
   -webkit-tap-highlight-color:rgba(0,168,132,.15);
+  position:relative;
 }
-.menu-item:hover{background:#1f2c34}
-.menu-item:active{background:#2a3942;transform:scale(.98)}
+.menu-item:hover{background:rgba(0,168,132,.08);border-right-color:rgba(0,168,132,.4)}
+.menu-item:active{background:#2a3942;transform:scale(.97)}
 .mi-icon{
   width:36px;height:36px;border-radius:50%;flex-shrink:0;
   background:#1f2c34;display:flex;align-items:center;justify-content:center;
   font-size:1rem;transition:background .2s, transform .15s;
 }
-.menu-item:hover .mi-icon{background:#2a3942;transform:scale(1.08)}
-.menu-item:active .mi-icon{transform:scale(.95)}
+.menu-item:hover .mi-icon{background:rgba(0,168,132,.15);transform:scale(1.1)}
+.menu-item:active .mi-icon{transform:scale(.92)}
 .mi-label{flex:1}
 .mi-badge{
   background:#00a884;color:#111b21;font-size:.68rem;font-weight:700;
@@ -322,7 +324,7 @@ html,body { height:100%; overflow:hidden; font-family:'Tajawal',sans-serif; back
   background:#1f2c34; display:flex; align-items:center; justify-content:center;
   font-size:1.05rem; transition:background .2s;
 }
-.menu-item:hover .menu-item-ico{ background:#2a3942 }
+.menu-item:hover .menu-item-ico{ background:rgba(0,168,132,.12); transform:scale(1.06) }
 .menu-item-body{ flex:1; min-width:0 }
 .menu-item-title{
   font-size:.88rem; font-weight:500; color:#e9edef;
@@ -343,8 +345,9 @@ html,body { height:100%; overflow:hidden; font-family:'Tajawal',sans-serif; back
 .menu-item-report .menu-item-title{ color:#e74c3c }
 .menu-item-market .menu-item-ico{ background:rgba(241,196,15,.12) }
 .menu-item-market .menu-item-title{ color:#f1c40f }
-.menu-item-active .menu-item-ico{ background:rgba(0,168,132,.2) }
+.menu-item-active .menu-item-ico{ background:rgba(0,168,132,.25) !important; box-shadow:0 0 0 2px rgba(0,168,132,.2) }
 .menu-item-active .menu-item-title{ color:#00a884; font-weight:700 }
+.menu-item-active { background:rgba(0,168,132,.1) !important; border-right-color:#00a884 !important; }
 .menu-divider{ height:1px; background:rgba(255,255,255,.05); margin:.3rem 0 }
 
 /* menu footer with brand + version */
