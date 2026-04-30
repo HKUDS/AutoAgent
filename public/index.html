@@ -2984,5 +2984,141 @@ updateOnlineStatus();
 <!-- حاوية الاشعارات الداخلية -->
 <div id="inAppNotifContainer" style="position:fixed;top:70px;left:0;right:0;z-index:9999;pointer-events:none;padding:0 .8rem;display:flex;flex-direction:column;gap:.4rem;align-items:center"></div>
 
+<!-- ===== ONBOARDING OVERLAY (أول زيارة فقط) ===== -->
+<div id="onboardingOverlay" class="onb-overlay hidden" role="dialog" aria-modal="true" aria-label="مرحباً بك في نبض">
+  <div class="onb-backdrop" onclick="onbSkip()"></div>
+  <div class="onb-modal">
+
+    <!-- شريط التقدم -->
+    <div class="onb-progress">
+      <div class="onb-progress-fill" id="onbProgressFill"></div>
+    </div>
+
+    <!-- أزرار التحكم العلوية -->
+    <button class="onb-skip-btn" onclick="onbSkip()" aria-label="تخطي">تخطي ✕</button>
+
+    <!-- ===== الشرائح ===== -->
+    <!-- شريحة 0: ترحيب -->
+    <div class="onb-slide active" data-slide="0">
+      <div class="onb-slide-visual">
+        <div class="onb-big-icon">💓</div>
+        <div class="onb-pulse-rings">
+          <span class="onb-ring r1"></span>
+          <span class="onb-ring r2"></span>
+          <span class="onb-ring r3"></span>
+        </div>
+      </div>
+      <h2 class="onb-title">أهلاً بك في <span class="onb-green">نبض</span></h2>
+      <p class="onb-desc">المنصة المجتمعية الأولى للسودان —<br/>أخبار حية، أسعار الصرف، خدمات طوارئ،<br/>وتواصل مجتمعي كل ذلك في مكان واحد.</p>
+      <div class="onb-tags">
+        <span class="onb-tag">🆓 مجاني</span>
+        <span class="onb-tag">📱 بلا تحميل</span>
+        <span class="onb-tag">🔴 مباشر</span>
+      </div>
+    </div>
+
+    <!-- شريحة 1: الخريطة والبلاغات -->
+    <div class="onb-slide" data-slide="1">
+      <div class="onb-slide-visual">
+        <div class="onb-big-icon">🗺️</div>
+      </div>
+      <h2 class="onb-title">الخريطة الحية والبلاغات</h2>
+      <p class="onb-desc">شاهد كل ما يحدث حولك لحظةً بلحظة على الخريطة التفاعلية — بلاغات الخطر، التحذيرات، ومواقع الأشخاص.</p>
+      <ul class="onb-list">
+        <li>🔴 أبلغ عن حادث أو أزمة فوراً</li>
+        <li>🆘 نداء استغاثة يصل لـ 100 كم</li>
+        <li>🌡️ خريطة كثافة حرارية للمناطق</li>
+        <li>📍 موقعك يُحدَّد تلقائياً</li>
+      </ul>
+    </div>
+
+    <!-- شريحة 2: الخدمات اليومية -->
+    <div class="onb-slide" data-slide="2">
+      <div class="onb-slide-visual">
+        <div class="onb-icons-row">
+          <span>💱</span><span>💊</span><span>🩸</span><span>⚡</span><span>🕌</span>
+        </div>
+      </div>
+      <h2 class="onb-title">خدمات يومية لا غنى عنها</h2>
+      <p class="onb-desc">كل ما تحتاجه يومياً في متناول يدك:</p>
+      <ul class="onb-list">
+        <li>💱 صرّاف الشعب — أسعار صرف لحظية</li>
+        <li>💊 دواء موجود — أقرب صيدلية لك</li>
+        <li>🩸 بنك الدم — تبرع أو ابحث عن متبرع</li>
+        <li>⚡ جدول الكهرباء — بتقارير مجتمعية</li>
+        <li>🕌 أوقات الصلاة — دقيقة حسب موقعك</li>
+      </ul>
+    </div>
+
+    <!-- شريحة 3: المجتمع والسوق -->
+    <div class="onb-slide" data-slide="3">
+      <div class="onb-slide-visual">
+        <div class="onb-icons-row">
+          <span>🛒</span><span>🎓</span><span>🤝</span><span>📰</span><span>🗳️</span>
+        </div>
+      </div>
+      <h2 class="onb-title">مجتمع نشط وسوق حر</h2>
+      <p class="onb-desc">تواصل مع جيرانك وشارك في بناء المجتمع:</p>
+      <ul class="onb-list">
+        <li>🛒 سوق P2P — بيع واشترِ بلا وسيط</li>
+        <li>🎓 مجموعات التعلم — دراسة جماعية مباشرة</li>
+        <li>🤝 بورصة المهارات — تبادل الخدمات</li>
+        <li>📰 الأخبار المحلية — بتحقق جماعي</li>
+        <li>📦 طلبات المساعدة — اطلب أو قدّم يد العون</li>
+      </ul>
+    </div>
+
+    <!-- شريحة 4: نظام النقاط -->
+    <div class="onb-slide" data-slide="4">
+      <div class="onb-slide-visual">
+        <div class="onb-big-icon">🏆</div>
+      </div>
+      <h2 class="onb-title">اربح نقاطاً وارتقِ في المستويات</h2>
+      <p class="onb-desc">كل مساهمة تمنحك نقاطاً لترتقي من <strong>جديد</strong> إلى <strong class="onb-green">أسطورة نبض</strong>:</p>
+      <div class="onb-levels">
+        <span class="onb-lv">🌱 جديد</span>
+        <span class="onb-arrow">→</span>
+        <span class="onb-lv">⚡ نشيط</span>
+        <span class="onb-arrow">→</span>
+        <span class="onb-lv">🔥 متقدم</span>
+        <span class="onb-arrow">→</span>
+        <span class="onb-lv">👑 أسطورة</span>
+      </div>
+      <ul class="onb-list" style="margin-top:.75rem">
+        <li>🚨 بلاغ عاجل ← +10 نقطة</li>
+        <li>🩸 تبرع بالدم ← +25 نقطة</li>
+        <li>🤝 رد على مساعدة ← +30 نقطة</li>
+      </ul>
+    </div>
+
+    <!-- شريحة 5: ابدأ الآن -->
+    <div class="onb-slide" data-slide="5">
+      <div class="onb-slide-visual">
+        <div class="onb-big-icon">🚀</div>
+      </div>
+      <h2 class="onb-title">أنت جاهز الآن!</h2>
+      <p class="onb-desc">استكشف نبض وشارك مجتمعك.<br/>يمكنك دائماً قراءة الدليل الكامل من القائمة الجانبية.</p>
+      <div class="onb-tips">
+        <div class="onb-tip">📍 فعّل خاصية الموقع لأفضل تجربة</div>
+        <div class="onb-tip">📲 ثبّت التطبيق على شاشتك الرئيسية</div>
+        <div class="onb-tip">👤 أكمل ملفك الشخصي لكسب نقاط</div>
+      </div>
+    </div>
+
+    <!-- ===== أزرار التنقل ===== -->
+    <div class="onb-nav">
+      <button class="onb-btn-prev" id="onbPrevBtn" onclick="onbPrev()" style="visibility:hidden">
+        ← السابق
+      </button>
+      <div class="onb-dots" id="onbDots"></div>
+      <button class="onb-btn-next" id="onbNextBtn" onclick="onbNext()">
+        التالي →
+      </button>
+    </div>
+
+  </div>
+</div>
+<!-- ===== END ONBOARDING ===== -->
+
 </body>
 </html>

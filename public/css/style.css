@@ -8321,3 +8321,368 @@ img { max-width: 100%; height: auto; }
 button:not(:disabled) { pointer-events: auto !important; cursor: pointer !important; }
 .bnav { pointer-events: auto !important; cursor: pointer !important; }
 .menu-btn { pointer-events: auto !important; cursor: pointer !important; }
+
+/* ═══════════════════════════════════════════════
+   ONBOARDING OVERLAY — أول زيارة فقط
+   ═══════════════════════════════════════════════ */
+
+/* الخلفية الكاملة */
+.onb-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  animation: onbFadeIn .35s ease;
+}
+.onb-overlay.hidden {
+  display: none !important;
+}
+@keyframes onbFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* الطبقة الخلفية شبه شفافة */
+.onb-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(5, 8, 18, 0.88);
+  backdrop-filter: blur(6px);
+}
+
+/* الكرت الرئيسي */
+.onb-modal {
+  position: relative;
+  z-index: 1;
+  background: #0f1524;
+  border: 1px solid rgba(26,188,156,.25);
+  border-radius: 22px;
+  width: 100%;
+  max-width: 440px;
+  max-height: 90vh;
+  overflow: hidden;
+  box-shadow: 0 24px 80px rgba(0,0,0,.7), 0 0 0 1px rgba(26,188,156,.1);
+  animation: onbSlideUp .4s cubic-bezier(.22,.68,0,1.2);
+  display: flex;
+  flex-direction: column;
+}
+@keyframes onbSlideUp {
+  from { transform: translateY(40px) scale(.97); opacity: 0; }
+  to   { transform: translateY(0)    scale(1);   opacity: 1; }
+}
+
+/* شريط التقدم العلوي */
+.onb-progress {
+  height: 3px;
+  background: rgba(255,255,255,.07);
+  border-radius: 3px 3px 0 0;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.onb-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #1abc9c, #16a085);
+  border-radius: 3px;
+  transition: width .4s ease;
+  width: 0%;
+}
+
+/* زر التخطي */
+.onb-skip-btn {
+  position: absolute;
+  top: .9rem;
+  left: 1rem;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.1);
+  color: #6b7280;
+  font-size: .78rem;
+  padding: .3rem .75rem;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: .2s;
+  z-index: 2;
+  font-family: inherit;
+}
+.onb-skip-btn:hover {
+  color: #e74c3c;
+  border-color: rgba(231,76,60,.4);
+  background: rgba(231,76,60,.08);
+}
+
+/* ── الشرائح ── */
+.onb-slide {
+  display: none;
+  padding: 2.5rem 1.75rem 1.25rem;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  animation: onbSlideFade .3s ease;
+  flex: 1;
+  overflow-y: auto;
+}
+.onb-slide.active {
+  display: flex;
+}
+@keyframes onbSlideFade {
+  from { opacity: 0; transform: translateX(-12px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* الجزء المرئي (أيقونة كبيرة / صف أيقونات) */
+.onb-slide-visual {
+  position: relative;
+  margin-bottom: 1.25rem;
+}
+.onb-big-icon {
+  font-size: 3.8rem;
+  line-height: 1;
+  filter: drop-shadow(0 0 18px rgba(26,188,156,.35));
+}
+.onb-icons-row {
+  display: flex;
+  gap: .75rem;
+  font-size: 2.2rem;
+  justify-content: center;
+}
+
+/* حلقات نبض حول الأيقونة الترحيبية */
+.onb-pulse-rings {
+  position: absolute;
+  inset: -20px;
+  pointer-events: none;
+}
+.onb-ring {
+  position: absolute;
+  inset: 0;
+  border: 2px solid rgba(26,188,156,.35);
+  border-radius: 50%;
+  animation: onbPulseRing 2.4s ease-out infinite;
+}
+.onb-ring.r2 { animation-delay: .8s;  inset: -10px; }
+.onb-ring.r3 { animation-delay: 1.6s; inset: -20px; }
+@keyframes onbPulseRing {
+  0%   { transform: scale(.6); opacity: .8; }
+  100% { transform: scale(1.4); opacity: 0; }
+}
+
+/* العنوان والوصف */
+.onb-title {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #e8eaf0;
+  margin-bottom: .6rem;
+  line-height: 1.4;
+}
+.onb-green { color: #1abc9c; }
+.onb-desc {
+  font-size: .92rem;
+  color: #a0a8bb;
+  line-height: 1.75;
+  margin-bottom: .75rem;
+}
+
+/* وسوم الخصائص (شريحة 0) */
+.onb-tags {
+  display: flex;
+  gap: .5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: .25rem;
+}
+.onb-tag {
+  font-size: .78rem;
+  padding: .25rem .75rem;
+  border-radius: 20px;
+  background: rgba(26,188,156,.09);
+  border: 1px solid rgba(26,188,156,.25);
+  color: #1abc9c;
+  font-weight: 600;
+}
+
+/* قائمة المميزات */
+.onb-list {
+  list-style: none;
+  width: 100%;
+  text-align: right;
+  margin-top: .25rem;
+}
+.onb-list li {
+  padding: .4rem 0;
+  border-bottom: 1px solid rgba(255,255,255,.05);
+  font-size: .87rem;
+  color: #c5cad8;
+  display: flex;
+  gap: .5rem;
+  align-items: flex-start;
+}
+.onb-list li:last-child { border-bottom: none; }
+
+/* مستويات النقاط */
+.onb-levels {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: .5rem;
+}
+.onb-lv {
+  font-size: .82rem;
+  font-weight: 700;
+  background: rgba(26,188,156,.09);
+  border: 1px solid rgba(26,188,156,.2);
+  color: #e8eaf0;
+  padding: .3rem .7rem;
+  border-radius: 20px;
+}
+.onb-arrow {
+  color: #1abc9c;
+  font-size: .9rem;
+  font-weight: 700;
+}
+
+/* نصائح الشريحة الأخيرة */
+.onb-tips {
+  display: flex;
+  flex-direction: column;
+  gap: .55rem;
+  width: 100%;
+  margin-top: .5rem;
+}
+.onb-tip {
+  background: rgba(26,188,156,.07);
+  border: 1px solid rgba(26,188,156,.18);
+  border-radius: 10px;
+  padding: .6rem 1rem;
+  font-size: .86rem;
+  color: #c5cad8;
+  text-align: right;
+}
+
+/* ── شريط التنقل السفلي ── */
+.onb-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.75rem 1.4rem;
+  border-top: 1px solid rgba(255,255,255,.06);
+  flex-shrink: 0;
+}
+
+/* أزرار السابق/التالي */
+.onb-btn-prev,
+.onb-btn-next {
+  background: transparent;
+  border: 1.5px solid rgba(26,188,156,.35);
+  color: #1abc9c;
+  font-size: .88rem;
+  font-weight: 700;
+  padding: .5rem 1.1rem;
+  border-radius: 22px;
+  cursor: pointer;
+  transition: .2s;
+  font-family: inherit;
+  min-width: 90px;
+}
+.onb-btn-prev:hover,
+.onb-btn-next:hover {
+  background: rgba(26,188,156,.1);
+}
+/* زر "ابدأ الآن" في الشريحة الأخيرة */
+.onb-btn-next.onb-finish {
+  background: linear-gradient(135deg, #1abc9c, #16a085);
+  color: #000;
+  border-color: transparent;
+  box-shadow: 0 4px 16px rgba(26,188,156,.35);
+  padding: .55rem 1.4rem;
+}
+.onb-btn-next.onb-finish:hover {
+  box-shadow: 0 6px 22px rgba(26,188,156,.5);
+  transform: scale(1.04);
+}
+
+/* نقاط المؤشر */
+.onb-dots {
+  display: flex;
+  gap: .45rem;
+  align-items: center;
+}
+.onb-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.18);
+  transition: .25s;
+}
+.onb-dot.active {
+  background: #1abc9c;
+  width: 18px;
+  border-radius: 4px;
+}
+
+/* ── جهاز الهاتف الصغير ── */
+@media (max-width: 400px) {
+  .onb-modal { border-radius: 16px; }
+  .onb-slide { padding: 2rem 1.2rem 1rem; }
+  .onb-title { font-size: 1.15rem; }
+  .onb-big-icon { font-size: 3rem; }
+  .onb-nav { padding: .8rem 1.2rem 1.1rem; }
+  .onb-btn-prev, .onb-btn-next { min-width: 75px; font-size: .82rem; padding: .45rem .85rem; }
+}
+
+/* ═══════════════════════════════════════════════
+   ONBOARDING OVERLAY — أول زيارة فقط
+   ═══════════════════════════════════════════════ */
+.onb-overlay{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;padding:1rem;animation:onbFadeIn .35s ease;}
+.onb-overlay.hidden{display:none !important;}
+@keyframes onbFadeIn{from{opacity:0}to{opacity:1}}
+.onb-backdrop{position:absolute;inset:0;background:rgba(5,8,18,.88);backdrop-filter:blur(6px);}
+.onb-modal{position:relative;z-index:1;background:#0f1524;border:1px solid rgba(26,188,156,.25);border-radius:22px;width:100%;max-width:440px;max-height:90vh;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,.7),0 0 0 1px rgba(26,188,156,.1);animation:onbSlideUp .4s cubic-bezier(.22,.68,0,1.2);display:flex;flex-direction:column;}
+@keyframes onbSlideUp{from{transform:translateY(40px) scale(.97);opacity:0}to{transform:translateY(0) scale(1);opacity:1}}
+.onb-progress{height:3px;background:rgba(255,255,255,.07);border-radius:3px 3px 0 0;overflow:hidden;flex-shrink:0;}
+.onb-progress-fill{height:100%;background:linear-gradient(90deg,#1abc9c,#16a085);border-radius:3px;transition:width .4s ease;width:0%;}
+.onb-skip-btn{position:absolute;top:.9rem;left:1rem;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#6b7280;font-size:.78rem;padding:.3rem .75rem;border-radius:20px;cursor:pointer;transition:.2s;z-index:2;font-family:inherit;}
+.onb-skip-btn:hover{color:#e74c3c;border-color:rgba(231,76,60,.4);background:rgba(231,76,60,.08);}
+.onb-slide{display:none;padding:2.5rem 1.75rem 1.25rem;flex-direction:column;align-items:center;text-align:center;animation:onbSlideFade .3s ease;flex:1;overflow-y:auto;}
+.onb-slide.active{display:flex;}
+@keyframes onbSlideFade{from{opacity:0;transform:translateX(-12px)}to{opacity:1;transform:translateX(0)}}
+.onb-slide-visual{position:relative;margin-bottom:1.25rem;}
+.onb-big-icon{font-size:3.8rem;line-height:1;filter:drop-shadow(0 0 18px rgba(26,188,156,.35));}
+.onb-icons-row{display:flex;gap:.75rem;font-size:2.2rem;justify-content:center;}
+.onb-pulse-rings{position:absolute;inset:-20px;pointer-events:none;}
+.onb-ring{position:absolute;inset:0;border:2px solid rgba(26,188,156,.35);border-radius:50%;animation:onbPulseRing 2.4s ease-out infinite;}
+.onb-ring.r2{animation-delay:.8s;inset:-10px;}
+.onb-ring.r3{animation-delay:1.6s;inset:-20px;}
+@keyframes onbPulseRing{0%{transform:scale(.6);opacity:.8}100%{transform:scale(1.4);opacity:0}}
+.onb-title{font-size:1.35rem;font-weight:800;color:#e8eaf0;margin-bottom:.6rem;line-height:1.4;}
+.onb-green{color:#1abc9c;}
+.onb-desc{font-size:.92rem;color:#a0a8bb;line-height:1.75;margin-bottom:.75rem;}
+.onb-tags{display:flex;gap:.5rem;flex-wrap:wrap;justify-content:center;margin-top:.25rem;}
+.onb-tag{font-size:.78rem;padding:.25rem .75rem;border-radius:20px;background:rgba(26,188,156,.09);border:1px solid rgba(26,188,156,.25);color:#1abc9c;font-weight:600;}
+.onb-list{list-style:none;width:100%;text-align:right;margin-top:.25rem;}
+.onb-list li{padding:.4rem 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:.87rem;color:#c5cad8;display:flex;gap:.5rem;align-items:flex-start;}
+.onb-list li:last-child{border-bottom:none;}
+.onb-levels{display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;justify-content:center;margin-top:.5rem;}
+.onb-lv{font-size:.82rem;font-weight:700;background:rgba(26,188,156,.09);border:1px solid rgba(26,188,156,.2);color:#e8eaf0;padding:.3rem .7rem;border-radius:20px;}
+.onb-arrow{color:#1abc9c;font-size:.9rem;font-weight:700;}
+.onb-tips{display:flex;flex-direction:column;gap:.55rem;width:100%;margin-top:.5rem;}
+.onb-tip{background:rgba(26,188,156,.07);border:1px solid rgba(26,188,156,.18);border-radius:10px;padding:.6rem 1rem;font-size:.86rem;color:#c5cad8;text-align:right;}
+.onb-nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 1.75rem 1.4rem;border-top:1px solid rgba(255,255,255,.06);flex-shrink:0;}
+.onb-btn-prev,.onb-btn-next{background:transparent;border:1.5px solid rgba(26,188,156,.35);color:#1abc9c;font-size:.88rem;font-weight:700;padding:.5rem 1.1rem;border-radius:22px;cursor:pointer;transition:.2s;font-family:inherit;min-width:90px;}
+.onb-btn-prev:hover,.onb-btn-next:hover{background:rgba(26,188,156,.1);}
+.onb-btn-next.onb-finish{background:linear-gradient(135deg,#1abc9c,#16a085);color:#000;border-color:transparent;box-shadow:0 4px 16px rgba(26,188,156,.35);padding:.55rem 1.4rem;}
+.onb-btn-next.onb-finish:hover{box-shadow:0 6px 22px rgba(26,188,156,.5);transform:scale(1.04);}
+.onb-dots{display:flex;gap:.45rem;align-items:center;}
+.onb-dot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.18);transition:.25s;}
+.onb-dot.active{background:#1abc9c;width:18px;border-radius:4px;}
+@media(max-width:400px){
+  .onb-modal{border-radius:16px;}
+  .onb-slide{padding:2rem 1.2rem 1rem;}
+  .onb-title{font-size:1.15rem;}
+  .onb-big-icon{font-size:3rem;}
+  .onb-nav{padding:.8rem 1.2rem 1.1rem;}
+  .onb-btn-prev,.onb-btn-next{min-width:75px;font-size:.82rem;padding:.45rem .85rem;}
+}
