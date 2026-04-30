@@ -9190,3 +9190,126 @@ function cancelDMReply() {
   var inp = document.getElementById('dmInput') || document.getElementById('dmMsgInput');
   if (inp) inp.placeholder = 'اكتب رسالة...';
 }
+
+/* ═══════════════════════════════════════════════════════
+   ONBOARDING — يظهر مرة واحدة فقط عند أول زيارة
+   المفتاح في localStorage: nabdh_onboarding_done
+   ═══════════════════════════════════════════════════════ */
+(function() {
+  'use strict';
+
+  var ONB_KEY    = 'nabdh_onboarding_done';
+  var TOTAL      = 6;   // عدد الشرائح
+  var current    = 0;
+
+  /* ── هل أكمل المستخدم الدليل من قبل؟ ── */
+  function isDone() {
+    try { return !!localStorage.getItem(ONB_KEY); } catch(e) { return false; }
+  }
+  function markDone() {
+    try { localStorage.setItem(ONB_KEY, '1'); } catch(e) {}
+  }
+
+  /* ── بناء نقاط المؤشر ── */
+  function buildDots() {
+    var container = document.getElementById('onbDots');
+    if (!container) return;
+    container.innerHTML = '';
+    for (var i = 0; i < TOTAL; i++) {
+      var d = document.createElement('span');
+      d.className = 'onb-dot' + (i === 0 ? ' active' : '');
+      d.dataset.idx = i;
+      (function(idx){ d.addEventListener('click', function(){ goSlide(idx); }); })(i);
+      container.appendChild(d);
+    }
+  }
+
+  /* ── تحديث شريط التقدم والنقاط والأزرار ── */
+  function updateUI() {
+    /* شريط التقدم */
+    var fill = document.getElementById('onbProgressFill');
+    if (fill) fill.style.width = (((current + 1) / TOTAL) * 100) + '%';
+
+    /* نقاط المؤشر */
+    document.querySelectorAll('.onb-dot').forEach(function(d, i) {
+      d.classList.toggle('active', parseInt(d.dataset.idx) === current);
+    });
+
+    /* زر السابق */
+    var prev = document.getElementById('onbPrevBtn');
+    if (prev) prev.style.visibility = current > 0 ? 'visible' : 'hidden';
+
+    /* زر التالي / ابدأ الآن */
+    var next = document.getElementById('onbNextBtn');
+    if (next) {
+      if (current === TOTAL - 1) {
+        next.textContent = '🚀 ابدأ الآن';
+        next.classList.add('onb-finish');
+      } else {
+        next.textContent = 'التالي →';
+        next.classList.remove('onb-finish');
+      }
+    }
+  }
+
+  /* ── الانتقال إلى شريحة معيّنة ── */
+  function goSlide(idx) {
+    var slides = document.querySelectorAll('.onb-slide');
+    if (!slides.length) return;
+    slides[current].classList.remove('active');
+    current = Math.max(0, Math.min(idx, TOTAL - 1));
+    slides[current].classList.add('active');
+    updateUI();
+  }
+
+  /* ── التالي ── */
+  window.onbNext = function() {
+    if (current < TOTAL - 1) {
+      goSlide(current + 1);
+    } else {
+      onbClose();
+    }
+  };
+
+  /* ── السابق ── */
+  window.onbPrev = function() {
+    if (current > 0) goSlide(current - 1);
+  };
+
+  /* ── تخطي / إغلاق نهائي ── */
+  window.onbSkip = function() {
+    onbClose();
+  };
+
+  function onbClose() {
+    markDone();
+    var overlay = document.getElementById('onboardingOverlay');
+    if (!overlay) return;
+    /* انيميشن خروج لطيف */
+    overlay.style.transition = 'opacity .35s ease';
+    overlay.style.opacity    = '0';
+    setTimeout(function() {
+      overlay.classList.add('hidden');
+      overlay.style.opacity = '';
+      overlay.style.transition = '';
+    }, 360);
+  }
+
+  /* ── تشغيل الدليل بعد اختفاء splash ── */
+  function launchOnboarding() {
+    if (isDone()) return;           // سبق وأنهاه → لا شيء
+    buildDots();
+    updateUI();
+    var overlay = document.getElementById('onboardingOverlay');
+    if (!overlay) return;
+    overlay.classList.remove('hidden');
+  }
+
+  /* ننتظر حتى تختفي شاشة التحميل (splash ~1.6 ثانية) ثم نعرض الدليل */
+  window.addEventListener('DOMContentLoaded', function() {
+    if (isDone()) return;
+    /* نؤخر الظهور قليلاً بعد انتهاء splash + initApp */
+    setTimeout(launchOnboarding, 1800);
+  });
+
+})();
