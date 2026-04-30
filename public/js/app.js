@@ -9313,3 +9313,424 @@ function cancelDMReply() {
   });
 
 })();
+
+/* ============================================================
+   ⚙️ SETTINGS - صفحة الإعدادات
+   ============================================================ */
+var _nabdhSettings = JSON.parse(localStorage.getItem('nabdh_settings') || '{}');
+
+function openSettings() {
+  var modal = document.getElementById('settingsModal');
+  if (!modal) return;
+  // تحميل الإعدادات الحالية
+  _loadSettingsUI();
+  modal.classList.remove('hidden');
+}
+
+function closeSettings(e) {
+  if (e && e.target !== document.getElementById('settingsModal')) return;
+  var modal = document.getElementById('settingsModal');
+  if (modal) modal.classList.add('hidden');
+  if (!e) { modal && modal.classList.add('hidden'); }
+}
+
+function _loadSettingsUI() {
+  // حجم الخط
+  var size = _nabdhSettings.fontSize || 'medium';
+  ['small','medium','large'].forEach(function(s) {
+    var btn = document.getElementById('fsBtn' + s.charAt(0).toUpperCase() + s.slice(1));
+    if (btn) btn.classList.toggle('active-fs', s === size);
+  });
+  // الوضع الهادئ
+  var qm = document.getElementById('quietModeToggle');
+  if (qm) qm.checked = !!_nabdhSettings.quietMode;
+  // منبه الصلاة
+  var pt = document.getElementById('settingsPrayerToggle');
+  if (pt) pt.checked = !!_nabdhSettings.prayerAlarm;
+  // إشعارات أخرى
+  var at = document.getElementById('settingsAchievToggle');
+  if (at) at.checked = _nabdhSettings.notif_achiev !== false;
+  var nt = document.getElementById('settingsNearbyToggle');
+  if (nt) nt.checked = _nabdhSettings.notif_nearby !== false;
+  var dt = document.getElementById('settingsDmToggle');
+  if (dt) dt.checked = _nabdhSettings.notif_dm !== false;
+  // إصدار
+  var sv = document.getElementById('settingsVersion');
+  if (sv) sv.textContent = 'v7.6';
+  // قائمة المحظورين
+  _renderBlockedList();
+}
+
+function setFontSize(size) {
+  _nabdhSettings.fontSize = size;
+  _saveSettings();
+  // تطبيق على الـ body
+  var root = document.documentElement;
+  if (size === 'small')  root.style.fontSize = '14px';
+  if (size === 'medium') root.style.fontSize = '16px';
+  if (size === 'large')  root.style.fontSize = '18px';
+  ['small','medium','large'].forEach(function(s) {
+    var btn = document.getElementById('fsBtn' + s.charAt(0).toUpperCase() + s.slice(1));
+    if (btn) btn.classList.toggle('active-fs', s === size);
+  });
+  showToast('✅ تم تغيير حجم الخط', 'success');
+}
+
+function toggleQuietMode(on) {
+  _nabdhSettings.quietMode = on;
+  _saveSettings();
+  showToast(on ? '🔕 الوضع الهادئ مفعّل' : '🔔 الإشعارات مفعّلة', on ? 'info' : 'success');
+}
+
+function saveSettingsBool(key, val) {
+  _nabdhSettings[key] = val;
+  _saveSettings();
+}
+
+function togglePrayerAlarmFromSettings(on) {
+  _nabdhSettings.prayerAlarm = on;
+  _saveSettings();
+  // تزامن مع قسم الصلاة
+  var pt = document.getElementById('prayerAlarmToggle');
+  if (pt) pt.checked = on;
+  var status = document.getElementById('prayerAlarmStatus');
+  if (status) status.textContent = on ? '⏰ مفعّل — 5 دقائق قبل كل صلاة' : 'غير مفعّل';
+  var detail = document.getElementById('prayerAlarmDetail');
+  if (detail) detail.classList.toggle('hidden', !on);
+  showToast(on ? '🔔 منبّه الصلاة مفعّل' : '🔕 منبّه الصلاة مُعطَّل', on ? 'success' : 'info');
+}
+
+function _saveSettings() {
+  localStorage.setItem('nabdh_settings', JSON.stringify(_nabdhSettings));
+}
+
+function clearAppCache() {
+  var keys = Object.keys(localStorage).filter(function(k){
+    return k.startsWith('nabdh_cache_') || k.startsWith('nabdh_tmp_');
+  });
+  keys.forEach(function(k){ localStorage.removeItem(k); });
+  if (caches) {
+    caches.keys().then(function(names){
+      names.filter(function(n){ return n !== 'nabdh-v9' && n !== 'nabdh-static-v9'; })
+           .forEach(function(n){ caches.delete(n); });
+    });
+  }
+  showToast('✅ تم مسح الذاكرة المؤقتة', 'success');
+}
+
+function exportMyData() {
+  var data = {
+    profile: JSON.parse(localStorage.getItem('nabdh_profile') || 'null'),
+    settings: _nabdhSettings,
+    exportedAt: new Date().toISOString()
+  };
+  var blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url; a.download = 'nabdh_data.json'; a.click();
+  URL.revokeObjectURL(url);
+  showToast('📥 تم تصدير البيانات', 'success');
+}
+
+/* تطبيق حجم الخط عند التحميل */
+(function(){
+  var s = (JSON.parse(localStorage.getItem('nabdh_settings') || '{}')).fontSize;
+  if (s === 'small')  document.documentElement.style.fontSize = '14px';
+  if (s === 'large')  document.documentElement.style.fontSize = '18px';
+})();
+
+
+/* ============================================================
+   🔔 PRAYER ALARM - منبّه أوقات الصلاة
+   ============================================================ */
+var _prayerAlarmTimeout = null;
+var _prayerAlarmTimes   = null;
+var _prayerAlarmNotified = {};
+
+function togglePrayerAlarm(on) {
+  _nabdhSettings.prayerAlarm = on;
+  _saveSettings();
+  var status = document.getElementById('prayerAlarmStatus');
+  var detail = document.getElementById('prayerAlarmDetail');
+  if (status) status.textContent = on ? '⏰ مفعّل — 5 دقائق قبل كل صلاة' : 'غير مفعّل';
+  if (detail) detail.classList.toggle('hidden', !on);
+  // تزامن مع صفحة الإعدادات
+  var st = document.getElementById('settingsPrayerToggle');
+  if (st) st.checked = on;
+  if (on) {
+    _requestNotifPerm(function(granted){
+      if (granted) {
+        showToast('🔔 سيصلك إشعار 5 دقائق قبل كل صلاة', 'success');
+        if (_prayerAlarmTimes) _schedulePrayerAlarms(_prayerAlarmTimes);
+      } else {
+        showToast('⚠️ فعّل إشعارات المتصفح لتعمل المنبّهات', 'warning');
+        on = false;
+        _nabdhSettings.prayerAlarm = false;
+        _saveSettings();
+        var tog = document.getElementById('prayerAlarmToggle');
+        if (tog) tog.checked = false;
+        if (status) status.textContent = 'غير مفعّل';
+        if (detail) detail.classList.add('hidden');
+      }
+    });
+  } else {
+    if (_prayerAlarmTimeout) clearTimeout(_prayerAlarmTimeout);
+    showToast('🔕 منبّه الصلاة مُعطَّل', 'info');
+  }
+}
+
+function _requestNotifPerm(cb) {
+  if (!('Notification' in window)) return cb(false);
+  if (Notification.permission === 'granted') return cb(true);
+  if (Notification.permission === 'denied')  return cb(false);
+  Notification.requestPermission().then(function(p){ cb(p === 'granted'); });
+}
+
+function _schedulePrayerAlarms(times) {
+  _prayerAlarmTimes = times;
+  if (!_nabdhSettings.prayerAlarm) return;
+  var prayers = [
+    {name:'الفجر',   key:'fajr'},
+    {name:'الشروق',  key:'sunrise'},
+    {name:'الظهر',   key:'dhuhr'},
+    {name:'العصر',   key:'asr'},
+    {name:'المغرب',  key:'maghrib'},
+    {name:'العشاء',  key:'isha'}
+  ];
+  var now = Date.now();
+  prayers.forEach(function(p){
+    var timeStr = times[p.key];
+    if (!timeStr || timeStr === '—') return;
+    var m = timeStr.match(/(\d+):(\d+)\s*(AM|PM)?/i);
+    if (!m) return;
+    var h = parseInt(m[1]), mn = parseInt(m[2]);
+    if (m[3]) {
+      if (m[3].toUpperCase() === 'PM' && h < 12) h += 12;
+      if (m[3].toUpperCase() === 'AM' && h === 12) h = 0;
+    }
+    var today = new Date();
+    var pTime = new Date(today.getFullYear(), today.getMonth(), today.getDate(), h, mn, 0);
+    var alertTime = pTime.getTime() - 5 * 60 * 1000; // 5 دقائق قبل
+    var delay = alertTime - now;
+    if (delay < 0) return; // فات الوقت
+    var key = p.key + '_' + today.toDateString();
+    if (_prayerAlarmNotified[key]) return; // بالفعل أُشعر
+    setTimeout(function(){
+      if (!_nabdhSettings.prayerAlarm) return;
+      _prayerAlarmNotified[key] = true;
+      // إشعار المتصفح
+      if (Notification.permission === 'granted') {
+        new Notification('🕌 نبض — أوقات الصلاة', {
+          body: '⏰ ' + p.name + ' بعد 5 دقائق',
+          icon: '/favicon.svg',
+          tag: 'prayer_' + p.key
+        });
+      }
+      // Toast داخل التطبيق
+      showToast('🕌 ' + p.name + ' بعد 5 دقائق', 'success');
+    }, delay);
+  });
+}
+
+/* hook في startPrayerCountdown لحفظ الأوقات وجدولة المنبّهات */
+var _origStartPrayerCountdown = typeof startPrayerCountdown === 'function' ? startPrayerCountdown : null;
+if (_origStartPrayerCountdown) {
+  startPrayerCountdown = function(times) {
+    _prayerAlarmTimes = times;
+    _origStartPrayerCountdown(times);
+    if (_nabdhSettings.prayerAlarm) _schedulePrayerAlarms(times);
+  };
+}
+
+/* تهيئة حالة المنبّه عند تحميل الصفحة */
+window.addEventListener('DOMContentLoaded', function(){
+  var saved = JSON.parse(localStorage.getItem('nabdh_settings') || '{}');
+  if (saved.prayerAlarm) {
+    var tog = document.getElementById('prayerAlarmToggle');
+    if (tog) tog.checked = true;
+    var status = document.getElementById('prayerAlarmStatus');
+    if (status) status.textContent = '⏰ مفعّل — 5 دقائق قبل كل صلاة';
+    var detail = document.getElementById('prayerAlarmDetail');
+    if (detail) detail.classList.remove('hidden');
+  }
+});
+
+
+/* ============================================================
+   🧮 CURRENCY CALCULATOR - حاسبة الصرف
+   ============================================================ */
+/* نسب تقريبية بالنسبة لـ USD - تُحدَّث من سعر السوق للـ SDG */
+var _currencyRates = {
+  usd: 1,
+  eur: 0.92,
+  gbp: 0.79,
+  sar: 3.75,
+  aed: 3.67,
+  egp: 30.9,
+  sdg: null  /* يُجلب من /api/exchange */
+};
+
+/* نجلب سعر الجنيه السوداني من API */
+(function fetchSDGRate(){
+  fetch('/api/exchange')
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      if (Array.isArray(data) && data.length) {
+        _currencyRates.sdg = data[0].rate;
+      } else {
+        _currencyRates.sdg = 600; // افتراضي
+      }
+      calcCurrency();
+    })
+    .catch(function(){ _currencyRates.sdg = 600; });
+})();
+
+function calcCurrency() {
+  var amountEl = document.getElementById('calcAmount');
+  var fromEl   = document.getElementById('calcFrom');
+  var toEl     = document.getElementById('calcTo');
+  var resultEl = document.getElementById('calcResult');
+  var noteEl   = document.getElementById('calcNote');
+  if (!amountEl || !fromEl || !toEl || !resultEl) return;
+
+  var amount = parseFloat(amountEl.value);
+  var from   = fromEl.value;
+  var to     = toEl.value;
+
+  if (!amount || isNaN(amount) || amount <= 0) {
+    resultEl.textContent = '—';
+    return;
+  }
+
+  var rateFrom = _currencyRates[from];
+  var rateTo   = _currencyRates[to];
+
+  if (!rateFrom || !rateTo) {
+    resultEl.textContent = '⏳';
+    return;
+  }
+
+  // تحويل للـ USD أولاً ثم للعملة المطلوبة
+  var inUSD  = amount / rateFrom;
+  var result = inUSD * rateTo;
+
+  // تنسيق العدد
+  var formatted = result >= 1000
+    ? result.toLocaleString('ar-SA', {maximumFractionDigits: 0})
+    : result.toLocaleString('ar-SA', {maximumFractionDigits: 2});
+
+  resultEl.textContent = formatted;
+
+  if (noteEl) {
+    var note = from === 'sdg' || to === 'sdg'
+      ? 'يستخدم سعر السوق المُبلَّغ عنه مباشرةً' + (_currencyRates.sdg ? ' (' + _currencyRates.sdg + ' ج.س/$)' : '')
+      : 'أسعار تقريبية — للاسترشاد فقط';
+    noteEl.textContent = note;
+  }
+}
+
+function swapCalcCurrency() {
+  var fromEl = document.getElementById('calcFrom');
+  var toEl   = document.getElementById('calcTo');
+  if (!fromEl || !toEl) return;
+  var tmp = fromEl.value;
+  fromEl.value = toEl.value;
+  toEl.value   = tmp;
+  calcCurrency();
+}
+
+
+/* ============================================================
+   🚫 BLOCK USER - حظر المستخدم
+   ============================================================ */
+var _blockedUsers = JSON.parse(localStorage.getItem('nabdh_blocked') || '[]');
+
+function _saveBlocked() {
+  localStorage.setItem('nabdh_blocked', JSON.stringify(_blockedUsers));
+}
+
+function isUserBlocked(userId) {
+  return _blockedUsers.some(function(u){ return u.id === userId; });
+}
+
+function blockUser(userId, userName) {
+  if (isUserBlocked(userId)) return;
+  _blockedUsers.push({ id: userId, name: userName || userId, blockedAt: Date.now() });
+  _saveBlocked();
+  _updateBlockBtn(userId);
+  _renderBlockedList();
+  showToast('🚫 تم حظر ' + (userName || 'المستخدم'), 'warning');
+}
+
+function unblockUser(userId) {
+  var name = (_blockedUsers.find(function(u){ return u.id === userId; }) || {}).name || 'المستخدم';
+  _blockedUsers = _blockedUsers.filter(function(u){ return u.id !== userId; });
+  _saveBlocked();
+  _renderBlockedList();
+  _updateBlockBtn(userId);
+  showToast('✅ تم رفع الحظر عن ' + name, 'success');
+}
+
+function toggleBlockUser() {
+  if (!dmCurrentUser) return;
+  var userId   = dmCurrentUser.id;
+  var userName = dmCurrentUser.name;
+  if (isUserBlocked(userId)) {
+    // تأكيد رفع الحظر
+    if (confirm('رفع الحظر عن ' + userName + '؟')) {
+      unblockUser(userId);
+    }
+  } else {
+    // تأكيد الحظر
+    if (confirm('حظر ' + userName + '؟\nلن يتمكن من إرسال رسائل إليك.')) {
+      blockUser(userId, userName);
+    }
+  }
+}
+
+function _updateBlockBtn(userId) {
+  var btn = document.getElementById('dmBlockBtn');
+  if (!btn) return;
+  var blocked = isUserBlocked(userId);
+  btn.classList.toggle('blocked-active', blocked);
+  btn.title = blocked ? 'رفع الحظر' : 'حظر المستخدم';
+  btn.textContent = blocked ? '🔓' : '🚫';
+}
+
+/* نحدّث زر الحظر عند فتح المحادثة */
+var _origOpenDMChatPage = typeof openDMChatPage === 'function' ? openDMChatPage : null;
+if (_origOpenDMChatPage) {
+  openDMChatPage = function(userId, userName) {
+    _origOpenDMChatPage(userId, userName);
+    setTimeout(function(){ _updateBlockBtn(userId); }, 100);
+  };
+}
+
+/* منع تلقي رسائل من المحظورين في loadDMMessages */
+var _origLoadDMMessages = typeof loadDMMessages === 'function' ? loadDMMessages : null;
+if (_origLoadDMMessages) {
+  loadDMMessages = function(userId) {
+    if (isUserBlocked(userId)) {
+      var cont = document.getElementById('dmChatMessages');
+      if (cont) cont.innerHTML = '<div style="text-align:center;padding:3rem 1rem;color:var(--text2)"><div style="font-size:2.5rem;margin-bottom:.8rem">🚫</div><div>هذا المستخدم محظور<br><small>لا يمكن إرسال رسائل أو استقبالها</small></div><button onclick="unblockUser(\''+userId+'\')" style="margin-top:1rem;padding:.5rem 1.5rem;border-radius:2rem;background:rgba(26,188,156,.15);border:1px solid var(--accent);color:var(--accent);cursor:pointer;font-family:inherit">🔓 رفع الحظر</button></div>';
+      return;
+    }
+    _origLoadDMMessages(userId);
+  };
+}
+
+function _renderBlockedList() {
+  var list = document.getElementById('blockedUsersList');
+  if (!list) return;
+  if (!_blockedUsers.length) {
+    list.innerHTML = '<p style="color:var(--text2);font-size:.85rem;padding:.5rem 0">لا يوجد مستخدمون محظورون</p>';
+    return;
+  }
+  list.innerHTML = _blockedUsers.map(function(u){
+    return '<div class="blocked-item">' +
+      '<span class="blocked-item-name">🚫 ' + escHtml(u.name) + '</span>' +
+      '<button class="blocked-unblock-btn" onclick="unblockUser(\'' + u.id + '\')">رفع الحظر</button>' +
+      '</div>';
+  }).join('');
+}
+
