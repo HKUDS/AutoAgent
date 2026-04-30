@@ -93,7 +93,7 @@ window.addEventListener('DOMContentLoaded', () => {
 async function initApp() {
   // مسح كاش localStorage القديم عند كل تشغيل جديد للتطبيق
   try {
-    const cacheVersion = '7.2';
+    const cacheVersion = '7.3';
     const storedVer = localStorage.getItem('_nabdh_cache_ver');
     if (storedVer !== cacheVersion) {
       // مسح جميع مفاتيح الكاش القديمة
@@ -115,7 +115,7 @@ async function initApp() {
   loadConversations();
   // افتح القسم المحدد في الـ hash إن وجد
   const hash = window.location.hash.replace('#', '');
-  const validSections = ['home','map','report','people','messages','profile','blood','power','prayer','medicine','voice','skills','exchange','market','hospitals','news','rides','weather','water','study','help','polls','dashboard'];
+  const validSections = ['home','map','report','people','messages','profile','blood','power','prayer','medicine','voice','skills','exchange','market','hospitals','news','rides','weather','water','study','hood','help','polls','dashboard'];
   if (hash && validSections.includes(hash) && hash !== 'home') {
     goSection(hash, false);
   }
@@ -2355,6 +2355,7 @@ function goSection(name, pushHistory) {
   if (name === 'weather')    { refreshWeather(); }
   if (name === 'water')      { loadWaterReports(); }
   if (name === 'study')      { loadStudyGroups(); }
+  if (name === 'hood')       { loadHoodGroups(); }
   if (name === 'help')       { loadHelpRequests(); }
   if (name === 'polls')      { loadPolls(); }
   if (name === 'dashboard')  { loadDashboard(); }
@@ -2387,7 +2388,7 @@ function _updateMenuActiveItem(name) {
 // تهيئة History عند بدء التطبيق
 (function initHistory() {
   const hash = window.location.hash.replace('#', '');
-  const validSections = ['home','map','report','people','messages','profile','blood','power','prayer','medicine','voice','skills','exchange','market','hospitals','news','rides','weather','water','study','help','polls','dashboard'];
+  const validSections = ['home','map','report','people','messages','profile','blood','power','prayer','medicine','voice','skills','exchange','market','hospitals','news','rides','weather','water','study','hood','help','polls','dashboard'];
   const startSection = validSections.includes(hash) ? hash : 'home';
   history.replaceState({ section: startSection }, '', '#' + startSection);
 })();
@@ -9359,7 +9360,7 @@ function _loadSettingsUI() {
   if (snd) snd.checked = _nabdhSettings.soundEnabled !== false;
   // إصدار
   var sv = document.getElementById('settingsVersion');
-  if (sv) sv.textContent = 'v7.7';
+  if (sv) sv.textContent = 'v7.8';
   // قائمة المحظورين
   _renderBlockedList();
 }
@@ -10024,4 +10025,442 @@ onNewAlert = function(alert) {
   // بعيد — صوت خفيف فقط
   if (_nabdhSettings.notif_nearby !== false) playNotifSound('alert');
 };
+
+
+/* ============================================================
+   🏘️ HOOD GROUPS - مجموعات الأحياء  v1.0
+   ============================================================ */
+
+var _hoodGroups = [];
+var _hoodFilter = 'all';
+var _hoodSearch = '';
+var _currentHoodGroup = null;
+var _myHoodGroups = JSON.parse(localStorage.getItem('_myHoodGroups') || '[]');
+
+/* ── تحميل المجموعات ──────────────────────────────────── */
+async function loadHoodGroups() {
+  try {
+    const res = await fetch('/api/hood');
+    _hoodGroups = await res.json();
+    renderHoodGroups();
+  } catch(e) {
+    document.getElementById('hoodGroupsList').innerHTML =
+      '<p style="text-align:center;color:var(--text2);padding:2rem">تعذّر تحميل المجموعات</p>';
+  }
+}
+
+function renderHoodGroups() {
+  const el = document.getElementById('hoodGroupsList');
+  if (!el) return;
+  let list = _hoodGroups.slice();
+  if (_hoodFilter !== 'all') list = list.filter(g => g.type === _hoodFilter);
+  if (_hoodSearch) {
+    const q = _hoodSearch.toLowerCase();
+    list = list.filter(g =>
+      (g.name||'').toLowerCase().includes(q) ||
+      (g.area||'').toLowerCase().includes(q) ||
+      (g.desc||'').toLowerCase().includes(q)
+    );
+  }
+  if (!list.length) {
+    el.innerHTML = '<div class="empty-state"><div class="es-icon">🏘️</div><div class="es-text">لا توجد مجموعات بعد — كن الأول!</div></div>';
+    return;
+  }
+  el.innerHTML = list.map(g => hoodGroupCard(g)).join('');
+}
+
+function hoodGroupCard(g) {
+  const TYPE_ICO = { نظافة:'🧹', اجتماعات:'📅', مبادرة:'💡', ترشيح:'⭐', عام:'💬' };
+  const ico = TYPE_ICO[g.type] || '🏘️';
+  const joined = _myHoodGroups.includes(g.id);
+  const membersCount = (g.members||[]).length;
+  const postsCount = (g.posts||[]).length;
+  return `<div class="hood-card" onclick="openHoodGroupPage('${g.id}')">
+    <div class="hood-card-top">
+      <div class="hood-card-ico">${ico}</div>
+      <div class="hood-card-info">
+        <div class="hood-card-name">${g.name}</div>
+        <div class="hood-card-area">📍 ${g.area}</div>
+        <div class="hood-card-type-badge">${g.type}</div>
+      </div>
+      <button class="hood-join-btn ${joined?'joined':''}"
+        onclick="event.stopPropagation();quickJoinHood('${g.id}',this)">
+        ${joined?'✓ منضم':'انضم'}
+      </button>
+    </div>
+    ${g.desc ? `<div class="hood-card-desc">${g.desc}</div>` : ''}
+    <div class="hood-card-footer">
+      <span>👥 ${membersCount} عضو</span>
+      <span>💬 ${postsCount} منشور</span>
+      <span class="hood-card-time">${_timeAgo(g.createdAt||g.updatedAt)}</span>
+    </div>
+  </div>`;
+}
+
+function searchHoodGroups() {
+  _hoodSearch = (document.getElementById('hoodSearchInp')||{}).value || '';
+  renderHoodGroups();
+}
+
+function filterHoodByType(type, btn) {
+  _hoodFilter = type;
+  document.querySelectorAll('.hood-type-filt').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  renderHoodGroups();
+}
+
+/* ── Quick join from card ─────────────────────────────── */
+async function quickJoinHood(id, btn) {
+  const uid = localStorage.getItem('_nabdh_uid') || _getOrCreateUID();
+  try {
+    await fetch('/api/hood/'+id+'/join', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ userId: uid })
+    });
+    if (!_myHoodGroups.includes(id)) _myHoodGroups.push(id);
+    localStorage.setItem('_myHoodGroups', JSON.stringify(_myHoodGroups));
+    if (btn) { btn.textContent='✓ منضم'; btn.classList.add('joined'); }
+    showToast('✅ انضممت للمجموعة!', 'success');
+    // update local count
+    const g = _hoodGroups.find(x=>x.id===id);
+    if (g && !g.members.includes(uid)) g.members.push(uid);
+    playNotifSound && playNotifSound('achiev');
+  } catch(e) { showToast('تعذّر الانضمام', 'error'); }
+}
+
+/* ── Create group modal ───────────────────────────────── */
+function openCreateHoodGroup() {
+  document.getElementById('createHoodModal').classList.remove('hidden');
+}
+function closeCreateHoodGroup() {
+  document.getElementById('createHoodModal').classList.add('hidden');
+  ['hoodNewName','hoodNewArea','hoodNewDesc','hoodNewContact'].forEach(id => {
+    const el = document.getElementById(id); if(el) el.value='';
+  });
+}
+async function submitCreateHoodGroup() {
+  const name    = (document.getElementById('hoodNewName')||{}).value?.trim();
+  const area    = (document.getElementById('hoodNewArea')||{}).value?.trim();
+  const type    = (document.getElementById('hoodNewType')||{}).value;
+  const desc    = (document.getElementById('hoodNewDesc')||{}).value?.trim();
+  const contact = (document.getElementById('hoodNewContact')||{}).value?.trim();
+  if (!name||!area) { showToast('اسم المجموعة والحي مطلوبان ❗', 'error'); return; }
+  const uid = localStorage.getItem('_nabdh_uid') || _getOrCreateUID();
+  const author = localStorage.getItem('_nabdh_name') || 'مجهول';
+  try {
+    const res = await fetch('/api/hood', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ name, area, type, desc, contact, userId:uid, author })
+    });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error);
+    _hoodGroups.unshift(data.group);
+    if (!_myHoodGroups.includes(data.id)) _myHoodGroups.push(data.id);
+    localStorage.setItem('_myHoodGroups', JSON.stringify(_myHoodGroups));
+    closeCreateHoodGroup();
+    renderHoodGroups();
+    showToast('🏘️ تم إنشاء المجموعة بنجاح!', 'success');
+    playNotifSound && playNotifSound('achiev');
+    openHoodGroupPage(data.id);
+  } catch(e) { showToast('فشل الإنشاء: '+(e.message||''), 'error'); }
+}
+
+/* ── Hood Group Page ──────────────────────────────────── */
+function openHoodGroupPage(id) {
+  const g = _hoodGroups.find(x=>x.id===id);
+  if (!g) { loadHoodGroups().then(()=>openHoodGroupPage(id)); return; }
+  _currentHoodGroup = g;
+  const TYPE_ICO = { نظافة:'🧹', اجتماعات:'📅', مبادرة:'💡', ترشيح:'⭐', عام:'💬' };
+  document.getElementById('hgpAvatar').textContent = TYPE_ICO[g.type]||'🏘️';
+  document.getElementById('hgpName').textContent = g.name;
+  document.getElementById('hgpMeta').textContent = '📍 '+g.area+' · '+g.type;
+  const uid = localStorage.getItem('_nabdh_uid') || _getOrCreateUID();
+  const joined = _myHoodGroups.includes(id) || (g.members||[]).includes(uid);
+  const joinBtn = document.getElementById('hgpJoinBtn');
+  if (joinBtn) { joinBtn.textContent = joined?'✓ منضم':'انضم'; joinBtn.classList.toggle('joined',joined); }
+  switchHoodTab('posts', document.querySelector('.hood-tab'));
+  renderHoodPosts(g);
+  renderHoodNominations(g);
+  renderHoodMembers(g);
+  document.getElementById('hoodGroupPage').classList.remove('hidden');
+  document.getElementById('hoodGroupPage').scrollTop = 0;
+}
+
+function closeHoodGroupPage() {
+  document.getElementById('hoodGroupPage').classList.add('hidden');
+  _currentHoodGroup = null;
+}
+
+function switchHoodTab(tab, btn) {
+  document.querySelectorAll('.hood-tab').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.hood-tab-content').forEach(c=>c.classList.add('hidden'));
+  if (btn) btn.classList.add('active');
+  else {
+    document.querySelectorAll('.hood-tab').forEach((b,i)=>{ if(i===0) b.classList.add('active'); });
+  }
+  const map = { posts:'hoodTabPosts', nominations:'hoodTabNominations', members:'hoodTabMembers' };
+  const el = document.getElementById(map[tab]);
+  if (el) el.classList.remove('hidden');
+}
+
+/* ── Posts ────────────────────────────────────────────── */
+function renderHoodPosts(g) {
+  const el = document.getElementById('hoodPostsList');
+  if (!el) return;
+  const posts = (g.posts||[]).slice().reverse();
+  if (!posts.length) {
+    el.innerHTML = '<p style="text-align:center;color:var(--text2);padding:2rem">لا توجد منشورات بعد</p>';
+    return;
+  }
+  const PT_ICO = { message:'💬', meeting:'📅', initiative:'💡', nomination:'⭐' };
+  el.innerHTML = posts.map(p => `
+    <div class="hood-post-item">
+      <div class="hood-post-meta">
+        <span class="hood-post-type-ico">${PT_ICO[p.postType]||'💬'}</span>
+        <span class="hood-post-author">${p.author}</span>
+        <span class="hood-post-time">${_timeAgo(p.ts)}</span>
+      </div>
+      <div class="hood-post-text">${p.text}</div>
+      <button class="hood-like-btn" onclick="likeHoodPost('${g.id}','${p.id}',this)">
+        ❤️ ${(p.likes||[]).length}
+      </button>
+    </div>`).join('');
+}
+
+async function submitHoodPost() {
+  const g = _currentHoodGroup;
+  if (!g) return;
+  const textEl = document.getElementById('hoodPostText');
+  const text = (textEl||{}).value?.trim();
+  if (!text) { showToast('اكتب شيئاً أولاً ❗','error'); return; }
+  const uid    = localStorage.getItem('_nabdh_uid') || _getOrCreateUID();
+  const author = localStorage.getItem('_nabdh_name') || 'مجهول';
+  const postType = (document.getElementById('hoodPostType')||{}).value || 'message';
+  try {
+    const res = await fetch('/api/hood/'+g.id+'/post', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ text, postType, userId:uid, author })
+    });
+    const d = await res.json();
+    if (!d.success) throw new Error(d.error);
+    if (!Array.isArray(g.posts)) g.posts = [];
+    g.posts.push(d.post);
+    textEl.value = '';
+    renderHoodPosts(g);
+    showToast('✅ نُشر منشورك!','success');
+    playNotifSound && playNotifSound('msg');
+  } catch(e) { showToast('فشل النشر','error'); }
+}
+
+async function likeHoodPost(groupId, postId, btn) {
+  const uid = localStorage.getItem('_nabdh_uid') || _getOrCreateUID();
+  try {
+    const res = await fetch('/api/hood/'+groupId+'/post/'+postId+'/like', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ userId:uid })
+    });
+    const d = await res.json();
+    if (btn) btn.textContent = '❤️ '+d.likes;
+    const g = _hoodGroups.find(x=>x.id===groupId);
+    if (g) {
+      const p = (g.posts||[]).find(x=>x.id===postId);
+      if (p) {
+        if (!Array.isArray(p.likes)) p.likes=[];
+        const idx = p.likes.indexOf(uid);
+        if (idx===-1) p.likes.push(uid); else p.likes.splice(idx,1);
+      }
+    }
+  } catch(e) {}
+}
+
+/* ── Join/Leave from group page ──────────────────────── */
+async function toggleJoinHoodGroup() {
+  const g = _currentHoodGroup;
+  if (!g) return;
+  const uid = localStorage.getItem('_nabdh_uid') || _getOrCreateUID();
+  const joined = _myHoodGroups.includes(g.id);
+  const endpoint = joined ? 'leave' : 'join';
+  try {
+    await fetch('/api/hood/'+g.id+'/'+endpoint, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ userId:uid })
+    });
+    if (joined) {
+      _myHoodGroups = _myHoodGroups.filter(x=>x!==g.id);
+      g.members = (g.members||[]).filter(m=>m!==uid);
+    } else {
+      _myHoodGroups.push(g.id);
+      if (!g.members) g.members=[];
+      g.members.push(uid);
+    }
+    localStorage.setItem('_myHoodGroups', JSON.stringify(_myHoodGroups));
+    const btn = document.getElementById('hgpJoinBtn');
+    const newJoined = !joined;
+    if (btn) { btn.textContent=newJoined?'✓ منضم':'انضم'; btn.classList.toggle('joined',newJoined); }
+    showToast(newJoined?'✅ انضممت للمجموعة!':'تم مغادرة المجموعة', newJoined?'success':'info');
+    renderHoodMembers(g);
+  } catch(e) { showToast('تعذّرت العملية','error'); }
+}
+
+/* ── Nominations ──────────────────────────────────────── */
+function renderHoodNominations(g) {
+  const el = document.getElementById('hoodNomList');
+  if (!el) return;
+  const noms = (g.nominations||[]).slice().reverse();
+  if (!noms.length) {
+    el.innerHTML = '<p style="text-align:center;color:var(--text2);padding:1.5rem">لا توجد ترشيحات بعد</p>';
+    return;
+  }
+  el.innerHTML = noms.map(n => `
+    <div class="hood-nom-item">
+      <div class="hood-nom-title">⭐ ${n.title}</div>
+      ${n.desc?`<div class="hood-nom-desc">${n.desc}</div>`:''}
+      <div class="hood-nom-footer">
+        <span class="hood-nom-author">بقلم ${n.author}</span>
+        <button class="hood-vote-btn" onclick="voteNomination('${g.id}','${n.id}',this)">
+          👍 ${(n.votes||[]).length} تأييد
+        </button>
+      </div>
+    </div>`).join('');
+}
+
+function openNominationForm() {
+  const f = document.getElementById('hoodNomForm');
+  if (f) f.classList.toggle('hidden');
+}
+function closeNominationForm() {
+  const f = document.getElementById('hoodNomForm');
+  if (f) f.classList.add('hidden');
+}
+async function submitNomination() {
+  const g = _currentHoodGroup;
+  if (!g) return;
+  const title = (document.getElementById('nomTitle')||{}).value?.trim();
+  const desc  = (document.getElementById('nomDesc')||{}).value?.trim();
+  if (!title) { showToast('عنوان الترشيح مطلوب ❗','error'); return; }
+  const uid    = localStorage.getItem('_nabdh_uid') || _getOrCreateUID();
+  const author = localStorage.getItem('_nabdh_name') || 'مجهول';
+  try {
+    const res = await fetch('/api/hood/'+g.id+'/nominate', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ title, desc, userId:uid, author })
+    });
+    const d = await res.json();
+    if (!d.success) throw new Error(d.error);
+    if (!Array.isArray(g.nominations)) g.nominations=[];
+    g.nominations.push(d.nomination);
+    document.getElementById('nomTitle').value='';
+    document.getElementById('nomDesc').value='';
+    closeNominationForm();
+    renderHoodNominations(g);
+    showToast('⭐ تم إرسال الترشيح!','success');
+  } catch(e) { showToast('فشل إرسال الترشيح','error'); }
+}
+
+async function voteNomination(groupId, nomId, btn) {
+  const uid = localStorage.getItem('_nabdh_uid') || _getOrCreateUID();
+  try {
+    const res = await fetch('/api/hood/'+groupId+'/nominate/'+nomId+'/vote', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ userId:uid })
+    });
+    const d = await res.json();
+    if (btn) btn.textContent = '👍 '+d.votes+' تأييد';
+    const g = _hoodGroups.find(x=>x.id===groupId);
+    if (g) {
+      const n = (g.nominations||[]).find(x=>x.id===nomId);
+      if (n) {
+        if (!Array.isArray(n.votes)) n.votes=[];
+        const idx = n.votes.indexOf(uid);
+        if (idx===-1) n.votes.push(uid); else n.votes.splice(idx,1);
+      }
+    }
+  } catch(e) {}
+}
+
+/* ── Members list ────────────────────────────────────── */
+function renderHoodMembers(g) {
+  const el = document.getElementById('hoodMembersList');
+  if (!el) return;
+  const members = g.members||[];
+  if (!members.length) {
+    el.innerHTML = '<p style="text-align:center;color:var(--text2);padding:2rem">لا يوجد أعضاء بعد — كن الأول!</p>';
+    return;
+  }
+  el.innerHTML = `<div style="color:var(--text2);margin-bottom:.5rem;font-size:.85rem">👥 ${members.length} عضو</div>`
+    + members.map((uid,i) => `
+    <div class="hood-member-row">
+      <div class="hood-member-ava">${String.fromCodePoint(0x1F464)}</div>
+      <div class="hood-member-name">عضو ${i+1}</div>
+      ${uid===g.userId?'<span class="hood-owner-badge">منشئ</span>':''}
+    </div>`).join('');
+}
+
+/* ── Real-time socket events ─────────────────────────── */
+if (typeof socket !== 'undefined' && socket) {
+  socket.on('new_hood_group', function(group) {
+    if (!_hoodGroups.find(g=>g.id===group.id)) {
+      _hoodGroups.unshift(group);
+      renderHoodGroups();
+    }
+    playNotifSound && playNotifSound('nearby');
+    showToast('🏘️ مجموعة حي جديدة: '+group.name+' — '+group.area, 'info');
+  });
+  socket.on('hood_post', function(ev) {
+    const g = _hoodGroups.find(x=>x.id===ev.groupId);
+    if (g) {
+      if (!Array.isArray(g.posts)) g.posts=[];
+      if (!g.posts.find(p=>p.id===ev.post.id)) g.posts.push(ev.post);
+      if (_currentHoodGroup && _currentHoodGroup.id===ev.groupId) renderHoodPosts(g);
+    }
+  });
+  socket.on('hood_join', function(ev) {
+    const g = _hoodGroups.find(x=>x.id===ev.id);
+    if (g) g.members = ev.members;
+    if (_currentHoodGroup && _currentHoodGroup.id===ev.id) renderHoodMembers(g);
+  });
+  socket.on('hood_nomination', function(ev) {
+    const g = _hoodGroups.find(x=>x.id===ev.groupId);
+    if (g) {
+      if (!Array.isArray(g.nominations)) g.nominations=[];
+      if (!g.nominations.find(n=>n.id===ev.nomination.id)) g.nominations.push(ev.nomination);
+      if (_currentHoodGroup && _currentHoodGroup.id===ev.groupId) renderHoodNominations(g);
+    }
+  });
+}
+
+/* ── Helper: UID ──────────────────────────────────────── */
+function _getOrCreateUID() {
+  let uid = localStorage.getItem('_nabdh_uid');
+  if (!uid) { uid = 'u_'+Date.now()+'_'+Math.random().toString(36).slice(2,8); localStorage.setItem('_nabdh_uid', uid); }
+  return uid;
+}
+
+/* ── Helper: time ago (uses existing _timeAgo or fallback) */
+function _timeAgo(ts) {
+  if (!ts) return '';
+  try {
+    if (typeof timeAgo === 'function') return timeAgo(ts);
+    const diff = Date.now() - Number(ts);
+    if (diff < 60000) return 'الآن';
+    if (diff < 3600000) return Math.floor(diff/60000)+' د';
+    if (diff < 86400000) return Math.floor(diff/3600000)+' س';
+    return Math.floor(diff/86400000)+' يوم';
+  } catch(e) { return ''; }
+}
+
+/* ── Load on section change ───────────────────────────── */
+(function() {
+  var _origGoSection = typeof goSection === 'function' ? goSection : null;
+  if (_origGoSection) {
+    goSection = function(name) {
+      _origGoSection(name);
+      if (name === 'hood') loadHoodGroups();
+    };
+  }
+  // also load once on DOMContentLoaded if section is hood
+  document.addEventListener('DOMContentLoaded', function() {
+    if (location.hash === '#hood') loadHoodGroups();
+  });
+})();
 
