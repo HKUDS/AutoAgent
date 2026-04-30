@@ -3,3 +3,15 @@ node_modules/
 .env
 .DS_Store
 nabdh_data.json
+
+# Python files — not part of the Node.js app, exclude from deploy detection
+*.py
+*.cfg
+*.toml
+__pycache__/
+*.egg-info/
+dist/
+build/
+.python-version
+venv/
+env/
