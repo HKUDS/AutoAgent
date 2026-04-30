@@ -469,7 +469,28 @@ app.get('/api/geo/search', (req,res) => {
 /* ============================================================
    API - الإحصاء
    ============================================================ */
-app.get('/api/stats', (_,res) => res.json(data.stats));
+app.get('/api/stats', (_,res) => {
+  // حساب الإحصائيات الحية
+  const areas = new Set([
+    ...data.alerts.map(x=>x.area),
+    ...data.exchangeRates.map(x=>x.source),
+    ...data.voiceItems.map(x=>x.area),
+    ...data.marketplace.map(x=>x.area),
+  ].filter(Boolean));
+  data.stats.cities = Math.max(areas.size, data.stats.cities || 0);
+  data.stats.reports = Math.max(data.alerts.length, data.stats.reports || 0);
+  const onlineCount = Object.keys(data.onlineUsers||{}).length;
+  res.json({
+    users:       onlineCount || data.stats.users || 0,
+    reports:     data.stats.reports,
+    lives_saved: data.stats.lives_saved || 0,
+    cities:      data.stats.cities,
+    total_alerts: data.alerts.length,
+    market_items: data.marketplace.length,
+    blood_donors: data.bloodDonors.filter(d=>d.available).length,
+    online:       onlineCount
+  });
+});
 
 /* ============================================================
    API - التنبيهات والخريطة

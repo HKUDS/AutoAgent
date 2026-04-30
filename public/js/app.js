@@ -490,9 +490,17 @@ async function loadStats() {
   try { updateStats(await fetch('/api/stats').then(r => r.json())); } catch {}
 }
 function updateStats(s) {
-  animateCount('liveUsers', s.users); animateCount('liveReports', s.reports);
-  animateCount('hUsers', s.users); animateCount('hReports', s.reports);
-  animateCount('hLives', s.lives_saved); animateCount('hCities', s.cities);
+  // top bar
+  animateCount('liveUsers',   s.online  || s.users || 0);
+  animateCount('liveReports', s.reports || s.total_alerts || 0);
+  // hero block
+  animateCount('hUsers',  s.online  || s.users || 0);
+  animateCount('hReports',s.reports || s.total_alerts || 0);
+  animateCount('hLives',  s.lives_saved  || 0);
+  animateCount('hCities', s.cities       || 0);
+  // dashboard extras if available
+  if (s.market_items !== undefined) animateCount('vmb-market', s.market_items);
+  if (s.blood_donors !== undefined) animateCount('vmb-blood',  s.blood_donors);
 }
 
 /* ============================================================
