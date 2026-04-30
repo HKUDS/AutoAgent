@@ -9111,3 +9111,28 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
+/* ============================================================
+   🔧 MISSING FUNCTIONS — تعريفات الدوال الناقصة
+============================================================ */
+
+// showGroupInfo: shows group info tab inside group page
+function showGroupInfo() {
+  if (typeof switchGroupTab === 'function') { switchGroupTab('info'); return; }
+  var el = document.getElementById('gpTabInfo');
+  if (el) {
+    ['gpTabChat','gpTabMembers','gpTabMedia','gpTabInfo'].forEach(function(id){
+      var e2 = document.getElementById(id); if (e2) e2.classList.add('hidden');
+    });
+    el.classList.remove('hidden');
+    if (typeof renderGroupInfo === 'function') renderGroupInfo();
+  }
+}
+
+// cancelDMReply: cancels reply mode in DM chat
+function cancelDMReply() {
+  window.dmReplyingTo = null;
+  var banner = document.getElementById('dmReplyBanner') || document.querySelector('.grp-reply-preview');
+  if (banner) banner.classList.add('hidden');
+  var inp = document.getElementById('dmInput') || document.getElementById('dmMsgInput');
+  if (inp) inp.placeholder = 'اكتب رسالة...';
+}
