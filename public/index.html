@@ -1,0 +1,2967 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover"/>
+  <meta name="theme-color" content="#0a0e1a" media="(prefers-color-scheme: dark)"/>
+  <meta name="theme-color" content="#0a0e1a"/>
+
+  <!-- SEO & Description -->
+  <meta name="description" content="نبض - تطبيق المدينة الحي. أبلغ عن الأحداث، تتبع أسعار الصرف، شارك المعلومات، تواصل مع جيرانك في الوقت الفعلي."/>
+  <meta name="keywords" content="نبض, Sudan, الخرطوم, أحداث, أسعار, مجتمع, تنبيهات, Nabdh"/>
+  <meta name="author" content="Nabdh Community"/>
+  <meta name="robots" content="index, follow"/>
+  <meta name="language" content="Arabic"/>
+
+  <!-- Open Graph / Social -->
+  <meta property="og:type" content="website"/>
+  <meta property="og:title" content="نبض | Nabdh - نبض المدينة الحي"/>
+  <meta property="og:description" content="تطبيق المجتمع الحي - تنبيهات، أسعار، دردشة، خريطة مباشرة"/>
+  <meta property="og:image" content="/images/icon-512.png"/>
+  <meta property="og:url" content="https://nabdh.app"/>
+  <meta property="og:locale" content="ar_SD"/>
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image"/>
+  <meta name="twitter:title" content="نبض | Nabdh"/>
+  <meta name="twitter:description" content="تطبيق المدينة الحي - أحداث، أسعار، مجتمع"/>
+  <meta name="twitter:image" content="/images/icon-512.png"/>
+
+  <!-- PWA / App -->
+  <meta name="mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="نبض"/>
+  <meta name="application-name" content="نبض"/>
+  <meta name="format-detection" content="telephone=no"/>
+  <meta name="msapplication-TileColor" content="#0a0e1a"/>
+  <meta name="msapplication-tap-highlight" content="no"/>
+
+  <!-- Preconnect for performance -->
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link rel="preconnect" href="https://unpkg.com"/>
+  <link rel="dns-prefetch" href="https://cdn.jsdelivr.net"/>
+  <link rel="dns-prefetch" href="https://cdn.socket.io"/>
+
+  <title>نبض | Nabdh - نبض المدينة الحي v7.0</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml"/>
+  <link rel="apple-touch-icon" href="/images/icon-192.png"/>
+  <link rel="manifest" href="/manifest.json"/>
+
+  <!-- Critical CSS: leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+  <link rel="stylesheet" href="/css/style.css"/>
+
+  <!-- Preload critical font -->
+  <link rel="preload" href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'"/>
+  <noscript><link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet"/></noscript>
+
+  <!-- Back button protection + initial state -->
+  <script>
+    (function() {
+      if (!window.location.hash) {
+        history.replaceState({ section: 'home', init: true }, '', '#home');
+        history.pushState({ section: 'home' }, '', '#home');
+      }
+      // Performance timing
+      window.__nabdhStart = Date.now();
+    })();
+  </script>
+</head>
+<body>
+
+<!-- ===== SPLASH ===== -->
+<div id="splash">
+  <div class="splash-inner">
+    <div class="splash-logo">
+      <div class="pulse-ring"></div>
+      <div class="pulse-ring d1"></div>
+      <div class="pulse-ring d2"></div>
+      <div class="logo-icon">💓</div>
+    </div>
+    <h1 class="splash-title">نبض</h1>
+    <p class="splash-sub">Nabdh · نبض المدينة الحي</p>
+    <div class="splash-bar"><div class="splash-fill"></div></div>
+    <p class="splash-loading" id="splashMsg">جاري تحديد موقعك تلقائياً...</p>
+  </div>
+</div>
+
+<!-- ===== APP ===== -->
+<div id="app" class="hidden">
+
+  <!-- TOP BAR -->
+  <header class="topbar">
+    <div class="topbar-right">
+      <div class="logo-sm">💓 <span>نبض</span></div>
+      <div class="live-badge"><span class="live-dot"></span> مباشر</div>
+    </div>
+    <div class="topbar-stats">
+      <div class="stat-chip">👥 <span id="liveUsers">0</span></div>
+      <div class="stat-chip">📊 <span id="liveReports">0</span></div>
+      <div class="stat-chip usd-chip">💵 <span id="liveRate">---</span></div>
+    </div>
+    <button class="menu-btn" onclick="toggleMenu()">☰</button>
+  </header>
+
+  <!-- SIDE MENU — WhatsApp Style -->
+  <div id="sideMenu" class="side-menu hidden">
+    <div class="menu-header">
+      <div class="menu-wa-banner">
+        <button onclick="toggleMenu()" class="menu-wa-close" title="إغلاق">✕</button>
+        <div class="menu-wa-avatar" id="menuAvatar" onclick="goSection('profile');toggleMenu()">👤</div>
+        <div class="menu-wa-name" id="menuProfileName">أنت</div>
+        <div class="menu-wa-sub">
+          <span class="menu-wa-online-dot"></span>
+          <span id="menuLocText">جاري التحديد...</span>
+        </div>
+      </div>
+      <div class="menu-wa-stats">
+        <div class="menu-wa-stat" onclick="goSection('report');toggleMenu()">
+          <div class="menu-wa-stat-num" id="menuStatReports">0</div>
+          <div class="menu-wa-stat-lbl">بلاغات</div>
+        </div>
+        <div class="menu-wa-stat" onclick="goSection('profile');toggleMenu()">
+          <div class="menu-wa-stat-num" id="menuStatPoints">0</div>
+          <div class="menu-wa-stat-lbl">نقطة</div>
+        </div>
+        <div class="menu-wa-stat" onclick="goSection('profile');toggleMenu()">
+          <div class="menu-wa-stat-num" id="menuStatLevel">1</div>
+          <div class="menu-wa-stat-lbl">مستوى</div>
+        </div>
+      </div>
+    </div>
+
+    <nav>
+      <!-- الرئيسي -->
+      <div class="menu-section-label">الرئيسي</div>
+
+      <a onclick="goSection('home');toggleMenu()" class="menu-item menu-item-active">
+        <div class="menu-item-ico">🏠</div>
+        <div class="menu-item-body">
+          <div class="menu-item-title">الرئيسية</div>
+        </div>
+      </a>
+
+      <a onclick="goSection('map');toggleMenu()" class="menu-item">
+        <div class="menu-item-ico">🗺️</div>
+        <div class="menu-item-body">
+          <div class="menu-item-title">خريطة النبض الحية</div>
+          <div class="menu-item-sub">تتبع الأحداث مباشرة</div>
+        </div>
+      </a>
+
+      <a onclick="goSection('people');toggleMenu()" class="menu-item">
+        <div class="menu-item-ico">🔍</div>
+        <div class="menu-item-body">
+          <div class="menu-item-title">البحث عن الأشخاص</div>
+        </div>
+      </a>
+
+      <a onclick="goSection('messages');toggleMenu()" class="menu-item">
+        <div class="menu-item-ico">💬</div>
+        <div class="menu-item-body">
+          <div class="menu-item-title">رسائلي</div>
+        </div>
+        <span class="menu-item-badge hidden" id="msgBadgeMenu">0</span>
+      </a>
+
+      <a onclick="openPublicChat();toggleMenu()" class="menu-item menu-item-chat">
+        <div class="menu-item-ico">🌐</div>
+        <div class="menu-item-body">
+          <div class="menu-item-title">الدردشة العامة</div>
+          <div class="menu-item-sub">تحدث مع المجتمع</div>
+        </div>
+      </a>
+
+      <div class="menu-divider"></div>
+      <!-- الخدمات -->
+      <div class="menu-section-label">الخدمات</div>
+
+      <a onclick="goSection('exchange');toggleMenu()" class="menu-item">
+        <div class="menu-item-ico">💵</div>
+        <div class="menu-item-body">
+          <div class="menu-item-title">صرّاف الشعب</div>
+          <div class="menu-item-sub">أسعار الصرف الآنية</div>
+        </div>
+      </a>
+
+      <a onclick="goSection('medicine');toggleMenu()" class="menu-item">
+        <div class="menu-item-ico">💊</div>
+        <div class="menu-item-body">
+          <div class="menu-item-title">دواء موجود</div>
+        </div>
+      </a>
+
+      <a onclick="goSection('blood');toggleMenu()" class="menu-item">
+        <div class="menu-item-ico">🩸</div>
+        <div class="menu-item-body">
+          <div class="menu-item-title">بنك الدم</div>
+        </div>
+      </a>
+
+      <a onclick="goSection('market');toggleMenu()" class="menu-item menu-item-market">
+        <div class="menu-item-ico">🛒</div>
+        <div class="menu-item-body">
+          <div class="menu-item-title">سوق P2P</div>
+          <div class="menu-item-sub">بيع وشراء مباشر</div>
+        </div>
+      </a>
+
+      <a onclick="goSection('skills');toggleMenu()" class="menu-item">
+        <div class="menu-item-ico">🤝</div>
+        <div class="menu-item-body">
+          <div class="menu-item-title">بورصة المهارات</div>
+        </div>
+      </a>
+
+      <a onclick="goSection('help');toggleMenu()" class="menu-item">
+        <div class="menu-item-ico">📦</div>
+        <div class="menu-item-body">
+          <div class="menu-item-title">طلبات المساعدة</div>
+        </div>
+      </a>
+
+      <a onclick="goSection('rides');toggleMenu()" class="menu-item">
+        <div class="menu-item-ico">🚗</div>
+        <div class="menu-item-body">
+          <div class="menu-item-title">مشاركة التنقل</div>
+        </div>
+      </a>
+
+      <div class="menu-divider"></div>
+      <!-- مجتمع -->
+      <div class="menu-section-label">مجتمع</div>
+
+      <a onclick="goSection('voice');toggleMenu()" class="menu-item">
+        <div class="menu-item-ico">📢</div>
+        <div class="menu-item-body">
+          <div class="menu-item-title">صوت الحي</div>
+        </div>
+      </a>
+
+      <a onclick="goSection('polls');toggleMenu()" class="menu-item">
+        <div class="menu-item-ico">🗳️</div>
+        <div class="menu-item-body">
+          <div class="menu-item-title">استطلاعات الرأي</div>
+        </div>
+      </a>
+
+      <a onclick="goSection('news');toggleMenu()" class="menu-item">
+        <div class="menu-item-ico">📰</div>
+        <div class="menu-item-body">
+          <div class="menu-item-title">الأخبار المحلية</div>
+        </div>
+      </a>
+
+      <a onclick="goSection('study');toggleMenu()" class="menu-item">
+        <div class="menu-item-ico">🎓</div>
+        <div class="menu-item-body">
+          <div class="menu-item-title">مجموعات التعلم</div>
+        </div>
+      </a>
+
+      <div class="menu-divider"></div>
+      <!-- معلومات -->
+      <div class="menu-section-label">معلومات</div>
+
+      <a onclick="goSection('power');toggleMenu()" class="menu-item">
+        <div class="menu-item-ico">⚡</div>
+        <div class="menu-item-body">
+          <div class="menu-item-title">جدول الكهرباء</div>
+        </div>
+      </a>
+
+      <a onclick="goSection('prayer');toggleMenu()" class="menu-item">
+        <div class="menu-item-ico">🕌</div>
+        <div class="menu-item-body">
+          <div class="menu-item-title">أوقات الصلاة</div>
+        </div>
+      </a>
+
+      <a onclick="goSection('hospitals');toggleMenu()" class="menu-item">
+        <div class="menu-item-ico">🏥</div>
+        <div class="menu-item-body">
+          <div class="menu-item-title">دليل المستشفيات</div>
+        </div>
+      </a>
+
+      <a onclick="goSection('weather');toggleMenu()" class="menu-item">
+        <div class="menu-item-ico">🌦️</div>
+        <div class="menu-item-body">
+          <div class="menu-item-title">الطقس</div>
+        </div>
+      </a>
+
+      <a onclick="goSection('water');toggleMenu()" class="menu-item">
+        <div class="menu-item-ico">💧</div>
+        <div class="menu-item-body">
+          <div class="menu-item-title">خريطة المياه</div>
+        </div>
+      </a>
+
+      <a onclick="goSection('dashboard');toggleMenu()" class="menu-item">
+        <div class="menu-item-ico">📊</div>
+        <div class="menu-item-body">
+          <div class="menu-item-title">لوحة الإحصاءات</div>
+        </div>
+      </a>
+
+      <div class="menu-divider"></div>
+
+      <a onclick="goSection('report');toggleMenu()" class="menu-item menu-item-report">
+        <div class="menu-item-ico">🚨</div>
+        <div class="menu-item-body">
+          <div class="menu-item-title">بلّغ الآن</div>
+          <div class="menu-item-sub">أبلغ عن حادث أو أزمة</div>
+        </div>
+      </a>
+
+      <a onclick="openSosModal();toggleMenu()" class="menu-item menu-item-sos" id="menuSosBtn">
+        <div class="menu-item-ico">🆘</div>
+        <div class="menu-item-body">
+          <div class="menu-item-title">نداء استغاثة</div>
+          <div class="menu-item-sub">في حالات الطوارئ فقط</div>
+        </div>
+      </a>
+
+      <div class="menu-divider"></div>
+
+      <a onclick="installPWA();toggleMenu()" class="menu-item pwa-install-menu-item" id="menuInstallBtn">
+        <div class="menu-item-ico">📲</div>
+        <div class="menu-item-body">
+          <div class="menu-item-title">ثبّت التطبيق</div>
+        </div>
+      </a>
+
+      <a onclick="shareApp();toggleMenu()" class="menu-item share-app-menu-item">
+        <div class="menu-item-ico">🔗</div>
+        <div class="menu-item-body">
+          <div class="menu-item-title">شارك التطبيق</div>
+        </div>
+      </a>
+    </nav>
+
+    <div class="menu-footer">
+      <div class="menu-footer-brand">
+        <p>💓 نبض · مجتمع للجميع</p>
+        <p>🇸🇩 السودان والعالم 🌍</p>
+      </div>
+      <div class="menu-footer-version">v7.0</div>
+    </div>
+  </div>
+  <div id="menuOverlay" class="menu-overlay hidden" onclick="toggleMenu()"></div>
+
+          <h1>نبض المدينة <span class="hero-highlight">الحي</span></h1>
+          <p>اعرف ما يحدث حولك أينما كنت في العالم</p>
+          <div class="hero-stats">
+            <div class="hero-stat"><span id="hUsers">0</span><small>مستخدم نشط</small></div>
+            <div class="hero-stat"><span id="hReports">0</span><small>تقرير موثق</small></div>
+            <div class="hero-stat"><span id="hLives">0</span><small>حياة أُنقذت</small></div>
+            <div class="hero-stat"><span id="hCities">0</span><small>منطقة</small></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- شريط الموقع التلقائي -->
+      <div class="location-bar" id="locationBar">
+        <span class="lb-icon">📍</span>
+        <span id="locationBarText">جاري التحديد التلقائي...</span>
+        <button class="lb-btn" onclick="requestLocation()">🔄 تحديث</button>
+      </div>
+
+      <!-- تيكر التنبيهات -->
+      <div class="ticker-wrap">
+        <div class="ticker-label">🔔</div>
+        <div class="ticker-track"><div class="ticker-content" id="alertTicker">مرحباً بك في نبض - الموقع يتحدد تلقائياً 💓</div></div>
+      </div>
+
+      <!-- SOS زر الاستغاثة -->
+      <div class="section-pad" style="padding-bottom:0">
+        <button id="sosHomeBtn" class="sos-btn" onclick="openSosModal()">
+          🆘 نداء استغاثة
+        </button>
+      </div>
+
+      <!-- بطاقات سريعة -->
+      <div class="section-pad">
+        <h2 class="sec-title">⚡ الوصول السريع</h2>
+        <div class="quick-grid">
+          <button class="quick-card q-red"    onclick="goSection('map')">      <span class="q-icon">🗺️</span><span class="q-title">الخريطة الحية</span><span class="q-desc">أحداث منطقتك</span></button>
+          <button class="quick-card q-blue"   onclick="goSection('people')">   <span class="q-icon">🔍</span><span class="q-title">البحث عن أشخاص</span><span class="q-desc">مثل Truecaller</span></button>
+          <button class="quick-card q-green"  onclick="goSection('exchange')"> <span class="q-icon">💵</span><span class="q-title">صرّاف الشعب</span><span class="q-desc">سعر الصرف</span></button>
+          <button class="quick-card q-orange" onclick="goSection('voice')">    <span class="q-icon">📢</span><span class="q-title">صوت الحي</span><span class="q-desc">مشاكل مجتمعك</span></button>
+          <button class="quick-card q-yellow" onclick="goSection('market')">   <span class="q-icon">🛒</span><span class="q-title">سوق P2P</span><span class="q-desc">بيع وتبادل مباشر</span></button>
+          <button class="quick-card q-danger" onclick="goSection('report')">   <span class="q-icon">🚨</span><span class="q-title">بلّغ الآن</span><span class="q-desc">شارك خبراً عاجلاً</span></button>
+          <button class="quick-card q-teal"   onclick="shareApp()">             <span class="q-icon">🔗</span><span class="q-title">شارك التطبيق</span><span class="q-desc">أخبر أصدقاءك</span></button>
+          <button class="quick-card q-blood"  onclick="goSection('blood')">    <span class="q-icon">🩸</span><span class="q-title">بنك الدم</span><span class="q-desc">تبرع أو ابحث</span></button>
+          <button class="quick-card q-power"  onclick="goSection('power')">    <span class="q-icon">⚡</span><span class="q-title">جدول الكهرباء</span><span class="q-desc">انقطاع حيّك</span></button>
+          <button class="quick-card q-prayer"  onclick="goSection('prayer')">   <span class="q-icon">🕌</span><span class="q-title">أوقات الصلاة</span><span class="q-desc">حسب موقعك</span></button>
+          <button class="quick-card q-hosp"    onclick="goSection('hospitals')"><span class="q-icon">🏥</span><span class="q-title">دليل المستشفيات</span><span class="q-desc">أقرب مرفق صحي</span></button>
+          <button class="quick-card q-news"    onclick="goSection('news')">     <span class="q-icon">📰</span><span class="q-title">الأخبار المحلية</span><span class="q-desc">أخبار مجتمعية</span></button>
+          <button class="quick-card q-rides"   onclick="goSection('rides')">    <span class="q-icon">🚗</span><span class="q-title">مشاركة التنقل</span><span class="q-desc">شارك مشوارك</span></button>
+          <button class="quick-card q-weather" onclick="goSection('weather')">  <span class="q-icon">🌦️</span><span class="q-title">الطقس</span><span class="q-desc">حالة مدينتك</span></button>
+          <button class="quick-card q-water"   onclick="goSection('water')">    <span class="q-icon">💧</span><span class="q-title">خريطة المياه</span><span class="q-desc">انقطاع وتوزيع</span></button>
+          <button class="quick-card q-study"   onclick="goSection('study')">    <span class="q-icon">🎓</span><span class="q-title">مجموعات التعلم</span><span class="q-desc">تعلّم مع الآخرين</span></button>
+          <button class="quick-card q-help"    onclick="goSection('help')">     <span class="q-icon">📦</span><span class="q-title">طلبات المساعدة</span><span class="q-desc">أطلب أو قدّم</span></button>
+          <button class="quick-card q-polls"   onclick="goSection('polls')">    <span class="q-icon">🗳️</span><span class="q-title">استطلاعات الرأي</span><span class="q-desc">شارك رأيك</span></button>
+          <button class="quick-card q-dash"    onclick="goSection('dashboard')"><span class="q-icon">📊</span><span class="q-title">لوحة الإحصاءات</span><span class="q-desc">إحصاءات حية</span></button>
+        </div>
+      </div>
+
+      <!-- تنبيهات قريبة -->
+      <div class="section-pad">
+        <div class="sec-header">
+          <h2 class="sec-title">🔴 تنبيهات منطقتك</h2>
+          <button class="see-all-btn" onclick="goSection('map')">الخريطة ←</button>
+        </div>
+        <div id="homeAlerts" class="alerts-list"></div>
+      </div>
+
+      <!-- سعر الصرف -->
+      <div class="section-pad">
+        <div class="sec-header">
+          <h2 class="sec-title">💵 سعر الصرف الآن</h2>
+          <button class="see-all-btn" onclick="goSection('exchange')">التفاصيل ←</button>
+        </div>
+        <div class="rate-card-home">
+          <div class="rate-big"><span id="homeRateNum">---</span><small> ج.س / دولار</small></div>
+          <div class="rate-change" id="homeRateChange">لم يُبلَّغ عن أي سعر بعد</div>
+        </div>
+      </div>
+
+      <!-- أحدث P2P -->
+      <div class="section-pad">
+        <div class="sec-header">
+          <h2 class="sec-title">🛒 أحدث عروض السوق</h2>
+          <button class="see-all-btn" onclick="goSection('market')">عرض الكل ←</button>
+        </div>
+        <div id="homeMarket" class="market-mini-list"></div>
+      </div>
+
+      <!-- ⚡ لوحة النبض الحي - VIRAL FEATURES BLOCK -->
+      <div class="section-pad">
+        <h2 class="sec-title">⚡ نبض الآن</h2>
+        <!-- شريط الزخم الاجتماعي -->
+        <div class="viral-momentum-bar">
+          <div class="vmb-item" id="vmb-online">
+            <div class="vmb-dot vmb-green"></div>
+            <div class="vmb-num" id="onlineCountBig">0</div>
+            <div class="vmb-lbl">مباشر الآن</div>
+          </div>
+          <div class="vmb-sep"></div>
+          <div class="vmb-item">
+            <div class="vmb-num" id="todayReports">0</div>
+            <div class="vmb-lbl">بلاغ اليوم</div>
+          </div>
+          <div class="vmb-sep"></div>
+          <div class="vmb-item">
+            <div class="vmb-num" id="activeZonesCount">0</div>
+            <div class="vmb-lbl">منطقة نشطة</div>
+          </div>
+          <div class="vmb-sep"></div>
+          <div class="vmb-item">
+            <div class="vmb-num trending-num" id="trendingTopic">---</div>
+            <div class="vmb-lbl">الأكثر تداولاً</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 🏆 لوحة المتصدرين الأسبوعية -->
+      <div class="section-pad">
+        <div class="sec-header">
+          <h2 class="sec-title">🏆 أبطال المجتمع</h2>
+          <button class="see-all-btn" onclick="goSection('leaderboard')">الكل ←</button>
+        </div>
+        <div id="homeLeaderboard" class="leaderboard-mini"></div>
+      </div>
+
+      <!-- 🎯 تحدي اليوم -->
+      <div class="section-pad">
+        <div class="daily-challenge-card" id="dailyChallengeCard" onclick="openDailyChallenge()">
+          <div class="dcc-badge">🎯 تحدي اليوم</div>
+          <div class="dcc-title" id="dcTitle">جاري التحميل...</div>
+          <div class="dcc-desc" id="dcDesc"></div>
+          <div class="dcc-progress">
+            <div class="dcp-bar"><div class="dcp-fill" id="dcProgress" style="width:0%"></div></div>
+            <span class="dcp-text" id="dcProgressText">0 / 0 مشارك</span>
+          </div>
+          <div class="dcc-reward">🏅 المكافأة: <span id="dcReward">نقاط + شارة</span></div>
+        </div>
+      </div>
+
+      <!-- 🔥 أكثر الأحداث انتشاراً -->
+      <div class="section-pad">
+        <div class="sec-header">
+          <h2 class="sec-title">🔥 الأكثر انتشاراً</h2>
+          <small style="color:var(--text2);font-size:.75rem">يتجدد كل 5 دقائق</small>
+        </div>
+        <div id="viralAlerts" class="viral-alerts-list"></div>
+      </div>
+
+      <!-- دردشة + بلاغات -->
+      <div class="section-pad" style="display:flex;gap:.6rem">
+        <button onclick="openPublicChat()" style="flex:1;background:rgba(26,188,156,.08);border:1px solid rgba(26,188,156,.2);color:var(--teal);padding:.85rem;border-radius:var(--r);cursor:pointer;font-family:inherit;font-size:.9rem;font-weight:700;transition:all .2s">
+          💬 الدردشة العامة
+        </button>
+        <button onclick="goSection('people')" style="flex:1;background:rgba(52,152,219,.08);border:1px solid rgba(52,152,219,.2);color:#3498db;padding:.85rem;border-radius:var(--r);cursor:pointer;font-family:inherit;font-size:.9rem;font-weight:700;transition:all .2s">
+          🔍 ابحث عن شخص
+        </button>
+      </div>
+
+      <!-- 🔗 رابط الإحالة - دعوة الأصدقاء -->
+      <div class="section-pad">
+        <div class="referral-banner" onclick="shareReferral()">
+          <div class="rb-icon">🔗</div>
+          <div class="rb-text">
+            <div class="rb-title">ادعُ صديقاً واكسب نقاطاً!</div>
+            <div class="rb-sub">كل صديق تدعوه = 20 نقطة مجانية لك</div>
+          </div>
+          <div class="rb-pts">+20 🏆</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================
+         MAP - خريطة النبض الحية
+    ====================================================== -->
+    <section id="sec-map" class="section">
+
+      <!-- شريط البحث المحسّن -->
+      <div class="map-topbar">
+        <div class="map-search-wrap">
+          <input id="mapSearchInput" class="map-search-inp" placeholder="🔍 ابحث عن ولاية أو مدينة أو حي..." oninput="searchGeo()" autocomplete="off"/>
+          <div id="mapSearchResults" class="map-search-results hidden"></div>
+        </div>
+        <button class="map-locate-btn" onclick="locateOnMap()" title="موقعي الحالي">
+          <span id="locateBtnIcon">🎯</span>
+        </button>
+        <button class="map-layers-btn" onclick="toggleMapLayers()" title="طبقات الخريطة">
+          🗂️
+        </button>
+      </div>
+
+      <!-- لوحة طبقات الخريطة -->
+      <div id="mapLayersPanel" class="map-layers-panel hidden">
+        <div class="mlp-title">🗂️ طبقات الخريطة</div>
+        <div class="mlp-options">
+          <label class="mlp-opt"><input type="radio" name="mapStyle" value="dark" checked onchange="changeMapStyle('dark')"> 🌑 داكن</label>
+          <label class="mlp-opt"><input type="radio" name="mapStyle" value="light" onchange="changeMapStyle('light')"> ☀️ فاتح</label>
+          <label class="mlp-opt"><input type="radio" name="mapStyle" value="satellite" onchange="changeMapStyle('satellite')"> 🛰️ أقمار صناعية</label>
+          <label class="mlp-opt"><input type="radio" name="mapStyle" value="topo" onchange="changeMapStyle('topo')"> 🏔️ طبوغرافي</label>
+        </div>
+        <div class="mlp-toggles">
+          <button class="mlp-toggle active" id="toggleAlerts" onclick="toggleLayerAlerts(this)">📢 تنبيهات</button>
+          <button class="mlp-toggle active" id="togglePeople" onclick="toggleLayerPeople(this)">👥 أشخاص</button>
+          <button class="mlp-toggle" id="toggleHeat" onclick="toggleHeatmap();this.classList.toggle('active')">🌡️ كثافة</button>
+          <button class="mlp-toggle" id="toggleStates" onclick="toggleStatesLayer(this)">🇸🇩 ولايات</button>
+        </div>
+      </div>
+
+      <!-- فلاتر محسّنة -->
+      <div class="map-filters">
+        <button class="filt active-filt" onclick="filterMap('all',this)">🌐 الكل</button>
+        <button class="filt" onclick="filterMap('danger',this)">🔴 خطر</button>
+        <button class="filt" onclick="filterMap('warning',this)">🟡 تحذير</button>
+        <button class="filt" onclick="filterMap('info',this)">🟢 معلومة</button>
+        <button class="filt" onclick="filterMap('people',this)">👥 أشخاص</button>
+        <button class="filt filt-nearby" onclick="filterMap('nearby',this)">📡 قريب مني</button>
+        <button class="filt" onclick="filterMap('sos',this)" style="background:rgba(231,76,60,.1);border-color:rgba(231,76,60,.25);color:#e74c3c">🆘 SOS</button>
+      </div>
+
+      <!-- الخريطة الحية -->
+      <div style="position:relative">
+        <div id="map" class="map-enhanced"></div>
+
+        <!-- شريط أدوات الخريطة العائم -->
+        <div class="map-fab-tools">
+          <button class="map-fab-btn fab-report" onclick="goSection('report')" title="إضافة تقرير">＋</button>
+          <button class="map-fab-btn fab-sos" onclick="openSosModal()" title="SOS نداء استغاثة">🆘</button>
+          <button class="map-fab-btn fab-locate" onclick="locateOnMap()" title="موقعي">🎯</button>
+        </div>
+      </div>
+
+      <!-- شريط إحصاء محسّن -->
+      <div class="map-stats-bar">
+        <div class="msb-item msb-danger" onclick="filterMap('danger',document.querySelectorAll('.map-filters .filt')[1])" style="cursor:pointer">
+          <span id="cnt-danger">0</span><small> خطر</small>
+        </div>
+        <div class="msb-item msb-warning" onclick="filterMap('warning',document.querySelectorAll('.map-filters .filt')[2])" style="cursor:pointer">
+          <span id="cnt-warning">0</span><small> تحذير</small>
+        </div>
+        <div class="msb-item msb-info" onclick="filterMap('info',document.querySelectorAll('.map-filters .filt')[3])" style="cursor:pointer">
+          <span id="cnt-info">0</span><small> معلومة</small>
+        </div>
+        <div class="msb-item" style="color:var(--blue)" onclick="filterMap('people',document.querySelectorAll('.map-filters .filt')[4])" style="cursor:pointer">
+          <span id="cnt-people" style="color:var(--blue)">0</span><small> شخص</small>
+        </div>
+        <div class="msb-item msb-total"><span id="cnt-total">0</span><small> إجمالي</small></div>
+        <div class="msb-item" id="msb-weather-mini" style="display:none;cursor:pointer;color:var(--yellow)" onclick="goSection('weather')">
+          <span id="cnt-temp">—</span><small>°م</small>
+        </div>
+      </div>
+
+      <!-- مستخدمون قريبون -->
+      <div class="section-pad">
+        <div id="nearbyUsersPanel" class="nearby-users-panel hidden">
+          <div class="nup-title">🌐 مستخدمون قريبون منك <span id="nearbyCount" style="color:var(--text2);font-size:.8rem;font-weight:400"></span></div>
+          <div class="nup-list" id="nearbyUsersList"></div>
+        </div>
+      </div>
+
+      <!-- قائمة التنبيهات -->
+      <div class="section-pad">
+        <div class="sec-header">
+          <h3 class="sec-title" id="mapListTitle">📋 جميع التنبيهات</h3>
+          <div style="display:flex;gap:.5rem;align-items:center">
+            <button class="map-refresh-btn" onclick="refreshAllMapData()" title="تحديث">🔄</button>
+            <select class="sort-select" onchange="sortAlerts(this.value)">
+              <option value="time">الأحدث</option>
+              <option value="votes">الأكثر تأكيداً</option>
+              <option value="nearby">الأقرب إليّ</option>
+            </select>
+          </div>
+        </div>
+        <div id="mapAlertsList" class="alerts-list"></div>
+      </div>
+    </section>
+
+    <!-- ======================================================
+         PEOPLE SEARCH - البحث عن الأشخاص (Truecaller-style)
+    ====================================================== -->
+    <section id="sec-people" class="section">
+      <div class="sec-top people-top">
+        <h2>🔍 البحث عن الأشخاص</h2>
+        <p>بحث شامل - أشخاص، شركات، أرقام، مهارات وإعلانات</p>
+      </div>
+
+      <!-- مربع البحث الرئيسي - Truecaller Style -->
+      <div class="section-pad">
+        <div class="people-search-box">
+          <div class="psb-tabs">
+            <button class="psb-tab active-psb-tab" data-type="all"     onclick="setPeopleSearchType('all',this)">🌐 الكل</button>
+            <button class="psb-tab"                data-type="name"    onclick="setPeopleSearchType('name',this)">👤 اسم</button>
+            <button class="psb-tab"                data-type="phone"   onclick="setPeopleSearchType('phone',this)">📱 رقم</button>
+            <button class="psb-tab"                data-type="email"   onclick="setPeopleSearchType('email',this)">✉️ بريد</button>
+            <button class="psb-tab"                data-type="company" onclick="setPeopleSearchType('company',this)">🏢 شركة</button>
+          </div>
+          <div class="psb-input-wrap">
+            <span class="psb-icon" id="psb-icon">🔍</span>
+            <input id="peopleSearchInp" class="psb-inp" placeholder="ابحث في جميع المواقع والشركات..."
+              oninput="searchPeople()" onkeydown="if(event.key==='Enter')searchPeople(true)" autocomplete="off"/>
+            <button class="psb-btn" onclick="searchPeople(true)">بحث</button>
+          </div>
+          <!-- مؤشر حالة البحث -->
+          <div class="psb-stats" id="psb-stats" style="display:none">
+            <span id="psb-count">0 نتيجة</span>
+            <span class="psb-sep">•</span>
+            <span id="psb-scope">بحث في الأشخاص والإعلانات والمهارات</span>
+          </div>
+        </div>
+
+        <!-- نتائج البحث -->
+        <div id="peopleResults" class="people-results"></div>
+
+        <!-- أشخاص نشطون قريبون منك -->
+        <div class="sec-header" style="margin-top:1.2rem">
+          <h3 class="sec-title">📡 أشخاص نشطون قريبون منك</h3>
+          <button class="see-all-btn" onclick="goSection('map');setTimeout(()=>filterMap('people',document.querySelector('.filt:nth-child(5)')),300)">🗺️ على الخريطة ←</button>
+        </div>
+        <div id="nearbyPeopleList" class="nearby-people-list"></div>
+      </div>
+    </section>
+
+
+
+    <!-- ======================================================
+         PROFILE v5.0 — Ultra Modern 2026
+         Glassmorphism · Neon · Micro-animations · Arabic RTL
+    <!-- ======================================================
+         PROFILE v6 — WhatsApp Style
+    ====================================================== -->
+    <section id="sec-profile" class="section">
+
+      <!-- SVG gradient defs for XP ring -->
+      <svg width="0" height="0" style="position:absolute;overflow:hidden">
+        <defs>
+          <linearGradient id="xpGradLocal" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%"   stop-color="#008069"/>
+            <stop offset="100%" stop-color="#00A884"/>
+          </linearGradient>
+        </defs>
+      </svg>
+
+      <!-- ══ HERO COVER ══ -->
+      <div class="pv4-cover" id="profileCover">
+        <div class="pv4-cover-mesh" id="coverMesh"></div>
+        <div class="pv4-cover-top">
+          <button class="pv4-icon-btn" onclick="changeProfileCover()" title="تغيير الغلاف">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
+          </button>
+          <div class="pv4-level-chip" id="pv4LevelChip">
+            <span id="pv4LevelIcon">🌱</span>
+            <span id="pv4LevelText">جديد</span>
+          </div>
+          <button class="pv4-icon-btn pv4-edit-btn" onclick="toggleProfileEdit()" id="pv4EditBtn" title="تعديل الملف">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </button>
+        </div>
+        <!-- Avatar bottom-right -->
+        <div class="pv4-avatar-stage">
+          <div class="pv4-xp-ring-wrap">
+            <svg class="pv4-xp-svg" viewBox="0 0 120 120">
+              <circle class="pv4-xp-track" cx="60" cy="60" r="54"/>
+              <circle class="pv4-xp-arc" cx="60" cy="60" r="54" id="pv4XpArc" stroke="url(#xpGradLocal)"/>
+            </svg>
+            <div class="pv4-avatar-wrap" onclick="triggerProfilePhotoUpload()">
+              <div class="pv4-avatar-emoji" id="profileAvatarBig">👤</div>
+              <img id="profilePhotoDisplay" class="pv4-avatar-photo hidden" alt="صورتك"/>
+              <div class="pv4-avatar-lens">📷</div>
+            </div>
+            <div class="pv4-online-dot" id="pv4OnlineDot"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ IDENTITY CARD ══ -->
+      <div class="pv4-id-card">
+        <div class="pv4-name-row">
+          <h2 class="pv4-name" id="profileHeroName">مستخدم نبض</h2>
+          <span class="pv4-verified hidden" id="profileVerifiedBadge" title="موثق">✅</span>
+        </div>
+        <div class="pv4-jobtitle hidden" id="profileHeroJob"></div>
+        <div class="pv4-location" id="profileHeroArea">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          <span>غير محدد</span>
+        </div>
+        <div class="pv4-chips-row">
+          <span class="pv4-chip pv4-chip-nabdh">💓 نبض</span>
+          <span class="pv4-chip pv4-chip-online" id="profileOnlineBadge">🟢 نشط</span>
+          <span class="pv4-chip pv4-chip-level" id="profileLevelBadgeInline">🌱 جديد</span>
+        </div>
+      </div>
+
+      <!-- ══ ACTION ROW — WhatsApp style ══ -->
+      <div class="pv4-actions" id="profileActions">
+        <button class="pv4-act" onclick="goSection('messages')">
+          <div class="pv4-act-ico pv4-act-msg">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          </div>
+          <span>رسائلي</span>
+        </button>
+        <button class="pv4-act" onclick="showMyLocationOnMap()">
+          <div class="pv4-act-ico pv4-act-map">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+          </div>
+          <span>موقعي</span>
+        </button>
+        <button class="pv4-act" onclick="shareProfile()">
+          <div class="pv4-act-ico pv4-act-share">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          </div>
+          <span>مشاركة</span>
+        </button>
+        <button class="pv4-act" onclick="showProfileQRModal()">
+          <div class="pv4-act-ico pv4-act-qr">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="3" height="3"/><rect x="18" y="14" width="3" height="3"/><rect x="14" y="18" width="3" height="3"/><rect x="18" y="18" width="3" height="3"/></svg>
+          </div>
+          <span>QR</span>
+        </button>
+        <button class="pv4-act" onclick="openSosModal()">
+          <div class="pv4-act-ico pv4-act-sos">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="10.29 3.86 1.82 18 22.18 18 13.71 3.86 10.29 3.86"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          </div>
+          <span>طوارئ</span>
+        </button>
+        <button class="pv4-act" onclick="goSection('report')">
+          <div class="pv4-act-ico pv4-act-report">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          </div>
+          <span>بلاغ</span>
+        </button>
+      </div>
+
+      <!-- ══ XP BAR ══ -->
+      <div class="pv4-xp-bar-wrap" id="profileXpWrap">
+        <div class="pv4-xp-meta">
+          <span id="pxb-label-text" class="pv4-xp-label">التقدم نحو المستوى التالي</span>
+          <span id="pxb-pts" class="pv4-xp-pts">0 / 100 XP</span>
+        </div>
+        <div class="pv4-xp-track-wrap">
+          <div class="pv4-xp-track">
+            <div class="pv4-xp-fill" id="pxbFill" style="width:0%">
+              <div class="pv4-xp-shimmer"></div>
+            </div>
+          </div>
+        </div>
+        <div class="pv4-streak-row" id="pv4StreakRow" style="display:none">
+          <span class="pv4-streak-fire">🔥</span>
+          <span id="pv4StreakText">سلسلة 1 يوم</span>
+        </div>
+      </div>
+
+      <!-- ══ STATS ROW ══ -->
+      <div class="pv4-stats-row">
+        <div class="pv4-stat" onclick="goSection('report')" title="بلاغاتي">
+          <span class="pv4-stat-num" id="ps-reports">0</span>
+          <div class="pv4-stat-lbl">بلاغات</div>
+        </div>
+        <div class="pv4-stat">
+          <span class="pv4-stat-num" id="ps-points">0</span>
+          <div class="pv4-stat-lbl">نقطة</div>
+        </div>
+        <div class="pv4-stat">
+          <span class="pv4-stat-num" id="ps-level">1</span>
+          <div class="pv4-stat-lbl">مستوى</div>
+        </div>
+        <div class="pv4-stat">
+          <span class="pv4-stat-num" id="ps-joined">—</span>
+          <div class="pv4-stat-lbl">انضمام</div>
+        </div>
+      </div>
+
+      <!-- ══ PUBLIC PHONE (if set) ══ -->
+      <div class="pv4-pub-phone hidden" id="publicPhoneBar">
+        <div class="pv4-pub-phone-left">
+          <div class="pv4-pub-phone-icon">📢</div>
+          <div>
+            <div class="pv4-pub-phone-lbl">الرقم المُعلن</div>
+            <div class="pv4-pub-phone-num" id="ppb-number">—</div>
+          </div>
+        </div>
+        <button class="pv4-call-btn" onclick="callPublicPhone()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.18 2 2 0 0 1 3.6 1h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 8.91a16 16 0 0 0 6.18 6.18l.91-.91a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          اتصال
+        </button>
+      </div>
+
+      <!-- ══ SCROLL AREA ══ -->
+      <div class="pv4-scroll-area">
+
+        <!-- بطاقة النقاط والمستوى -->
+        <div class="pv4-points-card" id="profilePointsCardV2">
+          <div class="pv4-pc-glow"></div>
+          <div class="pv4-pc-top">
+            <div class="pv4-pc-level-wrap">
+              <div class="pv4-pc-level-icon" id="ppcLevelIcon">🌱</div>
+              <div class="pv4-pc-level-ring"></div>
+            </div>
+            <div class="pv4-pc-info">
+              <div class="pv4-pc-title" id="ppcLevelTitle">جديد</div>
+              <div class="pv4-pc-pts"   id="ppcPtsText">0 نقطة</div>
+              <div class="pv4-pc-streak hidden" id="ppcStreak">🔥 سلسلة 0 يوم</div>
+            </div>
+            <button class="pv4-lb-btn" onclick="openLeaderboard()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
+              ترتيبي
+            </button>
+          </div>
+          <!-- نشاط الأسبوع -->
+          <div class="pv4-activity-strip" style="margin-bottom:.65rem;padding:.65rem .75rem;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05);border-radius:12px;">
+            <div class="pv4-activity-head">
+              <div class="pv4-activity-title">
+                <span>📊</span>
+                <span>نشاط الأسبوع</span>
+              </div>
+              <div class="pv4-activity-dots" id="pv4ActivityDots"></div>
+            </div>
+            <div class="pv4-activity-bars" id="pv4ActivityBars"></div>
+          </div>
+          <!-- الشارات -->
+          <div class="pv4-pc-badges" id="ppcBadgesRow">
+            <span style="font-size:.73rem;color:#8696A0">أنجز تحديات لتحصل على شارات 🏅</span>
+          </div>
+          <!-- الأزرار -->
+          <div class="pv4-pc-actions">
+            <button class="pv4-pc-act" onclick="shareReferral()">
+              <span class="pv4-pc-act-ico">🔗</span>
+              <span>ادعُ صديقاً</span>
+              <span class="pv4-pc-act-pts">+20</span>
+            </button>
+            <button class="pv4-pc-act" onclick="openDailyChallenge()">
+              <span class="pv4-pc-act-ico">🎯</span>
+              <span>تحدي اليوم</span>
+            </button>
+            <button class="pv4-pc-act" onclick="openLeaderboard()">
+              <span class="pv4-pc-act-ico">📊</span>
+              <span>المتصدرون</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- بطاقات المعلومات -->
+        <div id="profileViewCard">
+
+          <!-- التواصل -->
+          <div class="pv4-info-card" style="margin-bottom:.6rem">
+            <div class="pv4-info-head">
+              <span class="pv4-info-icon">📞</span>
+              <span class="pv4-info-title">التواصل</span>
+            </div>
+            <div class="pv4-info-rows">
+              <div class="pv4-info-row pv4-row-green hidden" id="pv-public-phone-row">
+                <div class="pv4-row-icon-wrap pv4-bg-green"><span>📢</span></div>
+                <div class="pv4-row-body">
+                  <span class="pv4-row-lbl">الرقم المُعلن</span>
+                  <span class="pv4-row-val pv4-val-green" id="pv-public-phone">—</span>
+                </div>
+                <button class="pv4-row-action pv4-btn-green" onclick="callPublicPhone()">📞</button>
+              </div>
+              <div class="pv4-info-row">
+                <div class="pv4-row-icon-wrap"><span>📱</span></div>
+                <div class="pv4-row-body">
+                  <span class="pv4-row-lbl">الهاتف</span>
+                  <span class="pv4-row-val" id="pv-phone">غير مُضاف</span>
+                </div>
+                <button class="pv4-row-action hidden" id="pv-phone-call-btn" onclick="callProfilePhone()">📞</button>
+              </div>
+              <div class="pv4-info-row">
+                <div class="pv4-row-icon-wrap"><span>✉️</span></div>
+                <div class="pv4-row-body">
+                  <span class="pv4-row-lbl">البريد</span>
+                  <span class="pv4-row-val" id="pv-email">غير مُضاف</span>
+                </div>
+                <a class="pv4-row-action hidden" id="pv-email-link" href="#">✉️</a>
+              </div>
+              <div class="pv4-info-row">
+                <div class="pv4-row-icon-wrap pv4-bg-green"><span>💬</span></div>
+                <div class="pv4-row-body">
+                  <span class="pv4-row-lbl">واتساب</span>
+                  <span class="pv4-row-val" id="pv-whatsapp">—</span>
+                </div>
+                <a id="pv-whatsapp-link" href="#" class="pv4-row-action pv4-btn-green hidden" target="_blank">💬</a>
+              </div>
+              <div class="pv4-info-row">
+                <div class="pv4-row-icon-wrap pv4-bg-blue"><span>✈️</span></div>
+                <div class="pv4-row-body">
+                  <span class="pv4-row-lbl">تيليغرام</span>
+                  <span class="pv4-row-val" id="pv-telegram">—</span>
+                </div>
+                <a id="pv-telegram-link" href="#" class="pv4-row-action pv4-btn-blue hidden" target="_blank">✈️</a>
+              </div>
+            </div>
+          </div>
+
+          <!-- المهني -->
+          <div class="pv4-info-card" style="margin-bottom:.6rem">
+            <div class="pv4-info-head">
+              <span class="pv4-info-icon">💼</span>
+              <span class="pv4-info-title">المعلومات المهنية</span>
+            </div>
+            <div class="pv4-info-rows">
+              <div class="pv4-info-row">
+                <div class="pv4-row-icon-wrap"><span>💼</span></div>
+                <div class="pv4-row-body">
+                  <span class="pv4-row-lbl">الوظيفة</span>
+                  <span class="pv4-row-val" id="pv-jobtitle">—</span>
+                </div>
+              </div>
+              <div class="pv4-info-row">
+                <div class="pv4-row-icon-wrap"><span>🏢</span></div>
+                <div class="pv4-row-body">
+                  <span class="pv4-row-lbl">الشركة</span>
+                  <span class="pv4-row-val" id="pv-company">—</span>
+                </div>
+              </div>
+              <div class="pv4-info-row">
+                <div class="pv4-row-icon-wrap"><span>🌐</span></div>
+                <div class="pv4-row-body">
+                  <span class="pv4-row-lbl">الموقع</span>
+                  <a class="pv4-row-val pv4-val-link" id="pv-website" href="#" target="_blank">—</a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- الشخصي -->
+          <div class="pv4-info-card" style="margin-bottom:.6rem">
+            <div class="pv4-info-head">
+              <span class="pv4-info-icon">📋</span>
+              <span class="pv4-info-title">البيانات الشخصية</span>
+            </div>
+            <div class="pv4-info-rows">
+              <div class="pv4-info-row">
+                <div class="pv4-row-icon-wrap"><span>📍</span></div>
+                <div class="pv4-row-body">
+                  <span class="pv4-row-lbl">المنطقة</span>
+                  <span class="pv4-row-val" id="pv-area">غير محدد</span>
+                </div>
+                <button class="pv4-row-action" onclick="showMyLocationOnMap()">🗺️</button>
+              </div>
+              <div class="pv4-info-row pv4-row-bio">
+                <div class="pv4-row-icon-wrap"><span>📝</span></div>
+                <div class="pv4-row-body">
+                  <span class="pv4-row-lbl">نبذة</span>
+                  <span class="pv4-row-val pv4-bio-val" id="pv-bio">أضف نبذة عنك...</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- الشارات -->
+          <div class="pv4-info-card" id="profileBadgesBlock" style="margin-bottom:.6rem">
+            <div class="pv4-info-head">
+              <span class="pv4-info-icon">🏅</span>
+              <span class="pv4-info-title">شاراتك ومستواك</span>
+            </div>
+            <div class="pv4-badges-grid" id="profileBadgesGrid">
+              <div class="pv4-badge pv4-badge-new">🌟 عضو جديد</div>
+            </div>
+          </div>
+
+          <!-- الإجراءات السريعة 3×3 -->
+          <div class="pv4-quick-grid" style="margin-bottom:.6rem">
+            <button class="pv4-quick" onclick="goSection('report')">
+              <div class="pv4-quick-ico pv4-q-red">📢</div>
+              <span>بلاغ</span>
+            </button>
+            <button class="pv4-quick" onclick="goSection('exchange')">
+              <div class="pv4-quick-ico pv4-q-gold">💵</div>
+              <span>صرف</span>
+            </button>
+            <button class="pv4-quick" onclick="goSection('blood')">
+              <div class="pv4-quick-ico pv4-q-red">🩸</div>
+              <span>دم</span>
+            </button>
+            <button class="pv4-quick" onclick="goSection('market')">
+              <div class="pv4-quick-ico pv4-q-teal">🛒</div>
+              <span>السوق</span>
+            </button>
+            <button class="pv4-quick" onclick="goSection('medicine')">
+              <div class="pv4-quick-ico pv4-q-blue">💊</div>
+              <span>دواء</span>
+            </button>
+            <button class="pv4-quick" onclick="goSection('skills')">
+              <div class="pv4-quick-ico pv4-q-purple">🤝</div>
+              <span>مهارات</span>
+            </button>
+            <button class="pv4-quick" onclick="goSection('help')">
+              <div class="pv4-quick-ico pv4-q-orange">📦</div>
+              <span>مساعدة</span>
+            </button>
+            <button class="pv4-quick" onclick="goSection('polls')">
+              <div class="pv4-quick-ico pv4-q-purple">🗳️</div>
+              <span>استطلاع</span>
+            </button>
+            <button class="pv4-quick" onclick="openDailyChallenge()">
+              <div class="pv4-quick-ico pv4-q-gold">🎯</div>
+              <span>تحدي</span>
+            </button>
+          </div>
+
+        </div><!-- end profileViewCard -->
+
+        <!-- ══ نموذج التعديل ══ -->
+        <div class="pv4-edit-form hidden" id="profileEditForm">
+
+          <div class="pv4-ef-header">
+            <div class="pv4-ef-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              تعديل ملفك الشخصي
+            </div>
+            <button class="pv4-ef-close" onclick="toggleProfileEdit()">✕</button>
+          </div>
+
+          <!-- صورة الملف -->
+          <div class="pv4-ef-photo-section">
+            <div class="pv4-ef-photo-ring" onclick="triggerProfilePhotoUpload()">
+              <div class="pv4-ef-avatar" id="peAvatarPreview">👤</div>
+              <img id="pePhotoImg" class="pv4-ef-photo hidden" alt="صورتك"/>
+              <div class="pv4-ef-photo-overlay">📷</div>
+            </div>
+            <div class="pv4-ef-photo-name" id="peNamePreview">مستخدم نبض</div>
+            <div class="pv4-ef-photo-btns">
+              <button type="button" class="pv4-ef-photo-btn" onclick="triggerProfilePhotoCapture()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                كاميرا
+              </button>
+              <button type="button" class="pv4-ef-photo-btn" onclick="triggerProfilePhotoUpload()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                معرض
+              </button>
+              <button type="button" class="pv4-ef-photo-btn" onclick="openEmojiAvatarPicker()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+                رمز
+              </button>
+            </div>
+            <input type="file" id="profilePhotoInput"  accept="image/*"             style="display:none" onchange="onProfilePhotoSelected(this,false)"/>
+            <input type="file" id="profileCameraInput" accept="image/*" capture="user" style="display:none" onchange="onProfilePhotoSelected(this,true)"/>
+          </div>
+
+          <!-- محدد الرمز التعبيري -->
+          <div id="emojiAvatarPicker" class="emoji-avatar-picker hidden">
+            <div class="eap-title">اختر رمزاً لملفك</div>
+            <div class="eap-grid" id="eapGrid"></div>
+            <button class="eap-close" onclick="closeEmojiAvatarPicker()">✕ إغلاق</button>
+          </div>
+
+          <!-- المعلومات الأساسية -->
+          <div class="pv4-ef-card">
+            <div class="pv4-ef-card-head">
+              <span class="pv4-ef-card-icon">👤</span>
+              <span>المعلومات الأساسية</span>
+            </div>
+            <input type="text"  id="pe-name"     class="pv4-inp" placeholder="الاسم الكامل أو اللقب *"
+                   oninput="document.getElementById('peNamePreview').textContent=this.value||'مستخدم نبض'"/>
+            <input type="text"  id="pe-jobtitle" class="pv4-inp" placeholder="💼 المسمى الوظيفي"/>
+            <input type="text"  id="pe-company"  class="pv4-inp" placeholder="🏢 الشركة / المؤسسة"/>
+            <input type="url"   id="pe-website"  class="pv4-inp" placeholder="🌐 الموقع الإلكتروني"/>
+            <textarea           id="pe-bio"      class="pv4-inp pv4-ta" rows="3" placeholder="📝 نبذة قصيرة عنك..."></textarea>
+          </div>
+
+          <!-- الرقم المُعلن -->
+          <div class="pv4-ef-card pv4-ef-card-green">
+            <div class="pv4-ef-card-head pv4-ef-head-green">
+              <span class="pv4-ef-card-icon">📢</span>
+              <span>الرقم المُعلن للجميع</span>
+            </div>
+            <input type="tel" id="pe-public-phone" class="pv4-inp pv4-inp-green" placeholder="مثال: 0911702067"/>
+            <div class="pv4-ef-hint">⚡ يظهر للجميع في البحث والخريطة</div>
+          </div>
+
+          <!-- التواصل الخاص -->
+          <div class="pv4-ef-card">
+            <div class="pv4-ef-card-head">
+              <span class="pv4-ef-card-icon">🔒</span>
+              <span>التواصل الخاص</span>
+            </div>
+            <input type="tel"   id="pe-phone"    class="pv4-inp" placeholder="📱 رقم هاتفك الشخصي"/>
+            <input type="email" id="pe-email"    class="pv4-inp" placeholder="✉️ البريد الإلكتروني"/>
+            <input type="tel"   id="pe-whatsapp" class="pv4-inp" placeholder="💬 واتساب (مع رمز الدولة)"/>
+            <input type="text"  id="pe-telegram" class="pv4-inp" placeholder="✈️ تيليغرام (@username)"/>
+          </div>
+
+          <!-- الموقع -->
+          <div class="pv4-ef-card">
+            <div class="pv4-ef-card-head">
+              <span class="pv4-ef-card-icon">📍</span>
+              <span>الموقع والمنطقة</span>
+            </div>
+            <div class="geo-picker-wrap">
+              <input id="pe-area" class="pv4-inp" placeholder="📍 منطقتك: الخرطوم، أم درمان..."
+                     oninput="searchGeoInline('pe-area','pe-area-drop')"/>
+              <div id="pe-area-drop" class="geo-dropdown hidden"></div>
+            </div>
+            <button type="button" class="pv4-outline-btn" onclick="useCurrentLocationForProfile()" style="margin:.5rem 1rem .75rem">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+              استخدام موقعي الحالي
+            </button>
+          </div>
+
+          <!-- الخصوصية -->
+          <div class="pv4-ef-card">
+            <div class="pv4-ef-card-head">
+              <span class="pv4-ef-card-icon">🛡️</span>
+              <span>الخصوصية والإعدادات</span>
+            </div>
+            <label class="pv4-toggle-row">
+              <div class="pv4-toggle">
+                <input type="checkbox" id="pe-public" checked/>
+                <span class="pv4-toggle-thumb"></span>
+              </div>
+              <span class="pv4-toggle-lbl">🌐 ملفي مرئي للعموم</span>
+            </label>
+            <label class="pv4-toggle-row">
+              <div class="pv4-toggle">
+                <input type="checkbox" id="pe-showmap" checked/>
+                <span class="pv4-toggle-thumb"></span>
+              </div>
+              <span class="pv4-toggle-lbl">🗺️ أظهر على خريطة الأشخاص</span>
+            </label>
+            <label class="pv4-toggle-row">
+              <div class="pv4-toggle">
+                <input type="checkbox" id="pe-notify" checked/>
+                <span class="pv4-toggle-thumb"></span>
+              </div>
+              <span class="pv4-toggle-lbl">🔔 تلقّي الإشعارات</span>
+            </label>
+          </div>
+
+          <!-- أزرار الحفظ -->
+          <div class="pv4-ef-footer">
+            <button class="pv4-save-btn" onclick="saveProfile()" id="profileSaveBtn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+              حفظ الملف الشخصي
+            </button>
+            <button class="pv4-cancel-btn" onclick="toggleProfileEdit()">إلغاء</button>
+          </div>
+
+        </div><!-- end profileEditForm -->
+
+      </div><!-- end pv4-scroll-area -->
+
+      <!-- QR Modal -->
+      <div class="profile-qr-modal hidden" id="profileQrModal" onclick="closeProfileQrModal()">
+        <div class="pqm-inner" onclick="event.stopPropagation()">
+          <button class="pqm-close" onclick="closeProfileQrModal()">✕</button>
+          <h3 style="color:#00A884;margin-bottom:1rem">📲 QR كود ملفك</h3>
+          <canvas id="profileQrCanvas" width="200" height="200"></canvas>
+          <div id="pqmName" style="font-weight:700;margin-top:.75rem;color:#E9EDEF"></div>
+          <div id="pqmSub" style="font-size:.78rem;color:#8696A0;margin:.25rem 0 1rem"></div>
+          <button onclick="copyProfileLink()" style="background:#00A884;border:none;color:#fff;padding:.5rem 1.2rem;border-radius:20px;cursor:pointer;font-size:.85rem;font-family:inherit;font-weight:600">
+            📋 نسخ الرابط
+          </button>
+        </div>
+      </div>
+
+    </section><!-- end sec-profile -->
+
+
+
+    <!-- ======================================================
+         MESSAGES - الرسائل المباشرة المُحسَّنة
+    ====================================================== -->
+    <!-- SOS Modal (global) -->
+    <div class="sos-modal-overlay hidden" id="sosModal" onclick="closeSosModal()">
+      <div class="sos-modal-box" onclick="event.stopPropagation()">
+        <div class="sos-modal-title">🆘 نداء استغاثة</div>
+        <p style="color:var(--text2);font-size:.85rem;margin-bottom:1rem">اختر نوع الاستغاثة</p>
+        <button class="sos-btn-big sos-call-btn" onclick="window.open('tel:999');closeSosModal()">📞 اتصال بالطوارئ 999</button>
+        <button class="sos-btn-big sos-report-btn" onclick="sendSOSAlert();closeSosModal()">📡 أرسل نداء للمحيطين بك</button>
+        <button class="sos-btn-big sos-share-btn" onclick="shareSOSLocation();closeSosModal()">📤 شارك موقعك الآن</button>
+        <button class="sos-btn-big sos-cancel-btn" onclick="closeSosModal()">إلغاء</button>
+      </div>
+    </div>
+    <section id="sec-messages" class="section">
+      <div class="sec-top msg-top">
+        <h2>💬 الرسائل المباشرة</h2>
+        <p>تواصل خاص ومباشر مع أي شخص في نبض</p>
+      </div>
+
+      <!-- بحث سريع للمراسلة -->
+      <div class="section-pad">
+        <div class="msg-quick-search">
+          <input id="msgQuickSearch" class="inp" placeholder="🔍 ابحث عن شخص لمراسلته..." oninput="quickSearchForMsg(this.value)"/>
+          <div id="msgQuickResults" class="msg-quick-results hidden"></div>
+        </div>
+
+        <!-- قائمة المحادثات -->
+        <div class="sec-header" style="margin-top:1rem">
+          <h3 class="sec-title">📨 محادثاتك</h3>
+          <button class="see-all-btn" onclick="goSection('people')">+ جديدة</button>
+        </div>
+        <div id="conversationsList" class="conversations-list"></div>
+
+        <!-- زر الدردشة العامة -->
+        <div style="margin-top:1rem;text-align:center">
+          <button class="public-chat-btn" onclick="openPublicChat()">
+            💬 انضم للدردشة العامة
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================
+         EXCHANGE
+    ====================================================== -->
+    <section id="sec-exchange" class="section">
+      <div class="sec-top">
+        <h2>💵 صرّاف الشعب</h2>
+        <p>سعر الصرف الحقيقي من السوق مباشرة - يتحدث تلقائياً بموقعك</p>
+      </div>
+      <div class="rate-hero">
+        <div class="rate-hero-inner">
+          <div class="rate-label">سعر الدولار الآن</div>
+          <div class="rate-hero-num" id="exRateMain">---</div>
+          <div class="rate-unit">جنيه سوداني</div>
+          <div class="rate-updated" id="exUpdated">لم يُبلَّغ بعد</div>
+        </div>
+        <div class="rate-mini-stats">
+          <div class="rms"><span id="exHigh">-</span><small>أعلى اليوم</small></div>
+          <div class="rms"><span id="exLow">-</span><small>أدنى اليوم</small></div>
+          <div class="rms"><span id="exAvg">-</span><small>المتوسط</small></div>
+        </div>
+      </div>
+      <div class="section-pad">
+        <h3 class="sec-title">📈 منحنى السعر</h3>
+        <canvas id="rateChart" height="120"></canvas>
+      </div>
+      <div class="section-pad">
+        <h3 class="sec-title">📤 شارك السعر من مكانك</h3>
+        <div class="form-card">
+          <div class="geo-picker-wrap">
+            <input id="exSourceInput" class="inp" placeholder="📍 موقعك / المنطقة (يتحدد تلقائياً)" oninput="searchGeoInline('exSourceInput','exSourceDrop')"/>
+            <div id="exSourceDrop" class="geo-dropdown hidden"></div>
+            <input type="hidden" id="exSourceLat"/>
+            <input type="hidden" id="exSourceLng"/>
+          </div>
+          <input type="number" id="newRate" placeholder="السعر بالجنيه السوداني" class="inp" min="1"/>
+          <div class="loc-attach-row">
+            <span id="exLocStatus" class="loc-status-text">📍 يتحدد موقعك تلقائياً</span>
+            <button type="button" class="loc-attach-btn" onclick="attachGPS('exSourceInput','exSourceLat','exSourceLng','exLocStatus')">🎯 موقعي الآن</button>
+          </div>
+          <button class="btn-submit" onclick="submitRate()">📤 شارك السعر</button>
+        </div>
+      </div>
+      <div class="section-pad">
+        <h3 class="sec-title">🕐 آخر الأسعار المُبلَّغ عنها</h3>
+        <div id="ratesList" class="rates-list"></div>
+      </div>
+    </section>
+
+    <!-- ======================================================
+         MEDICINE
+    ====================================================== -->
+    <section id="sec-medicine" class="section">
+      <div class="sec-top">
+        <h2>💊 دواء موجود</h2>
+        <p>ابحث عن دوائك في أقرب صيدلية - يعمل بموقعك تلقائياً</p>
+      </div>
+      <div class="section-pad">
+        <div class="search-box">
+          <input type="text" id="medSearch" placeholder="🔍 ابحث باسم الدواء أو الصيدلية..." class="search-inp" oninput="searchMedicine()"/>
+        </div>
+        <div class="med-filter-row">
+          <button class="filt active-filt" onclick="filterMed('all',this)">الكل</button>
+          <button class="filt" onclick="filterMed('available',this)">✅ متوفر</button>
+          <button class="filt" onclick="filterMed('unavailable',this)">❌ غير متوفر</button>
+          <button class="filt filt-nearby" onclick="filterMed('nearby',this)">📡 قريب مني</button>
+        </div>
+      </div>
+      <div id="medList" class="section-pad med-list"></div>
+      <div class="section-pad">
+        <h3 class="sec-title">➕ أضف معلومة دواء</h3>
+        <div class="form-card">
+          <input type="text" id="medName"     placeholder="اسم الدواء" class="inp"/>
+          <input type="text" id="medPharmacy" placeholder="اسم الصيدلية" class="inp"/>
+          <div class="geo-picker-wrap">
+            <input id="medAreaInput" class="inp" placeholder="📍 الموقع (يتحدد تلقائياً)" oninput="searchGeoInline('medAreaInput','medAreaDrop')"/>
+            <div id="medAreaDrop" class="geo-dropdown hidden"></div>
+            <input type="hidden" id="medLat"/>
+            <input type="hidden" id="medLng"/>
+          </div>
+          <div class="loc-attach-row">
+            <span id="medLocStatus" class="loc-status-text">📍 يتحدد موقعك تلقائياً</span>
+            <button type="button" class="loc-attach-btn" onclick="attachGPS('medAreaInput','medLat','medLng','medLocStatus')">🎯 موقعي الآن</button>
+          </div>
+          <input type="number" id="medPrice" placeholder="السعر (اختياري)" class="inp"/>
+          <div class="radio-row">
+            <label><input type="radio" name="medAvail" value="true" checked> ✅ متوفر</label>
+            <label><input type="radio" name="medAvail" value="false"> ❌ غير متوفر</label>
+          </div>
+          <button class="btn-submit" onclick="submitMedicine()">💊 أضف معلومة</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================
+         VOICE
+    ====================================================== -->
+    <section id="sec-voice" class="section">
+      <div class="sec-top">
+        <h2>📢 صوت الحي</h2>
+        <p>صوتك يصنع التغيير - يُرسل بموقعك الفعلي</p>
+      </div>
+      <div class="section-pad">
+        <div class="form-card">
+          <input type="text" id="voiceTitle" placeholder="عنوان المشكلة" class="inp"/>
+          <textarea id="voiceDesc" placeholder="وصف المشكلة بالتفصيل..." class="inp ta"></textarea>
+          <div class="geo-picker-wrap">
+            <input id="voiceAreaInput" class="inp" placeholder="📍 الموقع (يتحدد تلقائياً)" oninput="searchGeoInline('voiceAreaInput','voiceAreaDrop')"/>
+            <div id="voiceAreaDrop" class="geo-dropdown hidden"></div>
+            <input type="hidden" id="voiceLat"/>
+            <input type="hidden" id="voiceLng"/>
+          </div>
+          <div class="loc-attach-row">
+            <span id="voiceLocStatus" class="loc-status-text">📍 يتحدد موقعك تلقائياً</span>
+            <button type="button" class="loc-attach-btn" onclick="attachGPS('voiceAreaInput','voiceLat','voiceLng','voiceLocStatus')">🎯 موقعي الآن</button>
+          </div>
+          <select id="voiceCat" class="inp">
+            <option value="كهرباء">⚡ انقطاع الكهرباء</option>
+            <option value="ماء">💧 انقطاع المياه</option>
+            <option value="طرق">🛣️ مشكلة طرق</option>
+            <option value="صحة">🏥 مشكلة صحية</option>
+            <option value="أمن">🔒 مشكلة أمنية</option>
+            <option value="أخرى">📌 أخرى</option>
+          </select>
+          <button class="btn-submit" onclick="submitVoice()">📢 أرسل صوتك</button>
+        </div>
+        <div id="voiceList" class="voice-list"></div>
+      </div>
+    </section>
+
+    <!-- ======================================================
+         SKILLS
+    ====================================================== -->
+    <section id="sec-skills" class="section">
+      <div class="sec-top">
+        <h2>🤝 بورصة المهارات</h2>
+        <p>تبادل الخدمات بدون نقود - P2P حقيقي</p>
+      </div>
+      <div class="section-pad">
+        <div class="skills-intro">💡 عرض مهارتك واحصل على ما تحتاجه من مجتمعك - مجاناً تماماً</div>
+        <div id="skillsList" class="skills-list"></div>
+        <h3 class="sec-title" style="margin-top:1.5rem">➕ أضف مهارتك</h3>
+        <div class="form-card">
+          <input type="text" id="skillName"    placeholder="اسمك" class="inp"/>
+          <input type="text" id="skillOffer"   placeholder="ما تعرضه (مهارتك أو خدمتك)" class="inp"/>
+          <input type="text" id="skillWant"    placeholder="ما تريده في المقابل" class="inp"/>
+          <input type="text" id="skillContact" placeholder="واتساب / تيليغرام / طريقة التواصل" class="inp"/>
+          <div class="geo-picker-wrap">
+            <input id="skillAreaInput" class="inp" placeholder="📍 موقعك (يتحدد تلقائياً)" oninput="searchGeoInline('skillAreaInput','skillAreaDrop')"/>
+            <div id="skillAreaDrop" class="geo-dropdown hidden"></div>
+            <input type="hidden" id="skillLat"/>
+            <input type="hidden" id="skillLng"/>
+          </div>
+          <div class="loc-attach-row">
+            <span id="skillLocStatus" class="loc-status-text">📍 يتحدد موقعك تلقائياً</span>
+            <button type="button" class="loc-attach-btn" onclick="attachGPS('skillAreaInput','skillLat','skillLng','skillLocStatus')">🎯 موقعي الآن</button>
+          </div>
+          <button class="btn-submit" onclick="submitSkill()">🤝 أضف مهارتك</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================
+         MARKET - سوق P2P
+    ====================================================== -->
+    <section id="sec-market" class="section">
+      <div class="sec-top market-top">
+        <h2>🛒 سوق P2P المباشر</h2>
+        <p>بيع • شراء • تبادل مباشر بين الناس بناءً على موقعك الفعلي</p>
+      </div>
+
+      <div class="market-filters">
+        <button class="mfilt active-mfilt" onclick="filterMarket('all',this)">🌐 الكل</button>
+        <button class="mfilt" onclick="filterMarket('sell',this)">💰 بيع</button>
+        <button class="mfilt" onclick="filterMarket('buy',this)">🛍️ شراء</button>
+        <button class="mfilt" onclick="filterMarket('trade',this)">🔄 تبادل</button>
+        <button class="mfilt filt-nearby" onclick="filterMarket('nearby',this)">📡 قريب مني</button>
+      </div>
+
+      <div class="market-cats">
+        <button class="mcat active-mcat" onclick="filterMarketCat('all',this)">الكل</button>
+        <button class="mcat" onclick="filterMarketCat('إلكترونيات',this)">📱 إلكترونيات</button>
+        <button class="mcat" onclick="filterMarketCat('ملابس',this)">👕 ملابس</button>
+        <button class="mcat" onclick="filterMarketCat('أغذية',this)">🥦 أغذية</button>
+        <button class="mcat" onclick="filterMarketCat('أدوية',this)">💊 أدوية</button>
+        <button class="mcat" onclick="filterMarketCat('سيارات',this)">🚗 سيارات</button>
+        <button class="mcat" onclick="filterMarketCat('عقارات',this)">🏠 عقارات</button>
+        <button class="mcat" onclick="filterMarketCat('خدمات',this)">🛠️ خدمات</button>
+        <button class="mcat" onclick="filterMarketCat('أخرى',this)">📦 أخرى</button>
+      </div>
+
+      <div id="marketList" class="section-pad market-list"></div>
+
+      <div class="section-pad">
+        <h3 class="sec-title">➕ أضف إعلانك</h3>
+        <div class="form-card">
+          <div class="market-type-row">
+            <button class="mtype active-mtype" data-type="sell"  onclick="selectMType('sell',this)">💰 بيع</button>
+            <button class="mtype" data-type="buy"   onclick="selectMType('buy',this)">🛍️ شراء</button>
+            <button class="mtype" data-type="trade" onclick="selectMType('trade',this)">🔄 تبادل</button>
+          </div>
+          <input type="text" id="mTitle" placeholder="عنوان المنتج / الخدمة" class="inp"/>
+          <textarea id="mDesc" placeholder="وصف تفصيلي..." class="inp ta" rows="3"></textarea>
+          <select id="mCategory" class="inp">
+            <option value="إلكترونيات">📱 إلكترونيات</option>
+            <option value="ملابس">👕 ملابس</option>
+            <option value="أغذية">🥦 أغذية</option>
+            <option value="أدوية">💊 أدوية</option>
+            <option value="سيارات">🚗 سيارات</option>
+            <option value="عقارات">🏠 عقارات</option>
+            <option value="خدمات">🛠️ خدمات</option>
+            <option value="أخرى">📦 أخرى</option>
+          </select>
+          <div class="price-row">
+            <input type="number" id="mPrice"    placeholder="السعر (اتركه فارغاً للتبادل)" class="inp" style="flex:2"/>
+            <select id="mCurrency" class="inp" style="flex:1">
+              <option value="ج.س">ج.س</option>
+              <option value="دولار">$</option>
+              <option value="ريال">ريال</option>
+              <option value="يورو">€</option>
+              <option value="تبادل">تبادل</option>
+            </select>
+          </div>
+          <input type="text" id="mContact" placeholder="واتساب / تيليغرام / رقم للتواصل" class="inp"/>
+          <div class="geo-picker-wrap">
+            <input id="mAreaInput" class="inp" placeholder="📍 موقعك (يتحدد تلقائياً)" oninput="searchGeoInline('mAreaInput','mAreaDrop')"/>
+            <div id="mAreaDrop" class="geo-dropdown hidden"></div>
+            <input type="hidden" id="mLat"/>
+            <input type="hidden" id="mLng"/>
+          </div>
+          <div class="loc-attach-row">
+            <span id="mLocStatus" class="loc-status-text">📍 يتحدد موقعك تلقائياً</span>
+            <button type="button" class="loc-attach-btn" onclick="attachGPS('mAreaInput','mLat','mLng','mLocStatus')">🎯 موقعي الآن</button>
+          </div>
+          <!-- Photo upload for market -->
+          <div class="photo-upload-row">
+            <label class="photo-upload-btn" for="marketPhoto">📷 أرفق صورة للمنتج</label>
+            <input type="file" id="marketPhoto" accept="image/*" class="hidden" onchange="previewPhoto('marketPhoto','marketPhotoPreview')"/>
+            <span id="marketPhotoName" class="photo-name-label"></span>
+          </div>
+          <div id="marketPhotoPreview" class="photo-preview hidden"></div>
+          <button class="btn-submit btn-market" onclick="submitMarket()">🛒 نشر الإعلان</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================
+         REPORT
+    ====================================================== -->
+    <section id="sec-report" class="section">
+      <div class="sec-top report-top">
+        <h2>🚨 بلّغ الآن</h2>
+        <p>شارك معلومة عاجلة وأنقذ حياة - الموقع يُرفق تلقائياً</p>
+      </div>
+      <div class="section-pad">
+        <div class="report-types">
+          <button class="rtype active-rtype" data-type="danger"  onclick="selectRType('danger',this)">🔴 خطر</button>
+          <button class="rtype" data-type="warning"              onclick="selectRType('warning',this)">🟡 تحذير</button>
+          <button class="rtype" data-type="info"                 onclick="selectRType('info',this)">🟢 معلومة</button>
+        </div>
+        <div class="form-card">
+          <textarea id="reportMsg" placeholder="اكتب تقريرك بوضوح ودقة..." class="inp ta" rows="4"></textarea>
+          <!-- Photo upload -->
+          <div class="photo-upload-row">
+            <label class="photo-upload-btn" for="reportPhoto">📷 أرفق صورة</label>
+            <input type="file" id="reportPhoto" accept="image/*" class="hidden" onchange="previewPhoto('reportPhoto','reportPhotoPreview')"/>
+            <span id="reportPhotoName" class="photo-name-label"></span>
+          </div>
+          <div id="reportPhotoPreview" class="photo-preview hidden"></div>
+          <div class="geo-picker-wrap">
+            <input id="reportAreaInput" class="inp" placeholder="📍 المنطقة (يتحدد تلقائياً)" oninput="searchGeoInline('reportAreaInput','reportAreaDrop')"/>
+            <div id="reportAreaDrop" class="geo-dropdown hidden"></div>
+            <input type="hidden" id="reportLat"/>
+            <input type="hidden" id="reportLng"/>
+          </div>
+          <div class="loc-attach-row">
+            <div class="loc-status-display" id="reportLocDisplay">
+              <span class="loc-dot loc-idle" id="reportLocDot"></span>
+              <span id="reportLocText">يتحدد الموقع تلقائياً...</span>
+            </div>
+            <button type="button" class="loc-attach-btn" onclick="attachGPS('reportAreaInput','reportLat','reportLng','reportLocText','reportLocDot')">🎯 أرفق موقعي</button>
+          </div>
+          <button class="btn-submit btn-report" onclick="submitReport()">🚨 أرسل التقرير الآن</button>
+        </div>
+
+        <div style="margin-top:1rem">
+          <button id="sosBtn2" class="sos-btn" onclick="openSosModal()">
+            🆘 نداء استغاثة طارئ
+          </button>
+        </div>
+
+        <div class="report-tips">
+          <h4>💡 نصائح للتبليغ الفعّال</h4>
+          <ul>
+            <li>✅ كن دقيقاً في وصف المكان والحدث</li>
+            <li>✅ اذكر الوقت التقريبي للحدث</li>
+            <li>✅ الموقع يُرفق تلقائياً بدون أي ضغط</li>
+            <li>✅ يمكنك النقر على الخريطة لتحديد الموقع يدوياً</li>
+            <li>✅ لا تشارك معلومات شخصية حساسة</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================
+         BLOOD BANK - بنك الدم
+    ====================================================== -->
+    <section id="sec-blood" class="section">
+      <div class="sec-top blood-top">
+        <h2>🩸 بنك الدم</h2>
+        <p>تبرع بالدم أو ابحث عن متبرع - أنقذ حياة الآن</p>
+      </div>
+      <div class="section-pad">
+        <!-- Tabs -->
+        <div class="blood-tabs">
+          <button class="blood-tab active-blood-tab" onclick="switchBloodTab('search',this)">🔍 ابحث عن متبرع</button>
+          <button class="blood-tab" onclick="switchBloodTab('request',this)">🆘 طلب عاجل</button>
+          <button class="blood-tab" onclick="switchBloodTab('donate',this)">🩸 سجّل كمتبرع</button>
+        </div>
+
+        <!-- Search Tab -->
+        <div id="blood-tab-search">
+          <div class="blood-search-card form-card">
+            <label class="inp-label">فصيلة الدم المطلوبة</label>
+            <div class="blood-type-grid">
+              <button class="btype-btn" onclick="selectBloodType(this,'A+')">A+</button>
+              <button class="btype-btn" onclick="selectBloodType(this,'A-')">A-</button>
+              <button class="btype-btn" onclick="selectBloodType(this,'B+')">B+</button>
+              <button class="btype-btn" onclick="selectBloodType(this,'B-')">B-</button>
+              <button class="btype-btn" onclick="selectBloodType(this,'AB+')">AB+</button>
+              <button class="btype-btn" onclick="selectBloodType(this,'AB-')">AB-</button>
+              <button class="btype-btn" onclick="selectBloodType(this,'O+')">O+</button>
+              <button class="btype-btn" onclick="selectBloodType(this,'O-')">O-</button>
+            </div>
+            <div class="geo-picker-wrap" style="margin-top:.8rem">
+              <input id="bloodSearchArea" class="inp" placeholder="📍 المنطقة (اختياري)" oninput="searchGeoInline('bloodSearchArea','bloodSearchDrop')"/>
+              <div id="bloodSearchDrop" class="geo-dropdown hidden"></div>
+            </div>
+            <button class="btn-submit" onclick="searchBlood()" style="margin-top:.8rem">🔍 ابحث الآن</button>
+          </div>
+          <div id="bloodSearchResults" class="blood-list"></div>
+        </div>
+
+        <!-- Request Tab (Urgent) -->
+        <div id="blood-tab-request" class="hidden">
+          <div class="form-card" style="border-color:rgba(231,76,60,.4);background:rgba(231,76,60,.04)">
+            <div style="color:#e74c3c;font-weight:700;font-size:1rem;margin-bottom:.8rem">🆘 طلب دم عاجل</div>
+            <label class="inp-label">فصيلة الدم المطلوبة</label>
+            <div class="blood-type-grid">
+              <button class="btype-btn" onclick="selectRequestType(this,'A+')">A+</button>
+              <button class="btype-btn" onclick="selectRequestType(this,'A-')">A-</button>
+              <button class="btype-btn" onclick="selectRequestType(this,'B+')">B+</button>
+              <button class="btype-btn" onclick="selectRequestType(this,'B-')">B-</button>
+              <button class="btype-btn" onclick="selectRequestType(this,'AB+')">AB+</button>
+              <button class="btype-btn" onclick="selectRequestType(this,'AB-')">AB-</button>
+              <button class="btype-btn" onclick="selectRequestType(this,'O+')">O+</button>
+              <button class="btype-btn" onclick="selectRequestType(this,'O-')">O-</button>
+            </div>
+            <input id="reqPatientName" class="inp" placeholder="اسم المريض (اختياري)" style="margin-top:.8rem"/>
+            <input id="reqHospital" class="inp" placeholder="اسم المستشفى أو المكان" style="margin-top:.6rem"/>
+            <input id="reqContact" class="inp" placeholder="رقم التواصل (واتساب / هاتف)" type="tel" style="margin-top:.6rem"/>
+            <div class="geo-picker-wrap" style="margin-top:.6rem">
+              <input id="reqArea" class="inp" placeholder="📍 المنطقة / المستشفى" oninput="searchGeoInline('reqArea','reqAreaDrop')"/>
+              <div id="reqAreaDrop" class="geo-dropdown hidden"></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:.6rem;margin-top:.6rem">
+              <input type="checkbox" id="reqUrgent" checked style="accent-color:#e74c3c"/>
+              <label for="reqUrgent" style="font-size:.9rem;color:#e74c3c">🚨 عاجل جداً</label>
+            </div>
+            <button class="btn-submit btn-blood" onclick="submitBloodRequest()" style="margin-top:.8rem">🆘 أرسل طلب الدم الآن</button>
+          </div>
+          <div id="bloodRequestsList" class="blood-list" style="margin-top:1rem"></div>
+        </div>
+
+        <!-- Donate Tab -->
+        <div id="blood-tab-donate" class="hidden">
+          <div class="form-card">
+            <label class="inp-label">فصيلة دمك</label>
+            <div class="blood-type-grid">
+              <button class="btype-btn" onclick="selectDonorType(this,'A+')">A+</button>
+              <button class="btype-btn" onclick="selectDonorType(this,'A-')">A-</button>
+              <button class="btype-btn" onclick="selectDonorType(this,'B+')">B+</button>
+              <button class="btype-btn" onclick="selectDonorType(this,'B-')">B-</button>
+              <button class="btype-btn" onclick="selectDonorType(this,'AB+')">AB+</button>
+              <button class="btype-btn" onclick="selectDonorType(this,'AB-')">AB-</button>
+              <button class="btype-btn" onclick="selectDonorType(this,'O+')">O+</button>
+              <button class="btype-btn" onclick="selectDonorType(this,'O-')">O-</button>
+            </div>
+            <input id="donorName" class="inp" placeholder="اسمك (اختياري)" style="margin-top:.8rem"/>
+            <input id="donorPhone" class="inp" placeholder="رقم الهاتف للتواصل" type="tel" style="margin-top:.6rem"/>
+            <div class="geo-picker-wrap" style="margin-top:.6rem">
+              <input id="donorArea" class="inp" placeholder="📍 منطقتك" oninput="searchGeoInline('donorArea','donorAreaDrop')"/>
+              <div id="donorAreaDrop" class="geo-dropdown hidden"></div>
+              <input type="hidden" id="donorLat"/>
+              <input type="hidden" id="donorLng"/>
+            </div>
+            <div class="loc-attach-row">
+              <div class="loc-status-display">
+                <span class="loc-dot loc-idle" id="donorLocDot"></span>
+                <span id="donorLocText">يتحدد الموقع تلقائياً...</span>
+              </div>
+              <button type="button" class="loc-attach-btn" onclick="attachGPS('donorArea','donorLat','donorLng','donorLocText','donorLocDot')">🎯 موقعي</button>
+            </div>
+            <label class="inp-label" style="margin-top:.6rem">آخر تبرع</label>
+            <input id="donorLastDate" class="inp" type="date"/>
+            <textarea id="donorNotes" class="inp ta" rows="2" placeholder="ملاحظات إضافية (اختياري)" style="margin-top:.6rem"></textarea>
+            <button class="btn-submit btn-blood" onclick="submitDonor()" style="margin-top:.8rem">🩸 سجّل كمتبرع</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================
+         ELECTRICITY SCHEDULE - جدول الكهرباء
+    ====================================================== -->
+    <section id="sec-power" class="section">
+      <div class="sec-top power-top">
+        <h2>⚡ جدول الكهرباء</h2>
+        <p>شارك جدول الانقطاع في حيّك - ساعد جيرانك</p>
+      </div>
+      <div class="section-pad">
+        <!-- Current area power status -->
+        <div class="power-status-card" id="powerStatusCard">
+          <div class="power-icon" id="powerIcon">⚡</div>
+          <div class="power-status-text">
+            <span id="powerStatusLabel">حالة الكهرباء في منطقتك</span>
+            <span class="power-area-name" id="powerAreaName">—</span>
+          </div>
+          <div class="power-vote-btns">
+            <button class="power-vote on-vote" onclick="votePower('on')">✅ موجودة</button>
+            <button class="power-vote off-vote" onclick="votePower('off')">❌ مقطوعة</button>
+          </div>
+        </div>
+
+        <!-- Add schedule form -->
+        <div class="form-card" style="margin-top:1rem">
+          <h4 style="color:var(--yellow);margin-bottom:.8rem">📋 أضف جدول حيّك</h4>
+          <div class="geo-picker-wrap">
+            <input id="powerArea" class="inp" placeholder="📍 الحي/المنطقة" oninput="searchGeoInline('powerArea','powerAreaDrop')"/>
+            <div id="powerAreaDrop" class="geo-dropdown hidden"></div>
+            <input type="hidden" id="powerLat"/>
+            <input type="hidden" id="powerLng"/>
+          </div>
+          <div class="power-time-row">
+            <div class="power-time-field">
+              <label class="inp-label">وقت الانقطاع</label>
+              <input id="powerCutTime" class="inp" type="time"/>
+            </div>
+            <div class="power-time-field">
+              <label class="inp-label">مدة الانقطاع (ساعات)</label>
+              <input id="powerDuration" class="inp" type="number" min="1" max="24" placeholder="مثال: 4"/>
+            </div>
+          </div>
+          <select id="powerFreq" class="inp" style="margin-top:.6rem">
+            <option value="daily">يومياً</option>
+            <option value="alt">يوم بعد يوم</option>
+            <option value="weekly">أسبوعياً</option>
+            <option value="irregular">غير منتظم</option>
+          </select>
+          <textarea id="powerNotes" class="inp ta" rows="2" placeholder="ملاحظات (اختياري) - مثال: أحياناً يعود مبكراً" style="margin-top:.6rem"></textarea>
+          <div class="loc-attach-row" style="margin-top:.4rem">
+            <span></span>
+            <button type="button" class="loc-attach-btn" onclick="attachGPS('powerArea','powerLat','powerLng')">🎯 أرفق موقعي</button>
+          </div>
+          <button class="btn-submit btn-power" onclick="submitPowerSchedule()" style="margin-top:.8rem">⚡ شارك الجدول</button>
+        </div>
+
+        <!-- Power schedules list -->
+        <div id="powerList" class="power-list" style="margin-top:1rem"></div>
+      </div>
+    </section>
+
+    <!-- ======================================================
+         PRAYER TIMES - أوقات الصلاة
+    ====================================================== -->
+    <section id="sec-prayer" class="section">
+      <div class="sec-top prayer-top">
+        <h2>🕌 أوقات الصلاة</h2>
+        <p>أوقات دقيقة حسب موقعك الجغرافي</p>
+      </div>
+      <div class="section-pad">
+        <!-- Next prayer countdown -->
+        <div class="prayer-countdown-card">
+          <div class="prayer-next-label">الصلاة القادمة</div>
+          <div class="prayer-next-name" id="nextPrayerName">—</div>
+          <div class="prayer-countdown" id="prayerCountdown">--:--:--</div>
+          <div class="prayer-hijri" id="prayerHijri"></div>
+        </div>
+
+        <!-- Prayer times grid -->
+        <div class="prayer-grid" id="prayerGrid">
+          <div class="prayer-card pc-fajr"><div class="prayer-icon">🌙</div><div class="prayer-name">الفجر</div><div class="prayer-time" id="pt-fajr">—</div></div>
+          <div class="prayer-card pc-sunrise"><div class="prayer-icon">🌅</div><div class="prayer-name">الشروق</div><div class="prayer-time" id="pt-sunrise">—</div></div>
+          <div class="prayer-card pc-dhuhr"><div class="prayer-icon">☀️</div><div class="prayer-name">الظهر</div><div class="prayer-time" id="pt-dhuhr">—</div></div>
+          <div class="prayer-card pc-asr"><div class="prayer-icon">🌤️</div><div class="prayer-name">العصر</div><div class="prayer-time" id="pt-asr">—</div></div>
+          <div class="prayer-card pc-maghrib"><div class="prayer-icon">🌆</div><div class="prayer-name">المغرب</div><div class="prayer-time" id="pt-maghrib">—</div></div>
+          <div class="prayer-card pc-isha"><div class="prayer-icon">🌃</div><div class="prayer-name">العشاء</div><div class="prayer-time" id="pt-isha">—</div></div>
+        </div>
+
+        <!-- Location for prayer -->
+        <div class="prayer-location-row">
+          <span id="prayerLocText">📍 يتحدد الموقع تلقائياً...</span>
+          <button class="loc-attach-btn" onclick="refreshPrayerTimes()">🔄 تحديث</button>
+        </div>
+
+        <!-- Method selector -->
+        <div class="form-card" style="margin-top:.8rem">
+          <label class="inp-label">طريقة الحساب</label>
+          <select id="prayerMethod" class="inp" onchange="refreshPrayerTimes()">
+            <option value="5">مسلم العالم (الإخوان - الجامعة الإسلامية)</option>
+            <option value="4" selected>أم القرى</option>
+            <option value="3">المجلس الإسلامي للأمريكا الشمالية</option>
+            <option value="2">رابطة العالم الإسلامي</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================
+         HOSPITALS - دليل المستشفيات
+    ====================================================== -->
+    <section id="sec-hospitals" class="section">
+      <div class="sec-top hosp-top">
+        <h2>🏥 دليل المستشفيات</h2>
+        <p>ابحث عن أقرب مستشفى أو عيادة وقيّمها</p>
+      </div>
+      <div class="section-pad">
+        <!-- Search & Filter -->
+        <div class="feature-search-bar">
+          <div class="fsb-row">
+            <span class="fsb-icon">🔍</span>
+            <input id="hospSearchInp" class="fsb-inp" placeholder="ابحث باسم أو منطقة..." oninput="filterHospitals()"/>
+            <select id="hospTypeFilter" class="fsb-sel" onchange="filterHospitals()">
+              <option value="">كل الأنواع</option>
+              <option value="مستشفى">🏥 مستشفى</option>
+              <option value="عيادة">🩺 عيادة</option>
+              <option value="مختبر">🔬 مختبر</option>
+              <option value="صيدلية">💊 صيدلية</option>
+              <option value="طوارئ">🚨 طوارئ</option>
+            </select>
+          </div>
+          <div class="fsb-btns">
+            <button class="fsb-btn fsb-primary" onclick="searchHospitalsNear()">📡 قريب مني (20كم)</button>
+            <button class="fsb-btn" onclick="loadHospitals()">🔄 تحديث</button>
+            <button class="fsb-btn fsb-add" onclick="switchHospTab('add')">+ أضف</button>
+          </div>
+        </div>
+        <!-- List -->
+        <div id="hospList" class="hosp-list"></div>
+        <!-- Add Form -->
+        <div id="hospAddForm" class="form-card hidden" style="margin-top:1rem;border-color:rgba(52,152,219,.3)">
+          <h4 style="color:#3498db;margin-bottom:.8rem">➕ أضف مرفق صحي</h4>
+          <input id="hospName" class="inp" placeholder="اسم المستشفى أو العيادة *"/>
+          <select id="hospType" class="inp" style="margin-top:.6rem">
+            <option value="مستشفى">🏥 مستشفى</option>
+            <option value="عيادة">🩺 عيادة</option>
+            <option value="مختبر">🔬 مختبر</option>
+            <option value="صيدلية">💊 صيدلية</option>
+            <option value="طوارئ">🚨 طوارئ 24/7</option>
+          </select>
+          <div class="geo-picker-wrap" style="margin-top:.6rem">
+            <input id="hospArea" class="inp" placeholder="📍 المنطقة *" oninput="searchGeoInline('hospArea','hospAreaDrop')"/>
+            <div id="hospAreaDrop" class="geo-dropdown hidden"></div>
+            <input type="hidden" id="hospLat"/><input type="hidden" id="hospLng"/>
+          </div>
+          <input id="hospAddress" class="inp" placeholder="العنوان التفصيلي" style="margin-top:.6rem"/>
+          <input id="hospPhone" class="inp" placeholder="📞 رقم الهاتف" type="tel" style="margin-top:.6rem"/>
+          <div style="display:flex;align-items:center;gap:.6rem;margin-top:.6rem">
+            <input type="checkbox" id="hospEmergency" style="accent-color:#e74c3c"/>
+            <label for="hospEmergency" style="font-size:.9rem;color:#e74c3c">🚨 طوارئ 24 ساعة</label>
+          </div>
+          <div style="display:flex;gap:.5rem;margin-top:.8rem">
+            <button class="btn-submit" style="flex:2" onclick="submitHospital()">🏥 أضف الآن</button>
+            <button onclick="switchHospTab('list')" style="flex:1;background:none;border:1px solid var(--border);color:var(--text2);border-radius:var(--r);cursor:pointer;font-family:inherit">إلغاء</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================
+         NEWS - الأخبار المحلية
+    ====================================================== -->
+    <section id="sec-news" class="section">
+      <div class="sec-top news-top">
+        <h2>📰 الأخبار المحلية</h2>
+        <p>أخبار مجتمعية موثوقة من السكان أنفسهم</p>
+      </div>
+      <div class="section-pad">
+        <!-- Search bar -->
+        <div class="feature-search-bar" style="margin-bottom:.7rem">
+          <div class="fsb-row">
+            <span class="fsb-icon">🔍</span>
+            <input id="newsSearchInp" class="fsb-inp" placeholder="ابحث في الأخبار..." oninput="filterNewsBySearch()"/>
+          </div>
+        </div>
+        <!-- Filters -->
+        <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.8rem">
+          <button class="filt active-filt" onclick="filterNews('',this)">🌐 الكل</button>
+          <button class="filt" onclick="filterNews('سياسة',this)">🏛️ سياسة</button>
+          <button class="filt" onclick="filterNews('اقتصاد',this)">💰 اقتصاد</button>
+          <button class="filt" onclick="filterNews('أمن',this)">🛡️ أمن</button>
+          <button class="filt" onclick="filterNews('صحة',this)">🏥 صحة</button>
+          <button class="filt" onclick="filterNews('رياضة',this)">⚽ رياضة</button>
+          <button class="filt" onclick="filterNews('عام',this)">📋 عام</button>
+        </div>
+        <!-- News List -->
+        <div id="newsList"></div>
+        <!-- Add News Form -->
+        <div class="form-card" style="margin-top:1rem">
+          <h4 style="color:#f39c12;margin-bottom:.8rem">📝 شارك خبراً</h4>
+          <input id="newsTitle" class="inp" placeholder="عنوان الخبر *"/>
+          <textarea id="newsBody" class="inp ta" rows="3" placeholder="تفاصيل الخبر *" style="margin-top:.6rem"></textarea>
+          <div style="display:flex;gap:.5rem;margin-top:.6rem">
+            <select id="newsCat" class="inp">
+              <option value="عام">عام</option>
+              <option value="سياسة">سياسة</option>
+              <option value="اقتصاد">اقتصاد</option>
+              <option value="أمن">أمن</option>
+              <option value="صحة">صحة</option>
+            </select>
+            <input id="newsSource" class="inp" placeholder="المصدر (اختياري)"/>
+          </div>
+          <div class="geo-picker-wrap" style="margin-top:.6rem">
+            <input id="newsArea" class="inp" placeholder="📍 المنطقة" oninput="searchGeoInline('newsArea','newsAreaDrop')"/>
+            <div id="newsAreaDrop" class="geo-dropdown hidden"></div>
+          </div>
+          <button class="btn-submit" style="margin-top:.8rem;width:100%" onclick="submitNews()">📰 نشر الخبر</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================
+         CARPOOLING - مشاركة التنقل
+    ====================================================== -->
+    <section id="sec-rides" class="section">
+      <div class="sec-top rides-top">
+        <h2>🚗 مشاركة التنقل</h2>
+        <p>شارك رحلتك أو ابحث عن مشوار</p>
+      </div>
+      <div class="section-pad">
+        <!-- Search bar enhanced -->
+        <div class="feature-search-bar" style="margin-bottom:.8rem">
+          <div class="fsb-row">
+            <span class="fsb-icon">🚩</span>
+            <input id="rideFromSearch" class="fsb-inp" placeholder="من أين..."/>
+            <span style="color:var(--text2)">→</span>
+            <input id="rideToSearch" class="fsb-inp" placeholder="إلى أين..."/>
+          </div>
+          <div class="fsb-btns">
+            <input id="rideDateSearch" class="fsb-date-inp" type="date"/>
+            <button class="fsb-btn fsb-primary" onclick="searchRides()">🔍 بحث</button>
+            <button class="fsb-btn" onclick="filterRidesByDate()">📅 اليوم</button>
+          </div>
+        </div>
+        <!-- Rides List -->
+        <div id="ridesList"></div>
+        <!-- Add Ride Form -->
+        <div class="form-card" style="margin-top:1rem;border-color:rgba(52,152,219,.3)">
+          <h4 style="color:#3498db;margin-bottom:.8rem">➕ أضف رحلة</h4>
+          <div style="display:flex;gap:.5rem">
+            <div class="geo-picker-wrap" style="flex:1">
+              <input id="rideFrom" class="inp" placeholder="🚩 نقطة الانطلاق *" oninput="searchGeoInline('rideFrom','rideFromDrop')"/>
+              <div id="rideFromDrop" class="geo-dropdown hidden"></div>
+            </div>
+            <div class="geo-picker-wrap" style="flex:1">
+              <input id="rideTo" class="inp" placeholder="🏁 الوجهة *" oninput="searchGeoInline('rideTo','rideToDrop')"/>
+              <div id="rideToDrop" class="geo-dropdown hidden"></div>
+            </div>
+          </div>
+          <div style="display:flex;gap:.5rem;margin-top:.6rem">
+            <input id="rideDate" class="inp" type="date" style="flex:1"/>
+            <input id="rideTime" class="inp" type="time" style="flex:1"/>
+          </div>
+          <div style="display:flex;gap:.5rem;margin-top:.6rem">
+            <input id="rideSeats" class="inp" type="number" min="1" max="10" value="3" placeholder="المقاعد" style="flex:1"/>
+            <input id="ridePrice" class="inp" type="number" min="0" placeholder="السعر (SDG)" style="flex:1"/>
+          </div>
+          <input id="rideContact" class="inp" placeholder="📞 رقم التواصل *" type="tel" style="margin-top:.6rem"/>
+          <textarea id="rideNotes" class="inp ta" rows="2" placeholder="ملاحظات (اختياري)" style="margin-top:.6rem"></textarea>
+          <button class="btn-submit btn-rides" style="margin-top:.8rem;width:100%" onclick="submitRide()">🚗 أضف الرحلة</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================
+         WEATHER - الطقس
+    ====================================================== -->
+    <section id="sec-weather" class="section">
+      <div class="sec-top weather-top">
+        <h2>🌦️ الطقس</h2>
+        <p>حالة الطقس حسب موقعك الجغرافي</p>
+      </div>
+      <div class="section-pad">
+        <!-- Current weather card -->
+        <div class="weather-main-card" id="weatherMainCard">
+          <div class="weather-loading">⏳ جاري تحديد الطقس...</div>
+        </div>
+        <!-- Location row -->
+        <div class="prayer-location-row" style="margin-bottom:1rem">
+          <span id="weatherLocText">📍 يتحدد الموقع تلقائياً...</span>
+          <button class="loc-attach-btn" onclick="refreshWeather()">🔄 تحديث</button>
+        </div>
+        <!-- City search -->
+        <div class="form-card">
+          <label class="inp-label">ابحث عن مدينة</label>
+          <div style="display:flex;gap:.5rem">
+            <div class="geo-picker-wrap" style="flex:1">
+              <input id="weatherCityInp" class="inp" placeholder="📍 اسم المدينة..." oninput="searchGeoInline('weatherCityInp','weatherCityDrop')"/>
+              <div id="weatherCityDrop" class="geo-dropdown hidden"></div>
+              <input type="hidden" id="weatherCityLat"/>
+              <input type="hidden" id="weatherCityLng"/>
+            </div>
+            <button class="btn-submit" style="white-space:nowrap" onclick="loadWeatherForCity()">🔍 عرض</button>
+          </div>
+        </div>
+        <!-- Tips card -->
+        <div class="form-card" style="margin-top:1rem" id="weatherTipsCard"></div>
+      </div>
+    </section>
+
+    <!-- ======================================================
+         WATER - خريطة المياه
+    ====================================================== -->
+    <section id="sec-water" class="section">
+      <div class="sec-top water-top">
+        <h2>💧 خريطة المياه</h2>
+        <p>تقارير انقطاع المياه وأماكن التوزيع</p>
+      </div>
+      <div class="section-pad">
+        <!-- Status Card -->
+        <div class="water-status-card" id="waterStatusCard">
+          <div class="water-icon">💧</div>
+          <div class="water-status-text">
+            <span id="waterStatusLabel">حالة المياه في منطقتك</span>
+            <span class="water-area-name" id="waterAreaName">—</span>
+          </div>
+          <div class="water-vote-btns">
+            <button class="water-vote water-on" onclick="voteWater('on')">✅ موجودة</button>
+            <button class="water-vote water-off" onclick="voteWater('off')">❌ مقطوعة</button>
+          </div>
+        </div>
+        <!-- Reports List -->
+        <div id="waterList" class="water-list" style="margin-top:1rem"></div>
+        <!-- Add Report Form -->
+        <div class="form-card" style="margin-top:1rem;border-color:rgba(41,128,185,.3)">
+          <h4 style="color:#2980b9;margin-bottom:.8rem">📋 أبلّغ عن انقطاع</h4>
+          <div class="geo-picker-wrap">
+            <input id="waterArea" class="inp" placeholder="📍 الحي/المنطقة *" oninput="searchGeoInline('waterArea','waterAreaDrop')"/>
+            <div id="waterAreaDrop" class="geo-dropdown hidden"></div>
+            <input type="hidden" id="waterLat"/><input type="hidden" id="waterLng"/>
+          </div>
+          <select id="waterType" class="inp" style="margin-top:.6rem">
+            <option value="cut">انقطاع كلي</option>
+            <option value="low">ضعف الضغط</option>
+            <option value="dirty">مياه ملوثة</option>
+            <option value="distribution">نقطة توزيع</option>
+          </select>
+          <input id="waterDuration" class="inp" placeholder="المدة المتوقعة (اختياري)" style="margin-top:.6rem"/>
+          <textarea id="waterNotes" class="inp ta" rows="2" placeholder="ملاحظات إضافية" style="margin-top:.6rem"></textarea>
+          <button class="btn-submit btn-water" style="margin-top:.8rem;width:100%" onclick="submitWaterReport()">💧 أبلّغ الآن</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================
+         STUDY GROUPS - مجموعات التعلم
+    ====================================================== -->
+    <section id="sec-study" class="section">
+      <div class="sec-top study-top">
+        <h2>🎓 مجموعات التعلم</h2>
+        <p>تعلّم مع الآخرين وشارك معرفتك</p>
+      </div>
+      <div class="section-pad">
+        <!-- Search & Level filters -->
+        <div class="feature-search-bar" style="margin-bottom:.8rem">
+          <div class="fsb-row">
+            <span class="fsb-icon">🔍</span>
+            <input id="studySearchInp" class="fsb-inp" placeholder="ابحث عن مجموعة أو مادة..." oninput="searchStudyGroupsFn()"/>
+          </div>
+          <div style="display:flex;gap:.35rem;flex-wrap:wrap;margin-top:.5rem">
+            <button class="filt study-level-filt active" onclick="filterStudyByLevel('all',this)">🌐 الكل</button>
+            <button class="filt study-level-filt" onclick="filterStudyByLevel('ابتدائي',this)">🌱 ابتدائي</button>
+            <button class="filt study-level-filt" onclick="filterStudyByLevel('متوسط',this)">📗 متوسط</button>
+            <button class="filt study-level-filt" onclick="filterStudyByLevel('ثانوي',this)">📘 ثانوي</button>
+            <button class="filt study-level-filt" onclick="filterStudyByLevel('جامعي',this)">🎓 جامعي</button>
+            <button class="filt study-level-filt" onclick="filterStudyByLevel('مهني',this)">⚙️ مهني</button>
+          </div>
+        </div>
+        <div id="studyList"></div>
+        <!-- Active group chat -->
+        <div id="studyGroupChat" class="hidden" style="margin-top:1rem">
+          <div class="study-chat-header">
+            <span id="studyChatName">المجموعة</span>
+            <button onclick="closeStudyChat()" style="background:none;border:none;color:var(--text2);cursor:pointer;font-size:1.1rem">✕</button>
+          </div>
+          <div id="studyChatMessages" class="study-chat-msgs"></div>
+          <!-- Study Chat Input Bar — unified media menu -->
+          <div class="gp-input-bar" id="studyInputBar" style="border-top:1px solid rgba(142,68,173,.2)">
+            <div class="gpi-media-wrap" id="studyMediaWrap">
+              <button class="gpi-attach-btn" onclick="toggleStudyMediaMenu()" title="وسائط" id="studyAttachBtn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="20" height="20"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              </button>
+              <div class="gpi-media-menu hidden" id="studyMediaMenu">
+                <button class="gpi-media-item" onclick="triggerStudyMedia('image');closeStudyMediaMenu()">
+                  <span class="gpi-media-ico" style="background:rgba(52,152,219,.15);color:#3498db">🖼️</span><span>صورة</span>
+                </button>
+                <button class="gpi-media-item" onclick="triggerStudyMedia('camera');closeStudyMediaMenu()">
+                  <span class="gpi-media-ico" style="background:rgba(39,174,96,.15);color:#27ae60">📷</span><span>كاميرا</span>
+                </button>
+                <button class="gpi-media-item" onclick="triggerStudyMedia('video');closeStudyMediaMenu()">
+                  <span class="gpi-media-ico" style="background:rgba(155,89,182,.15);color:#9b59b6">🎬</span><span>فيديو</span>
+                </button>
+                <button class="gpi-media-item" onclick="triggerStudyMedia('audio');closeStudyMediaMenu()">
+                  <span class="gpi-media-ico" style="background:rgba(230,126,34,.15);color:#e67e22">🎵</span><span>صوت</span>
+                </button>
+                <button class="gpi-media-item" onclick="triggerStudyMedia('file');closeStudyMediaMenu()">
+                  <span class="gpi-media-ico" style="background:rgba(26,188,156,.15);color:#1abc9c">📄</span><span>ملف</span>
+                </button>
+                <button class="gpi-media-item gpi-media-voice" onclick="closeStudyMediaMenu();startStudyVoiceRecord()">
+                  <span class="gpi-media-ico" style="background:rgba(231,76,60,.15);color:#e74c3c">🎤</span><span>تسجيل صوتي</span>
+                </button>
+              </div>
+            </div>
+            <div class="gpi-text-wrap">
+              <textarea id="studyChatInp" class="gpi-textarea" placeholder="اكتب رسالتك..." rows="1"
+                oninput="autoResizeTA(this)"
+                onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendStudyMsg()}"></textarea>
+            </div>
+            <button class="gpi-voice-quick"
+              onmousedown="startStudyVoiceRecord()" onmouseup="stopStudyVoiceRecord()"
+              ontouchstart="startStudyVoiceRecord()" ontouchend="stopStudyVoiceRecord()" title="اضغط مطولاً للتسجيل">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+            </button>
+            <button class="gpi-send" onclick="sendStudyMsg()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            </button>
+            <input type="file" id="studyImageInput"  accept="image/*"             class="hidden" onchange="uploadStudyMedia(this,'image')"/>
+            <input type="file" id="studyCameraInput" accept="image/*" capture="environment" class="hidden" onchange="uploadStudyMedia(this,'image')"/>
+            <input type="file" id="studyVideoInput"  accept="video/*"             class="hidden" onchange="uploadStudyMedia(this,'video')"/>
+            <input type="file" id="studyAudioInput"  accept="audio/*"             class="hidden" onchange="uploadStudyMedia(this,'audio')"/>
+            <input type="file" id="studyFileInput"   accept="*/*"                 class="hidden" onchange="uploadStudyMedia(this,'file')"/>
+          </div>
+          <div id="studyVoiceRecBar" class="gp-voice-rec-bar hidden">
+            <span class="gvr-pulse">🔴</span>
+            <span>جاري التسجيل...</span>
+            <span id="studyVoiceRecTime">0:00</span>
+            <button onclick="cancelStudyVoiceRecord()" class="gvr-cancel">✕ إلغاء</button>
+          </div>
+        </div>
+        <!-- Create Group Form -->
+        <div class="form-card" style="margin-top:1rem;border-color:rgba(142,68,173,.3)">
+          <h4 style="color:#9b59b6;margin-bottom:.8rem">➕ أنشئ مجموعة</h4>
+          <!-- Avatar selector -->
+          <div style="margin-bottom:.6rem">
+            <div style="font-size:.8rem;color:var(--text2);margin-bottom:.4rem">🎨 أيقونة المجموعة</div>
+            <div id="studyAvatarPicker" style="display:flex;flex-wrap:wrap;gap:.4rem">
+              <span class="avatar-pick active-avatar" onclick="selectGroupAvatar('🎓',this)">🎓</span>
+              <span class="avatar-pick" onclick="selectGroupAvatar('📚',this)">📚</span>
+              <span class="avatar-pick" onclick="selectGroupAvatar('🔬',this)">🔬</span>
+              <span class="avatar-pick" onclick="selectGroupAvatar('🧪',this)">🧪</span>
+              <span class="avatar-pick" onclick="selectGroupAvatar('💻',this)">💻</span>
+              <span class="avatar-pick" onclick="selectGroupAvatar('🌍',this)">🌍</span>
+              <span class="avatar-pick" onclick="selectGroupAvatar('🎨',this)">🎨</span>
+              <span class="avatar-pick" onclick="selectGroupAvatar('⚽',this)">⚽</span>
+              <span class="avatar-pick" onclick="selectGroupAvatar('🎵',this)">🎵</span>
+              <span class="avatar-pick" onclick="selectGroupAvatar('📊',this)">📊</span>
+            </div>
+            <input type="hidden" id="studyAvatar" value="🎓"/>
+          </div>
+          <input id="studyName" class="inp" placeholder="اسم المجموعة *"/>
+          <input id="studySubject" class="inp" placeholder="المادة أو الموضوع *" style="margin-top:.6rem"/>
+          <textarea id="studyDescription" class="inp ta" rows="2" placeholder="وصف المجموعة (اختياري)" style="margin-top:.6rem"></textarea>
+          <div style="display:flex;gap:.5rem;margin-top:.6rem">
+            <select id="studyLevel" class="inp" style="flex:1">
+              <option value="عام">عام</option>
+              <option value="ابتدائي">ابتدائي</option>
+              <option value="متوسط">متوسط</option>
+              <option value="ثانوي">ثانوي</option>
+              <option value="جامعي">جامعي</option>
+              <option value="مهني">مهني</option>
+            </select>
+            <input id="studyMax" class="inp" type="number" min="2" max="200" value="20" placeholder="الحد الأقصى" style="flex:1"/>
+          </div>
+          <input id="studySchedule" class="inp" placeholder="مواعيد الجلسات (اختياري)" style="margin-top:.6rem"/>
+          <input id="studyContact" class="inp" placeholder="📞 رقم التواصل (اختياري)" type="tel" style="margin-top:.6rem"/>
+          <div class="geo-picker-wrap" style="margin-top:.6rem">
+            <input id="studyArea" class="inp" placeholder="📍 المنطقة (اختياري)" oninput="searchGeoInline('studyArea','studyAreaDrop')"/>
+            <div id="studyAreaDrop" class="geo-dropdown hidden"></div>
+          </div>
+          <button class="btn-submit btn-study" style="margin-top:.8rem;width:100%" onclick="submitStudyGroup()">🎓 أنشئ المجموعة</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================
+         HELP REQUESTS - طلبات المساعدة
+    ====================================================== -->
+    <section id="sec-help" class="section">
+      <div class="sec-top help-top">
+        <h2>📦 طلبات المساعدة</h2>
+        <p>اطلب مساعدة أو قدّمها لمن يحتاج</p>
+      </div>
+      <div class="section-pad">
+        <!-- Filter tabs -->
+        <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.8rem">
+          <button class="filt active-filt" onclick="filterHelp('',this)">🌐 الكل</button>
+          <button class="filt" onclick="filterHelp('food',this)">🍞 غذاء</button>
+          <button class="filt" onclick="filterHelp('medicine',this)">💊 دواء</button>
+          <button class="filt" onclick="filterHelp('transport',this)">🚗 مواصلات</button>
+          <button class="filt" onclick="filterHelp('shelter',this)">🏠 مأوى</button>
+          <button class="filt" onclick="filterHelp('money',this)">💵 مالي</button>
+          <button class="filt" onclick="filterHelp('other',this)">📋 أخرى</button>
+          <button class="filt" onclick="filterHelp('urgent',this)" style="background:rgba(231,76,60,.1);border-color:rgba(231,76,60,.25);color:#e74c3c">🚨 عاجل</button>
+        </div>
+        <!-- Help list -->
+        <div id="helpList"></div>
+        <!-- Add Help Request Form -->
+        <div class="form-card" style="margin-top:1rem;border-color:rgba(230,126,34,.3)">
+          <h4 style="color:#e67e22;margin-bottom:.8rem">📦 اطلب مساعدة</h4>
+          <select id="helpType" class="inp" style="margin-bottom:.6rem">
+            <option value="food">🍞 غذاء</option>
+            <option value="medicine">💊 دواء</option>
+            <option value="transport">🚗 مواصلات</option>
+            <option value="shelter">🏠 مأوى</option>
+            <option value="money">💵 مالي</option>
+            <option value="other">📋 أخرى</option>
+          </select>
+          <input id="helpTitle" class="inp" placeholder="وصف موجز للطلب *"/>
+          <textarea id="helpDesc" class="inp ta" rows="3" placeholder="تفاصيل الطلب..." style="margin-top:.6rem"></textarea>
+          <div class="geo-picker-wrap" style="margin-top:.6rem">
+            <input id="helpArea" class="inp" placeholder="📍 منطقتك *" oninput="searchGeoInline('helpArea','helpAreaDrop')"/>
+            <div id="helpAreaDrop" class="geo-dropdown hidden"></div>
+          </div>
+          <input id="helpContact" class="inp" placeholder="📞 رقم التواصل *" type="tel" style="margin-top:.6rem"/>
+          <div style="display:flex;align-items:center;gap:.6rem;margin-top:.6rem">
+            <input type="checkbox" id="helpUrgent" style="accent-color:#e74c3c"/>
+            <label for="helpUrgent" style="font-size:.9rem;color:#e74c3c">🚨 عاجل</label>
+          </div>
+          <button class="btn-submit btn-help" style="margin-top:.8rem;width:100%" onclick="submitHelpRequest()">📦 أرسل الطلب</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================
+         POLLS - استطلاعات الرأي
+    ====================================================== -->
+    <section id="sec-polls" class="section">
+      <div class="sec-top polls-top">
+        <h2>🗳️ استطلاعات الرأي</h2>
+        <p>شارك برأيك في قضايا مجتمعك</p>
+      </div>
+      <div class="section-pad">
+        <!-- Active polls -->
+        <div id="pollsList"></div>
+        <!-- Create poll form -->
+        <div class="form-card" style="margin-top:1rem;border-color:rgba(22,160,133,.3)">
+          <h4 style="color:var(--teal);margin-bottom:.8rem">➕ أنشئ استطلاعاً</h4>
+          <input id="pollQuestion" class="inp" placeholder="السؤال *"/>
+          <div id="pollOptionsContainer" style="margin-top:.6rem">
+            <input class="inp poll-option-inp" placeholder="الخيار الأول *" style="margin-bottom:.4rem"/>
+            <input class="inp poll-option-inp" placeholder="الخيار الثاني *" style="margin-bottom:.4rem"/>
+          </div>
+          <button onclick="addPollOption()" style="background:none;border:1px dashed var(--border);color:var(--text2);border-radius:.5rem;padding:.4rem .8rem;cursor:pointer;width:100%;margin-top:.3rem;font-family:inherit">+ أضف خياراً آخر</button>
+          <div style="display:flex;gap:.5rem;margin-top:.6rem">
+            <select id="pollExpiry" class="inp" style="flex:1">
+              <option value="24">24 ساعة</option>
+              <option value="48">48 ساعة</option>
+              <option value="72">3 أيام</option>
+              <option value="168">أسبوع</option>
+            </select>
+            <div class="geo-picker-wrap" style="flex:1">
+              <input id="pollArea" class="inp" placeholder="📍 المنطقة (اختياري)" oninput="searchGeoInline('pollArea','pollAreaDrop')"/>
+              <div id="pollAreaDrop" class="geo-dropdown hidden"></div>
+            </div>
+          </div>
+          <button class="btn-submit" style="margin-top:.8rem;width:100%" onclick="submitPoll()">🗳️ نشر الاستطلاع</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================
+         DASHBOARD - لوحة الإحصاءات
+    ====================================================== -->
+    <section id="sec-dashboard" class="section">
+      <div class="sec-top dash-top">
+        <h2>📊 لوحة الإحصاءات</h2>
+        <p>إحصاءات التطبيق والمجتمع بشكل مباشر</p>
+      </div>
+      <div class="section-pad">
+        <!-- Refresh button row -->
+        <div style="display:flex;justify-content:flex-end;margin-bottom:.6rem">
+          <button id="dashRefreshBtn" class="fsb-btn fsb-primary" onclick="refreshDashboard()">🔄 تحديث</button>
+        </div>
+        <!-- Live stats row -->
+        <div class="dash-live-row" id="dashLiveRow">
+          <div class="dash-stat-card"><div class="dsc-num" id="dsc-online">0</div><div class="dsc-lbl">🟢 متصل الآن</div></div>
+          <div class="dash-stat-card"><div class="dsc-num" id="dsc-reports">0</div><div class="dsc-lbl">📢 بلاغات</div></div>
+          <div class="dash-stat-card"><div class="dsc-num" id="dsc-lives">0</div><div class="dsc-lbl">❤️ أرواح أُنقذت</div></div>
+          <div class="dash-stat-card"><div class="dsc-num" id="dsc-cities">0</div><div class="dsc-lbl">🏙️ مدينة نشطة</div></div>
+        </div>
+        <!-- Feature stats grid -->
+        <div class="dash-grid" id="dashGrid"></div>
+        <!-- Top areas -->
+        <div class="form-card" style="margin-top:1rem">
+          <h4 style="margin-bottom:.8rem;color:var(--teal)">🏆 أكثر المناطق نشاطاً</h4>
+          <div id="dashTopAreas"></div>
+        </div>
+        <!-- Recent 24h -->
+        <div class="form-card" style="margin-top:1rem">
+          <h4 style="margin-bottom:.8rem;color:#f1c40f">⚡ آخر 24 ساعة</h4>
+          <div id="dash24h" class="dash-grid"></div>
+        </div>
+        <button class="btn-submit" style="margin-top:1rem;width:100%" onclick="loadDashboard()">🔄 تحديث الإحصاءات</button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ================================================================
+       🏆 LEADERBOARD PAGE - لوحة المتصدرين
+  ================================================================ -->
+  <div id="leaderboardPage" class="group-page hidden">
+    <div class="gp-header">
+      <button class="gp-back" onclick="closeLeaderboard()">← رجوع</button>
+      <div class="gp-title-wrap">
+        <div class="gp-avatar">🏆</div>
+        <div><div class="gp-name">أبطال المجتمع</div><div class="gp-meta">يتجدد أسبوعياً</div></div>
+      </div>
+    </div>
+    <div class="lb-tabs">
+      <button class="lb-tab active-lb-tab" onclick="switchLbTab('weekly',this)">📅 هذا الأسبوع</button>
+      <button class="lb-tab" onclick="switchLbTab('alltime',this)">🌟 كل الوقت</button>
+      <button class="lb-tab" onclick="switchLbTab('city',this)">🏙️ مدينتي</button>
+    </div>
+    <div id="lbList" class="lb-list"></div>
+    <div class="lb-my-rank" id="lbMyRank" onclick="goSection('profile')">
+      <div class="lbmr-label">مركزك الآن</div>
+      <div class="lbmr-rank" id="myRankNum">#---</div>
+      <div class="lbmr-pts" id="myRankPts">0 نقطة</div>
+    </div>
+  </div>
+
+  <!-- ================================================================
+       🚨 EMERGENCY MODE - وضع الطوارئ الجماعي
+  ================================================================ -->
+  <div id="emergencyMode" class="emergency-overlay hidden">
+    <div class="em-header">
+      <div class="em-pulse-ring"></div>
+      <div class="em-title">🚨 وضع الطوارئ المجتمعي</div>
+      <div class="em-subtitle" id="emSubtitle">تم تفعيله بسبب كثرة البلاغات</div>
+    </div>
+    <div class="em-stats">
+      <div class="em-stat"><div id="emAlertCount" class="em-num">0</div><div class="em-lbl">بلاغ نشط</div></div>
+      <div class="em-stat"><div id="emSOSCount" class="em-num">0</div><div class="em-lbl">نداء استغاثة</div></div>
+      <div class="em-stat"><div id="emHelpers" class="em-num">0</div><div class="em-lbl">متطوع</div></div>
+    </div>
+    <div class="em-actions">
+      <button class="em-btn em-btn-sos" onclick="openSosModal()">🆘 أحتاج مساعدة</button>
+      <button class="em-btn em-btn-help" onclick="offerEmergencyHelp()">🤝 أنا أساعد</button>
+      <button class="em-btn em-btn-report" onclick="goSection('report');closeEmergencyMode()">📢 أبلّغ الآن</button>
+      <button class="em-btn em-btn-map" onclick="goSection('map');closeEmergencyMode()">🗺️ الخريطة الحية</button>
+    </div>
+    <button class="em-close" onclick="closeEmergencyMode()">✕ إغلاق</button>
+  </div>
+
+  <!-- ================================================================
+       📸 QUICK SHARE OVERLAY - مشاركة الحدث السريعة
+  ================================================================ -->
+  <div id="quickShareOverlay" class="qs-overlay hidden">
+    <div class="qs-card">
+      <div class="qs-header">
+        <div class="qs-title">📸 شارك الحدث فوراً</div>
+        <button class="qs-close" onclick="closeQuickShare()">✕</button>
+      </div>
+      <div id="qsPreview" class="qs-preview"></div>
+      <div class="qs-platforms">
+        <button class="qs-platform qsp-wa"  onclick="qsShareTo('whatsapp')">💬 واتساب</button>
+        <button class="qs-platform qsp-tg"  onclick="qsShareTo('telegram')">✈️ تيليغرام</button>
+        <button class="qs-platform qsp-tw"  onclick="qsShareTo('twitter')">🐦 تويتر/X</button>
+        <button class="qs-platform qsp-fb"  onclick="qsShareTo('facebook')">👥 فيسبوك</button>
+        <button class="qs-platform qsp-cp"  onclick="qsShareTo('copy')">📋 نسخ الرابط</button>
+        <button class="qs-platform qsp-nat" onclick="qsShareTo('native')">↗️ مشاركة</button>
+      </div>
+      <div class="qs-stats-preview">
+        <span>👁️ <b id="qsViews">0</b> مشاهدة</span>
+        <span>🔁 <b id="qsShares">0</b> مشاركة</span>
+        <span>🔥 <b id="qsHeat">1</b> نقطة حرارة</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================================
+       🎯 DAILY CHALLENGE MODAL
+  ================================================================ -->
+  <div id="dailyChallengeModal" class="qs-overlay hidden">
+    <div class="qs-card dc-card">
+      <div class="qs-header">
+        <div class="qs-title">🎯 تحدي اليوم</div>
+        <button class="qs-close" onclick="closeDailyChallenge()">✕</button>
+      </div>
+      <div id="dcModalContent" class="dc-modal-body"></div>
+      <button class="dc-join-btn" id="dcJoinBtn" onclick="joinDailyChallenge()">✅ شارك الآن</button>
+    </div>
+  </div>
+
+  <!-- ================================================================
+       🎖️ ACHIEVEMENT TOAST - شارة الإنجاز
+  ================================================================ -->
+  <div id="achievementToast" class="achievement-toast hidden">
+    <div class="at-icon" id="atIcon">🏅</div>
+    <div class="at-content">
+      <div class="at-title" id="atTitle">إنجاز جديد!</div>
+      <div class="at-sub" id="atSub">حصلت على شارة</div>
+    </div>
+  </div>
+  <div id="groupPage" class="group-page hidden">
+    <!-- Header -->
+    <div class="gp-header">
+      <button class="gp-back" onclick="closeGroupPage()">← رجوع</button>
+      <div class="gp-title-wrap">
+        <div class="gp-avatar" id="gpAvatar">🎓</div>
+        <div>
+          <div class="gp-name" id="gpName">المجموعة</div>
+          <div class="gp-meta" id="gpMeta">0 عضو</div>
+        </div>
+      </div>
+      <div class="gp-actions-top">
+        <button class="gp-icon-btn" onclick="startGroupVoiceCall()" title="مكالمة صوتية جماعية">🎙️</button>
+        <button class="gp-icon-btn" onclick="startGroupVideoCall()" title="مكالمة مرئية جماعية">📹</button>
+        <button class="gp-icon-btn" onclick="showGroupInfo()" title="معلومات المجموعة">ℹ️</button>
+        <button class="gp-icon-btn" onclick="showGroupInvite()" title="دعوة أعضاء">🔗</button>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="gp-tabs">
+      <button class="gp-tab active-gp-tab" onclick="switchGroupTab('chat',this)">💬 الدردشة</button>
+      <button class="gp-tab" onclick="switchGroupTab('members',this)">👥 الأعضاء</button>
+      <button class="gp-tab" onclick="switchGroupTab('media',this)">📎 الوسائط</button>
+      <button class="gp-tab" onclick="switchGroupTab('info',this)">📋 المعلومات</button>
+    </div>
+
+    <!-- Tab: CHAT -->
+    <div id="gpTabChat" class="gp-tab-content">
+      <!-- Active Call Banner -->
+      <div id="gpCallBanner" class="gp-call-banner hidden">
+        <div class="gcb-info">
+          <span class="gcb-pulse"></span>
+          <span id="gpCallType">🎙️ مكالمة جارية</span>
+          <span id="gpCallTime" class="gcb-time">0:00</span>
+        </div>
+        <div class="gcb-btns">
+          <button onclick="toggleMuteCall()" id="btnMute" class="gcb-btn">🎙️</button>
+          <button onclick="toggleVideoCall()" id="btnCam" class="gcb-btn">📹</button>
+          <button onclick="endGroupCall()" class="gcb-btn gcb-end">📵</button>
+        </div>
+      </div>
+
+      <!-- Video Grid (shown during video call) -->
+      <div id="gpVideoGrid" class="gp-video-grid hidden">
+        <video id="localVideo" class="gp-video-self" autoplay muted playsinline></video>
+        <div id="remoteVideos" class="gp-remote-videos"></div>
+      </div>
+
+      <!-- Messages -->
+      <div id="gpChatMessages" class="gp-chat-messages"></div>
+
+      <!-- Typing indicator -->
+      <div id="gpTypingIndicator" class="gp-typing hidden">
+        <span></span><span></span><span></span>
+        <small id="gpTypingText">يكتب...</small>
+      </div>
+
+      <!-- Reply preview -->
+      <div id="gpReplyPreview" class="gp-reply-preview hidden">
+        <div class="grp-content">
+          <div class="grp-label">↩️ رد على</div>
+          <div class="grp-text" id="gpReplyText"></div>
+        </div>
+        <button onclick="cancelReply()" class="grp-cancel">✕</button>
+      </div>
+
+      <!-- Input bar -->
+      <div class="gp-input-bar" id="gpInputBar">
+        <!-- زر الوسائط الموحد + -->
+        <div class="gpi-media-wrap" id="gpMediaWrap">
+          <button class="gpi-attach-btn" onclick="toggleGpMediaMenu()" title="وسائط" id="gpAttachBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="20" height="20"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </button>
+          <!-- قائمة الوسائط المنبثقة -->
+          <div class="gpi-media-menu hidden" id="gpMediaMenu">
+            <button class="gpi-media-item" onclick="triggerMediaPicker('image');closeGpMediaMenu()">
+              <span class="gpi-media-ico" style="background:rgba(52,152,219,.15);color:#3498db">🖼️</span>
+              <span>صورة</span>
+            </button>
+            <button class="gpi-media-item" onclick="triggerMediaPicker('camera');closeGpMediaMenu()">
+              <span class="gpi-media-ico" style="background:rgba(39,174,96,.15);color:#27ae60">📷</span>
+              <span>كاميرا</span>
+            </button>
+            <button class="gpi-media-item" onclick="triggerMediaPicker('video');closeGpMediaMenu()">
+              <span class="gpi-media-ico" style="background:rgba(155,89,182,.15);color:#9b59b6">🎬</span>
+              <span>فيديو</span>
+            </button>
+            <button class="gpi-media-item" onclick="triggerMediaPicker('audio');closeGpMediaMenu()">
+              <span class="gpi-media-ico" style="background:rgba(230,126,34,.15);color:#e67e22">🎵</span>
+              <span>صوت</span>
+            </button>
+            <button class="gpi-media-item" onclick="triggerMediaPicker('file');closeGpMediaMenu()">
+              <span class="gpi-media-ico" style="background:rgba(26,188,156,.15);color:#1abc9c">📄</span>
+              <span>ملف</span>
+            </button>
+            <button class="gpi-media-item gpi-media-voice" onclick="closeGpMediaMenu();startVoiceRecord()">
+              <span class="gpi-media-ico" style="background:rgba(231,76,60,.15);color:#e74c3c">🎤</span>
+              <span>تسجيل صوتي</span>
+            </button>
+          </div>
+        </div>
+        <!-- إيموجي -->
+        <button class="gpi-btn gpi-emoji-btn" onclick="toggleEmojiPicker()" title="إيموجي">😊</button>
+        <div class="gpi-text-wrap">
+          <textarea id="gpMsgInput" class="gpi-textarea" placeholder="اكتب رسالتك..." rows="1"
+            oninput="autoResizeTA(this);onGroupTyping()"
+            onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendGroupMessage()}"></textarea>
+        </div>
+        <button class="gpi-voice-quick" id="gpVoiceBtn"
+          onmousedown="startVoiceRecord()" onmouseup="stopVoiceRecord()"
+          ontouchstart="startVoiceRecord()" ontouchend="stopVoiceRecord()" title="اضغط مطولاً للتسجيل">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+        </button>
+        <button class="gpi-send" onclick="sendGroupMessage()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        </button>
+        <!-- hidden file inputs -->
+        <input type="file" id="gpImageInput"   accept="image/*"             class="hidden" onchange="uploadGroupMedia(this,'image')"/>
+        <input type="file" id="gpCameraInput"  accept="image/*" capture="environment" class="hidden" onchange="uploadGroupMedia(this,'image')"/>
+        <input type="file" id="gpVideoInput"   accept="video/*"             class="hidden" onchange="uploadGroupMedia(this,'video')"/>
+        <input type="file" id="gpAudioInput"   accept="audio/*"             class="hidden" onchange="uploadGroupMedia(this,'audio')"/>
+        <input type="file" id="gpFileInput"    accept="*/*"                 class="hidden" onchange="uploadGroupMedia(this,'file')"/>
+      </div>
+
+      <!-- Emoji Picker -->
+      <div id="gpEmojiPicker" class="gp-emoji-picker hidden">
+        <div class="gep-grid">
+          😊 😂 ❤️ 👍 👎 🔥 💯 🎉 😢 😡 🤔 👏 🙏 💪 🎓 📚 ✅ ❌ ⭐ 🏆
+          😀 😃 😄 😁 😆 😅 🤣 😇 😍 🥰 😘 🤩 😎 🤓 😏 😒 😞 😔 😟 😕
+          🙂 🙃 😉 😌 😛 😜 😝 🤑 🤗 🤭 🤫 🤥 😶 😐 😑 😬 🙄 😯 😦 😧
+        </div>
+      </div>
+
+      <!-- Voice Recording Indicator -->
+      <div id="gpVoiceRecordingBar" class="gp-voice-rec-bar hidden">
+        <span class="gvr-pulse">🔴</span>
+        <span>جاري التسجيل...</span>
+        <span id="gpVoiceRecTime">0:00</span>
+        <button onclick="cancelVoiceRecord()" class="gvr-cancel">✕ إلغاء</button>
+      </div>
+    </div>
+
+    <!-- Tab: MEMBERS -->
+    <div id="gpTabMembers" class="gp-tab-content hidden">
+      <div class="gp-members-header">
+        <div class="gpm-count" id="gpMembersCount">0 عضو</div>
+        <button class="gpm-invite-btn" onclick="showGroupInvite()">+ دعوة</button>
+      </div>
+      <div id="gpMembersList" class="gp-members-list"></div>
+    </div>
+
+    <!-- Tab: MEDIA -->
+    <div id="gpTabMedia" class="gp-tab-content hidden">
+      <div class="gp-media-tabs">
+        <button class="gmt-tab active" onclick="switchMediaTab('images',this)">📷 صور</button>
+        <button class="gmt-tab" onclick="switchMediaTab('videos',this)">🎬 فيديو</button>
+        <button class="gmt-tab" onclick="switchMediaTab('audio',this)">🎵 صوت</button>
+        <button class="gmt-tab" onclick="switchMediaTab('files',this)">📁 ملفات</button>
+      </div>
+      <div id="gpMediaGrid" class="gp-media-grid"></div>
+    </div>
+
+    <!-- Tab: INFO -->
+    <div id="gpTabInfo" class="gp-tab-content hidden">
+      <div id="gpInfoContent" class="gp-info-content"></div>
+    </div>
+
+    <!-- Invite Modal -->
+    <div id="gpInviteModal" class="gp-invite-modal hidden">
+      <div class="gpim-inner">
+        <div class="gpim-title">🔗 دعوة للمجموعة</div>
+        <div class="gpim-link" id="gpInviteLink">جاري التوليد...</div>
+        <div class="gpim-btns">
+          <button onclick="copyGroupLink()" class="gpim-btn">📋 نسخ الرابط</button>
+          <button onclick="shareGroupLink()" class="gpim-btn gpim-share">↗️ مشاركة</button>
+        </div>
+        <div class="gpim-qr" id="gpInviteQR"></div>
+        <button onclick="document.getElementById('gpInviteModal').classList.add('hidden')" class="gpim-close">✕ إغلاق</button>
+      </div>
+    </div>
+
+    <!-- Call Overlay (for incoming calls) -->
+    <div id="gpIncomingCall" class="gp-incoming-call hidden">
+      <div class="gpic-inner">
+        <div class="gpic-avatar">📞</div>
+        <div class="gpic-name" id="gpCallerName">مكالمة واردة</div>
+        <div class="gpic-sub" id="gpCallSubtitle">مكالمة صوتية</div>
+        <div class="gpic-btns">
+          <button onclick="acceptCall()" class="gpic-accept">✅ قبول</button>
+          <button onclick="rejectCall()" class="gpic-reject">❌ رفض</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================================
+       💬 ADVANCED DM CHAT PAGE - صفحة الرسائل المتطورة
+  ================================================================ -->
+  <div id="dmChatPage" class="group-page hidden">
+    <div class="gp-header">
+      <button class="gp-back" onclick="closeDMChatPage()">← رجوع</button>
+      <div class="gp-title-wrap">
+        <div class="gp-avatar" id="dmChatAvatar">👤</div>
+        <div>
+          <div class="gp-name" id="dmChatName">محادثة</div>
+          <div class="gp-meta" id="dmChatStatus">متصل</div>
+        </div>
+      </div>
+      <div class="gp-actions-top">
+        <button class="gp-icon-btn" onclick="startDMVoiceCall()" title="مكالمة صوتية">🎙️</button>
+        <button class="gp-icon-btn" onclick="startDMVideoCall()" title="مكالمة مرئية">📹</button>
+      </div>
+    </div>
+
+    <!-- DM Video/Voice Call Area -->
+    <div id="dmCallBanner" class="gp-call-banner hidden">
+      <div class="gcb-info">
+        <span class="gcb-pulse"></span>
+        <span id="dmCallType">مكالمة جارية</span>
+        <span id="dmCallTime" class="gcb-time">0:00</span>
+      </div>
+      <div class="gcb-btns">
+        <button onclick="toggleDMMute()" id="dmBtnMute" class="gcb-btn">🎙️</button>
+        <button onclick="toggleDMVideo()" id="dmBtnCam" class="gcb-btn">📹</button>
+        <button onclick="endDMCall()" class="gcb-btn gcb-end">📵</button>
+      </div>
+    </div>
+    <div id="dmVideoGrid" class="gp-video-grid hidden">
+      <video id="dmLocalVideo" class="gp-video-self" autoplay muted playsinline></video>
+      <video id="dmRemoteVideo" class="gp-video-remote" autoplay playsinline></video>
+    </div>
+
+    <div id="dmChatMessages" class="gp-chat-messages"></div>
+    <div id="dmTypingIndicator" class="gp-typing hidden">
+      <span></span><span></span><span></span>
+      <small id="dmTypingText">يكتب...</small>
+    </div>
+    <div id="dmReplyPreview" class="gp-reply-preview hidden">
+      <div class="grp-content">
+        <div class="grp-label">↩️ رد على</div>
+        <div class="grp-text" id="dmReplyText"></div>
+      </div>
+      <button onclick="cancelDMReply()" class="grp-cancel">✕</button>
+    </div>
+    <div class="gp-input-bar" id="dmInputBar">
+      <!-- زر الوسائط الموحد + -->
+      <div class="gpi-media-wrap" id="dmMediaWrap">
+        <button class="gpi-attach-btn" onclick="toggleDmMediaMenu()" title="وسائط" id="dmAttachBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="20" height="20"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
+        <!-- قائمة الوسائط المنبثقة -->
+        <div class="gpi-media-menu hidden" id="dmMediaMenu">
+          <button class="gpi-media-item" onclick="triggerDMMedia('image');closeDmMediaMenu()">
+            <span class="gpi-media-ico" style="background:rgba(52,152,219,.15);color:#3498db">🖼️</span>
+            <span>صورة</span>
+          </button>
+          <button class="gpi-media-item" onclick="triggerDMMedia('camera');closeDmMediaMenu()">
+            <span class="gpi-media-ico" style="background:rgba(39,174,96,.15);color:#27ae60">📷</span>
+            <span>كاميرا</span>
+          </button>
+          <button class="gpi-media-item" onclick="triggerDMMedia('video');closeDmMediaMenu()">
+            <span class="gpi-media-ico" style="background:rgba(155,89,182,.15);color:#9b59b6">🎬</span>
+            <span>فيديو</span>
+          </button>
+          <button class="gpi-media-item" onclick="triggerDMMedia('audio');closeDmMediaMenu()">
+            <span class="gpi-media-ico" style="background:rgba(230,126,34,.15);color:#e67e22">🎵</span>
+            <span>صوت</span>
+          </button>
+          <button class="gpi-media-item" onclick="triggerDMMedia('file');closeDmMediaMenu()">
+            <span class="gpi-media-ico" style="background:rgba(26,188,156,.15);color:#1abc9c">📄</span>
+            <span>ملف</span>
+          </button>
+          <button class="gpi-media-item gpi-media-voice" onclick="closeDmMediaMenu();startDMVoiceRecord()">
+            <span class="gpi-media-ico" style="background:rgba(231,76,60,.15);color:#e74c3c">🎤</span>
+            <span>تسجيل صوتي</span>
+          </button>
+        </div>
+      </div>
+      <!-- إيموجي -->
+      <button class="gpi-btn gpi-emoji-btn" onclick="toggleDMEmojiPicker()">😊</button>
+      <div class="gpi-text-wrap">
+        <textarea id="dmMsgInput" class="gpi-textarea" placeholder="اكتب رسالتك..." rows="1"
+          oninput="autoResizeTA(this);onDMTyping()"
+          onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendDMFromPage()}"></textarea>
+      </div>
+      <button class="gpi-voice-quick" id="dmVoiceBtn"
+        onmousedown="startDMVoiceRecord()" onmouseup="stopDMVoiceRecord()"
+        ontouchstart="startDMVoiceRecord()" ontouchend="stopDMVoiceRecord()" title="اضغط مطولاً للتسجيل">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+      </button>
+      <button class="gpi-send" onclick="sendDMFromPage()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </button>
+      <!-- hidden file inputs -->
+      <input type="file" id="dmImageInput"   accept="image/*"             class="hidden" onchange="uploadDMMedia(this,'image')"/>
+      <input type="file" id="dmCameraInput"  accept="image/*" capture="environment" class="hidden" onchange="uploadDMMedia(this,'image')"/>
+      <input type="file" id="dmVideoInput"   accept="video/*"             class="hidden" onchange="uploadDMMedia(this,'video')"/>
+      <input type="file" id="dmAudioInput"   accept="audio/*"             class="hidden" onchange="uploadDMMedia(this,'audio')"/>
+      <input type="file" id="dmFileInput"    accept="*/*"                 class="hidden" onchange="uploadDMMedia(this,'file')"/>
+    </div>
+    <div id="dmEmojiPicker" class="gp-emoji-picker hidden">
+      <div class="gep-grid">
+        😊 😂 ❤️ 👍 👎 🔥 💯 🎉 😢 😡 🤔 👏 🙏 💪 🎓 📚 ✅ ❌ ⭐ 🏆
+        😀 😃 😄 😁 😆 😅 🤣 😇 😍 🥰 😘 🤩 😎 🤓 😏 😒 😞 😔 😟 😕
+      </div>
+    </div>
+    <div id="dmVoiceRecordingBar" class="gp-voice-rec-bar hidden">
+      <span class="gvr-pulse">🔴</span>
+      <span>جاري التسجيل...</span>
+      <span id="dmVoiceRecTime">0:00</span>
+      <button onclick="cancelDMVoiceRecord()" class="gvr-cancel">✕ إلغاء</button>
+    </div>
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav">
+    <button class="bnav active-bnav" onclick="goSection('home')"     id="bnav-home">     <span>🏠</span><small>الرئيسية</small></button>
+    <button class="bnav"             onclick="goSection('map')"      id="bnav-map">      <span>🗺️</span><small>الخريطة</small></button>
+    <button class="bnav bnav-center" onclick="goSection('report')"   id="bnav-report">   <span>🚨</span></button>
+    <button class="bnav"             onclick="goSection('people')"   id="bnav-people">   <span>🔍</span><small>بحث</small></button>
+    <button class="bnav"             onclick="goSection('messages')" id="bnav-messages"> <span>💬</span><small>رسائل</small><span class="bnav-badge hidden" id="dmBadgeNav">0</span></button>
+  </nav>
+
+  <div id="toast" class="toast hidden"></div>
+  <div id="notifBadge" class="notif-badge hidden"></div>
+
+  <!-- مؤشر عدم الاتصال -->
+  <div id="offlineIndicator" class="offline-indicator hidden">
+    <span>📵 غير متصل — تعمل في وضع offline</span>
+  </div>
+
+  <!-- شريط تثبيت PWA -->
+  <div id="pwaInstallBanner" class="pwa-install-banner hidden">
+    <div class="pwa-banner-content">
+      <div class="pwa-banner-icon">💓</div>
+      <div class="pwa-banner-text">
+        <strong>ثبّت نبض على جهازك</strong>
+        <span>يعمل بدون إنترنت · أسرع · إشعارات فورية</span>
+      </div>
+    </div>
+    <div class="pwa-banner-actions">
+      <button class="pwa-install-btn" onclick="installPWA()">📲 ثبّت</button>
+      <button class="pwa-dismiss-btn" onclick="hideInstallBanner()">✕</button>
+    </div>
+  </div>
+
+  <!-- Modal تفاصيل منتج P2P -->
+  <div id="marketModal" class="modal-overlay hidden" onclick="closeMarketModal(event)">
+    <div class="modal-box">
+      <button class="modal-close" onclick="closeMarketModal()">✕</button>
+      <div id="marketModalContent"></div>
+    </div>
+  </div>
+
+  <!-- Modal اسم المستخدم -->
+  <div id="nameModal" class="modal-overlay hidden" style="z-index:9999">
+    <div class="modal-box" style="max-width:340px;text-align:center">
+      <div style="font-size:2.5rem;margin-bottom:.5rem">💓</div>
+      <div style="font-size:1.2rem;font-weight:700;color:var(--text1);margin-bottom:.3rem">مرحباً في نبض!</div>
+      <div style="font-size:.85rem;color:var(--text2);margin-bottom:1.2rem">كيف تريد أن يناديك المجتمع؟</div>
+      <input type="text" id="nameInput" class="inp" placeholder="اسمك أو لقبك (مثل: أحمد، أم محمد)" maxlength="30" style="text-align:center" onkeydown="if(event.key==='Enter')saveName()"/>
+      <div style="display:flex;gap:.5rem;margin-top:.8rem">
+        <button onclick="saveName()" style="flex:2;background:var(--teal);color:#fff;border:none;padding:.7rem;border-radius:var(--r);cursor:pointer;font-family:inherit;font-weight:700;font-size:.95rem">✅ انضم الآن</button>
+        <button onclick="skipName()" style="flex:1;background:rgba(255,255,255,.05);color:var(--text2);border:1px solid rgba(255,255,255,.1);padding:.7rem;border-radius:var(--r);cursor:pointer;font-family:inherit;font-size:.85rem">تخطّ</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal الملف الشخصي لشخص آخر -->
+  <div id="personModal" class="modal-overlay hidden" onclick="closePersonModal(event)">
+    <div class="modal-box">
+      <button class="modal-close" onclick="closePersonModal()">✕</button>
+      <div id="personModalContent"></div>
+    </div>
+  </div>
+
+  <!-- Modal DM محادثة مباشرة -->
+  <div id="dmModal" class="modal-overlay hidden" onclick="closeDMModal(event)">
+    <div class="modal-box dm-modal-box">
+      <button class="modal-close" onclick="closeDMModal()">✕</button>
+      <div id="dmModalContent"></div>
+    </div>
+  </div>
+
+
+  <!-- Modal مشاركة التطبيق -->
+  <div id="shareAppModal" class="modal-overlay hidden" onclick="closeShareAppModal(event)">
+    <div class="modal-box share-app-modal-box" onclick="event.stopPropagation()">
+      <button class="modal-close" onclick="closeShareAppModal()">✕</button>
+      <div class="share-app-header">
+        <div class="share-app-logo">💓</div>
+        <h2 class="share-app-title">شارك تطبيق نبض</h2>
+        <p class="share-app-sub">ساعد أهلك ومجتمعك في الوصول لمعلومات حية وموثوقة</p>
+      </div>
+
+      <!-- QR Code area -->
+      <div class="share-qr-area" id="shareQrArea">
+        <canvas id="shareQrCanvas" width="180" height="180"></canvas>
+        <p class="share-qr-label">امسح الكود للوصول المباشر</p>
+      </div>
+
+      <!-- App URL copy -->
+      <div class="share-url-row">
+        <input type="text" id="shareAppUrlInput" class="share-url-input" readonly />
+        <button class="share-url-copy-btn" onclick="copyAppUrl()">📋 نسخ</button>
+      </div>
+
+      <!-- Share buttons grid -->
+      <div class="share-buttons-grid">
+        <a id="shareWhatsappLink" class="share-btn-card share-whatsapp" href="#" target="_blank" rel="noopener" onclick="event.stopPropagation()">
+          <span class="sbc-icon">💬</span>
+          <span class="sbc-label">واتساب</span>
+        </a>
+        <a id="shareTelegramLink" class="share-btn-card share-telegram" href="#" target="_blank" rel="noopener" onclick="event.stopPropagation()">
+          <span class="sbc-icon">✈️</span>
+          <span class="sbc-label">تيليغرام</span>
+        </a>
+        <a id="shareTwitterLink" class="share-btn-card share-twitter" href="#" target="_blank" rel="noopener" onclick="event.stopPropagation()">
+          <span class="sbc-icon">𝕏</span>
+          <span class="sbc-label">تويتر</span>
+        </a>
+        <button class="share-btn-card share-native" id="shareNativeBtn" onclick="event.stopPropagation();shareViaNative()">
+          <span class="sbc-icon">🔗</span>
+          <span class="sbc-label" id="shareNativeLabel">مشاركة</span>
+        </button>
+      </div>
+
+      <!-- Stats bar -->
+      <div class="share-stats-bar">
+        <div class="ssb-item">
+          <span class="ssb-val" id="shareStatUsers">—</span>
+          <span class="ssb-key">مستخدم نشط</span>
+        </div>
+        <div class="ssb-divider"></div>
+        <div class="ssb-item">
+          <span class="ssb-val" id="shareStatReports">—</span>
+          <span class="ssb-key">تقرير</span>
+        </div>
+        <div class="ssb-divider"></div>
+        <div class="ssb-item">
+          <span class="ssb-val" id="shareStatCities">—</span>
+          <span class="ssb-key">مدينة</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- زر SOS عائم -->
+  <button id="sosBtn" class="sos-float-btn"
+    onclick="openSosModal()"
+    title="نداء استغاثة">
+    🆘
+  </button>
+
+  <!-- زر الرجوع للأعلى -->
+  <button id="scrollTopBtn" class="hidden" title="للأعلى" aria-label="العودة للأعلى">⬆️</button>
+
+</div><!-- #app -->
+
+<!-- ===== TOAST CONTAINER ===== -->
+<div id="toastContainer" role="alert" aria-live="polite"></div>
+
+<!-- ===== SCROLL TO TOP ===== -->
+<button id="scrollTopBtn" aria-label="العودة للأعلى" title="العودة للأعلى">↑</button>
+
+<!-- ===== URGENT HELP BANNER ===== -->
+<div id="urgentHelpBanner" role="alert"></div>
+
+<!-- ===== WEATHER WIDGET (TOP BAR ADDON) ===== -->
+<div id="weatherWidget" style="display:none"></div>
+
+<!-- ===== PRAYER WIDGET ===== -->
+<div id="prayerWidget" style="display:none"></div>
+
+<!-- ===== IMAGE VIEWER ===== -->
+<div id="imgViewerOverlay" class="img-viewer-overlay" style="display:none"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+<script src="/js/app.js"></script>
+
+<script>
+/* ── Service Worker Registration ── */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('/sw.js', { scope: '/' })
+      .then(function(reg) {
+        console.log('[SW] Registered, scope:', reg.scope);
+        // Check for updates
+        reg.addEventListener('updatefound', function() {
+          var newWorker = reg.installing;
+          newWorker.addEventListener('statechange', function() {
+            if (newWorker.state === 'activated') {
+              showToast('✅ التطبيق مُحدَّث! يعمل الآن بدون إنترنت 🚀', 'success');
+            }
+          });
+        });
+      })
+      .catch(function(err) { console.warn('[SW] Registration failed:', err); });
+  });
+}
+
+/* ── PWA Install Prompt ── */
+var deferredInstallPrompt = null;
+
+window.addEventListener('beforeinstallprompt', function(e) {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  // Show install banner after 3 seconds
+  setTimeout(showInstallBanner, 3000);
+});
+
+window.addEventListener('appinstalled', function() {
+  deferredInstallPrompt = null;
+  hideInstallBanner();
+  showToast('🎉 تم تثبيت نبض على جهازك!', 'success');
+});
+
+function showInstallBanner() {
+  var banner = document.getElementById('pwaInstallBanner');
+  if (banner && deferredInstallPrompt) {
+    banner.classList.remove('hidden');
+    banner.classList.add('pwa-banner-show');
+  }
+}
+
+function hideInstallBanner() {
+  var banner = document.getElementById('pwaInstallBanner');
+  if (banner) {
+    banner.classList.add('hidden');
+    banner.classList.remove('pwa-banner-show');
+  }
+}
+
+function installPWA() {
+  if (!deferredInstallPrompt) {
+    // Fallback: show instructions
+    showPWAInstructions();
+    return;
+  }
+  deferredInstallPrompt.prompt();
+  deferredInstallPrompt.userChoice.then(function(result) {
+    if (result.outcome === 'accepted') {
+      showToast('🎉 جاري تثبيت نبض...', 'success');
+    }
+    deferredInstallPrompt = null;
+    hideInstallBanner();
+  });
+}
+
+function showPWAInstructions() {
+  var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+  var isAndroid = /Android/.test(navigator.userAgent);
+  var msg = '';
+  if (isIOS) {
+    msg = '📲 لتثبيت نبض على iPhone:\nاضغط على زر المشاركة ⬆️ ثم اختر "Add to Home Screen"';
+  } else if (isAndroid) {
+    msg = '📲 لتثبيت نبض على Android:\nافتح قائمة المتصفح ⋮ ثم اختر "Add to Home Screen" أو "تثبيت التطبيق"';
+  } else {
+    msg = '📲 لتثبيت نبض على جهازك:\nافتح قائمة المتصفح ثم اختر "Install App" أو "تثبيت التطبيق"';
+  }
+  alert(msg);
+}
+
+/* ── Handle PWA Shortcuts (?section=xxx) ── */
+(function() {
+  var params = new URLSearchParams(window.location.search);
+  var section = params.get('section');
+  if (section) {
+    window.addEventListener('DOMContentLoaded', function() {
+      setTimeout(function() {
+        if (typeof goSection === 'function') goSection(section);
+      }, 800);
+    });
+  }
+})();
+
+/* ── Online/Offline status ── */
+function updateOnlineStatus() {
+  var indicator = document.getElementById('offlineIndicator');
+  if (!indicator) return;
+  if (navigator.onLine) {
+    indicator.classList.add('hidden');
+  } else {
+    indicator.classList.remove('hidden');
+  }
+}
+window.addEventListener('online',  updateOnlineStatus);
+window.addEventListener('offline', updateOnlineStatus);
+updateOnlineStatus();
+</script>
+
+<!-- حاوية الاشعارات الداخلية -->
+<div id="inAppNotifContainer" style="position:fixed;top:70px;left:0;right:0;z-index:9999;pointer-events:none;padding:0 .8rem;display:flex;flex-direction:column;gap:.4rem;align-items:center"></div>
+
+</body>
+</html>

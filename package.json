@@ -1,0 +1,28 @@
+{
+  "name": "nabdh",
+  "version": "1.0.0",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "nabdh",
+    "sudan",
+    "community",
+    "app"
+  ],
+  "author": "",
+  "license": "ISC",
+  "description": "نبض - تطبيق المدينة الحي",
+  "dependencies": {
+    "compression": "^1.8.1",
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "socket.io": "^4.8.3",
+    "uuid": "^14.0.0"
+  }
+}
