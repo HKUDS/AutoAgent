@@ -8686,3 +8686,109 @@ button:not(:disabled) { pointer-events: auto !important; cursor: pointer !import
   .onb-nav{padding:.8rem 1.2rem 1.1rem;}
   .onb-btn-prev,.onb-btn-next{min-width:75px;font-size:.82rem;padding:.45rem .85rem;}
 }
+
+/* ============================================================
+   ⚙️ SETTINGS MODAL
+   ============================================================ */
+.settings-panel{
+  background:var(--card);border-radius:1.2rem 1.2rem 0 0;
+  position:fixed;bottom:0;left:0;right:0;z-index:10500;
+  max-height:88vh;overflow-y:auto;
+  padding-bottom:env(safe-area-inset-bottom,0);
+  animation:slideUpPanel .32s cubic-bezier(.22,1,.36,1);
+}
+@keyframes slideUpPanel{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.settings-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:1rem 1.2rem .6rem;border-bottom:1px solid var(--border);
+  position:sticky;top:0;background:var(--card);z-index:2;
+}
+.settings-header h2{margin:0;font-size:1.1rem;color:var(--text1);}
+.settings-body{padding:.4rem 0 1.2rem;}
+.settings-section{padding:.75rem 1.2rem;border-bottom:1px solid var(--border);}
+.settings-section-title{font-size:.78rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.04em;margin-bottom:.65rem;}
+.settings-row{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:.5rem;}
+.settings-row:last-child{margin-bottom:0;}
+.settings-row-info{flex:1;}
+.settings-row-label{font-size:.92rem;color:var(--text1);}
+.settings-row-sub{font-size:.78rem;color:var(--text2);margin-top:.1rem;}
+.settings-danger-btn{
+  width:100%;padding:.65rem 1rem;border-radius:.6rem;border:1px solid rgba(231,76,60,.3);
+  background:rgba(231,76,60,.08);color:#e74c3c;font-size:.88rem;cursor:pointer;
+  font-family:inherit;text-align:right;
+}
+.settings-danger-btn:hover{background:rgba(231,76,60,.15);}
+
+/* Toggle Switch */
+.toggle-switch{position:relative;display:inline-block;width:46px;height:26px;flex-shrink:0;}
+.toggle-switch input{opacity:0;width:0;height:0;}
+.toggle-slider{
+  position:absolute;cursor:pointer;inset:0;
+  background:rgba(255,255,255,.12);border-radius:13px;
+  transition:.3s;
+}
+.toggle-slider:before{
+  content:'';position:absolute;height:20px;width:20px;border-radius:50%;
+  left:3px;bottom:3px;background:#fff;
+  transition:.3s;box-shadow:0 1px 4px rgba(0,0,0,.3);
+}
+.toggle-switch input:checked + .toggle-slider{background:var(--accent);}
+.toggle-switch input:checked + .toggle-slider:before{transform:translateX(20px);}
+
+/* Font size buttons */
+.font-size-row{display:flex;gap:.5rem;}
+.fs-btn{
+  flex:1;padding:.55rem;border-radius:.6rem;border:1px solid var(--border);
+  background:var(--bg2);color:var(--text2);cursor:pointer;font-family:inherit;
+  transition:.2s;
+}
+.fs-btn:hover,.active-fs{background:var(--accent);color:#fff;border-color:var(--accent);}
+.fs-btn-mid{font-size:1.05rem;}
+.fs-btn-lg{font-size:1.2rem;}
+
+/* Blocked users list */
+.blocked-list{display:flex;flex-direction:column;gap:.4rem;}
+.blocked-item{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:.5rem .6rem;background:var(--bg2);border-radius:.6rem;
+}
+.blocked-item-name{font-size:.88rem;color:var(--text1);}
+.blocked-unblock-btn{
+  font-size:.78rem;padding:.3rem .65rem;border-radius:.45rem;
+  background:rgba(26,188,156,.12);color:var(--accent);border:1px solid rgba(26,188,156,.25);
+  cursor:pointer;font-family:inherit;
+}
+
+/* ============================================================
+   🔔 PRAYER ALARM CARD
+   ============================================================ */
+.prayer-alarm-card{padding:.8rem 1rem!important;}
+.prayer-alarm-row{display:flex;align-items:center;justify-content:space-between;gap:1rem;}
+.prayer-alarm-title{font-size:.95rem;color:var(--text1);font-weight:600;}
+.prayer-alarm-sub{font-size:.78rem;color:var(--text2);margin-top:.15rem;}
+
+/* ============================================================
+   🧮 CURRENCY CALCULATOR
+   ============================================================ */
+.currency-calc{padding:1rem!important;}
+.calc-row{display:flex;gap:.6rem;align-items:stretch;}
+.calc-inp{flex:1;font-size:1.15rem;text-align:center;font-weight:700;}
+.calc-sel{flex:0 0 auto;width:auto;min-width:130px;font-size:.82rem;}
+.calc-swap-row{display:flex;justify-content:center;margin:.4rem 0;}
+.calc-swap-btn{
+  width:36px;height:36px;border-radius:50%;border:1px solid var(--accent);
+  background:rgba(26,188,156,.1);color:var(--accent);font-size:1.1rem;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+}
+.calc-result-box{
+  flex:1;background:rgba(26,188,156,.1);border:1px solid rgba(26,188,156,.3);
+  border-radius:.55rem;padding:.6rem 1rem;font-size:1.15rem;font-weight:700;
+  color:var(--accent);display:flex;align-items:center;justify-content:center;
+  min-height:42px;
+}
+.calc-note{font-size:.75rem;color:var(--text2);margin-top:.6rem;text-align:center;}
+
+/* ============================================================
+   🚫 BLOCK BUTTON IN DM
+   ============================================================ */
+#dmBlockBtn.blocked-active{color:#e74c3c!important;}

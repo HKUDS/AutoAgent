@@ -356,6 +356,14 @@
           <div class="menu-item-sub">تعرّف على كل ميزات نبض</div>
         </div>
       </a>
+
+      <a onclick="openSettings();toggleMenu()" class="menu-item" style="margin-top:.1rem;">
+        <div class="menu-item-ico">⚙️</div>
+        <div class="menu-item-body">
+          <div class="menu-item-title">الإعدادات</div>
+          <div class="menu-item-sub">خط · إشعارات · بيانات</div>
+        </div>
+      </a>
     </nav>
 
     <div class="menu-footer">
@@ -1299,6 +1307,41 @@
         <h3 class="sec-title">📈 منحنى السعر</h3>
         <canvas id="rateChart" height="120"></canvas>
       </div>
+      <!-- حاسبة تحويل العملات -->
+      <div class="section-pad">
+        <h3 class="sec-title">🧮 حاسبة الصرف السريعة</h3>
+        <div class="form-card currency-calc">
+          <div class="calc-row">
+            <input type="number" id="calcAmount" class="inp calc-inp" placeholder="المبلغ" min="0" oninput="calcCurrency()" />
+            <select id="calcFrom" class="inp calc-sel" onchange="calcCurrency()">
+              <option value="usd">$ دولار</option>
+              <option value="eur">€ يورو</option>
+              <option value="gbp">£ جنيه إسترليني</option>
+              <option value="sar">﷼ ريال سعودي</option>
+              <option value="aed">د.إ درهم</option>
+              <option value="egp">ج.م جنيه مصري</option>
+              <option value="sdg" selected>ج.س جنيه سوداني</option>
+            </select>
+          </div>
+          <div class="calc-swap-row">
+            <button class="calc-swap-btn" onclick="swapCalcCurrency()" title="عكس">⇅</button>
+          </div>
+          <div class="calc-row">
+            <div class="calc-result-box" id="calcResult">—</div>
+            <select id="calcTo" class="inp calc-sel" onchange="calcCurrency()">
+              <option value="usd" selected>$ دولار</option>
+              <option value="eur">€ يورو</option>
+              <option value="gbp">£ جنيه إسترليني</option>
+              <option value="sar">﷼ ريال سعودي</option>
+              <option value="aed">د.إ درهم</option>
+              <option value="egp">ج.م جنيه مصري</option>
+              <option value="sdg">ج.س جنيه سوداني</option>
+            </select>
+          </div>
+          <div id="calcNote" class="calc-note">يستخدم سعر السوق المُبلَّغ عنه مباشرة</div>
+        </div>
+      </div>
+
       <div class="section-pad">
         <h3 class="sec-title">📤 شارك السعر من مكانك</h3>
         <div class="form-card">
@@ -1787,6 +1830,22 @@
             <option value="3">المجلس الإسلامي للأمريكا الشمالية</option>
             <option value="2">رابطة العالم الإسلامي</option>
           </select>
+        </div>
+        <!-- منبّه أوقات الصلاة -->
+        <div class="prayer-alarm-card form-card" style="margin-top:.8rem">
+          <div class="prayer-alarm-row">
+            <div>
+              <div class="prayer-alarm-title">🔔 منبّه أوقات الصلاة</div>
+              <div class="prayer-alarm-sub" id="prayerAlarmStatus">غير مفعّل</div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="prayerAlarmToggle" onchange="togglePrayerAlarm(this.checked)">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="prayer-alarm-detail hidden" id="prayerAlarmDetail">
+            <small style="color:var(--text2);display:block;margin-top:.4rem">⏰ سيصلك إشعار قبل 5 دقائق من كل صلاة</small>
+          </div>
         </div>
       </div>
     </section>
@@ -2600,6 +2659,7 @@
       <div class="gp-actions-top">
         <button class="gp-icon-btn" onclick="startDMVoiceCall()" title="مكالمة صوتية">🎙️</button>
         <button class="gp-icon-btn" onclick="startDMVideoCall()" title="مكالمة مرئية">📹</button>
+        <button class="gp-icon-btn" id="dmBlockBtn" onclick="toggleBlockUser()" title="حظر المستخدم">🚫</button>
       </div>
     </div>
 
@@ -2845,6 +2905,113 @@
 
   <!-- زر الرجوع للأعلى -->
   <button id="scrollTopBtn" class="hidden" title="للأعلى" aria-label="العودة للأعلى">⬆️</button>
+
+<!-- ===== SETTINGS MODAL ===== -->
+<div id="settingsModal" class="modal-overlay hidden" onclick="closeSettings(event)">
+  <div class="settings-panel" onclick="event.stopPropagation()">
+    <div class="settings-header">
+      <h2>⚙️ الإعدادات</h2>
+      <button class="modal-close" onclick="closeSettings()">✕</button>
+    </div>
+    <div class="settings-body">
+
+      <!-- حجم الخط -->
+      <div class="settings-section">
+        <div class="settings-section-title">🔤 حجم الخط</div>
+        <div class="font-size-row">
+          <button class="fs-btn" onclick="setFontSize('small')" id="fsBtnSmall">ص</button>
+          <button class="fs-btn fs-btn-mid active-fs" onclick="setFontSize('medium')" id="fsBtnMedium">م</button>
+          <button class="fs-btn fs-btn-lg" onclick="setFontSize('large')" id="fsBtnLarge">ك</button>
+        </div>
+      </div>
+
+      <!-- الوضع الهادئ -->
+      <div class="settings-section">
+        <div class="settings-section-title">🔕 الوضع الهادئ</div>
+        <div class="settings-row">
+          <div class="settings-row-info">
+            <div class="settings-row-label">إيقاف جميع الإشعارات مؤقتاً</div>
+            <div class="settings-row-sub">يمكنك إعادة تفعيلها في أي وقت</div>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="quietModeToggle" onchange="toggleQuietMode(this.checked)">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <!-- إشعارات الصلاة -->
+      <div class="settings-section">
+        <div class="settings-section-title">🕌 إشعارات الصلاة</div>
+        <div class="settings-row">
+          <div class="settings-row-info">
+            <div class="settings-row-label">منبّه قبل الصلاة بـ 5 دقائق</div>
+            <div class="settings-row-sub">يعمل على متصفحك المحلي</div>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="settingsPrayerToggle" onchange="togglePrayerAlarmFromSettings(this.checked)">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <!-- إشعارات الإنجازات -->
+      <div class="settings-section">
+        <div class="settings-section-title">🔔 الإشعارات</div>
+        <div class="settings-row">
+          <div class="settings-row-info">
+            <div class="settings-row-label">إشعارات النقاط والإنجازات</div>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="settingsAchievToggle" checked onchange="saveSettingsBool('notif_achiev',this.checked)">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="settings-row">
+          <div class="settings-row-info">
+            <div class="settings-row-label">إشعارات التقارير الجديدة القريبة</div>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="settingsNearbyToggle" checked onchange="saveSettingsBool('notif_nearby',this.checked)">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="settings-row">
+          <div class="settings-row-info">
+            <div class="settings-row-label">إشعارات الرسائل المباشرة</div>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="settingsDmToggle" checked onchange="saveSettingsBool('notif_dm',this.checked)">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <!-- المستخدمون المحظورون -->
+      <div class="settings-section">
+        <div class="settings-section-title">🚫 المستخدمون المحظورون</div>
+        <div id="blockedUsersList" class="blocked-list"><p style="color:var(--text2);font-size:.85rem;padding:.5rem 0">لا يوجد مستخدمون محظورون</p></div>
+      </div>
+
+      <!-- مسح البيانات -->
+      <div class="settings-section">
+        <div class="settings-section-title">🗑️ البيانات</div>
+        <button class="settings-danger-btn" onclick="clearAppCache()">🗑️ مسح ذاكرة التخزين المؤقت</button>
+        <button class="settings-danger-btn" style="margin-top:.5rem" onclick="exportMyData()">📥 تصدير بياناتي</button>
+      </div>
+
+      <!-- الإصدار -->
+      <div class="settings-section" style="border-bottom:none">
+        <div class="settings-row" style="justify-content:space-between">
+          <span style="color:var(--text2);font-size:.82rem">الإصدار</span>
+          <span style="color:var(--text2);font-size:.82rem" id="settingsVersion">v7.6</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+<!-- ===== END SETTINGS ===== -->
 
 </div><!-- #app -->
 
