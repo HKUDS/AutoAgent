@@ -7,8 +7,8 @@
    - Background sync for failed POST requests
 ================================================================ */
 
-const CACHE_NAME    = 'nabdh-v8';
-const CACHE_STATIC  = 'nabdh-static-v8';
+const CACHE_NAME    = 'nabdh-v9';
+const CACHE_STATIC  = 'nabdh-static-v9';
 const OFFLINE_URL   = '/offline.html';
 
 // Files to pre-cache on install

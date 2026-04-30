@@ -81,8 +81,11 @@ html,body { height:100%; overflow:hidden; font-family:'Tajawal',sans-serif; back
 .splash-loading { color:var(--text2); font-size:.88rem }
 
 /* ===== APP ===== */
-#app { height:100vh; display:flex; flex-direction:column; opacity:1 }
+#app { height:100vh; display:flex; flex-direction:column; opacity:1; visibility:visible !important; }
 .hidden { display:none!important }
+/* Force app visibility - override any cached hidden state */
+#app.hidden { display:flex!important; }
+#app[style*="display: none"] { display:flex!important; }
 
 /* =========================================================
    TOPBAR — WhatsApp Dark
@@ -3174,7 +3177,7 @@ a.share-btn-card {
    SECTION TRANSITIONS
 =================================================================== */
 .section { transition: opacity .18s ease; }
-.section:not(.active-sec) { pointer-events: none; }
+/* pointer-events restored: sections handle clicks normally */
 
 /* ================================================================
    🎓 GROUP PAGE - صفحة المجموعة المستقلة
@@ -8244,3 +8247,77 @@ img { max-width: 100%; height: auto; }
 .page-exit  { animation: fadeOut 0.2s ease both; pointer-events: none; }
 @keyframes fadeOut { to { opacity: 0; transform: scale(0.97); } }
 
+
+/* ===== v7.6 FIXES — إصلاح شامل ===== */
+
+/* ── الأقسام: إظهار النشط وإخفاء الباقي بشكل صحيح ── */
+.section { display: none; }
+.section.active-sec {
+  display: block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+}
+
+/* ── القائمة الجانبية: إصلاح الظهور الكامل ── */
+#sideMenu.side-menu:not(.hidden) {
+  display: flex !important;
+  flex-direction: column !important;
+  transform: translateX(0) !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+.menu-item {
+  display: flex !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+  cursor: pointer !important;
+}
+.menu-item-ico { display: flex !important; }
+.menu-item-body { display: block !important; }
+.menu-item-title { display: block !important; color: #e9edef !important; }
+.menu-item-sub { display: block !important; }
+
+/* ── عنصر الملف الشخصي في القائمة ── */
+.menu-item-profile {
+  border-right: 3px solid rgba(0,168,132,.5) !important;
+  background: rgba(0,168,132,.06) !important;
+}
+.menu-item-profile .menu-item-ico {
+  background: rgba(0,168,132,.2) !important;
+}
+.menu-item-profile .menu-item-title {
+  color: #00a884 !important;
+  font-weight: 600 !important;
+}
+
+/* ── بطاقات سريعة: إصلاح الظهور والتفاعل ── */
+.quick-grid { display: grid !important; }
+.quick-card {
+  display: flex !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+  cursor: pointer !important;
+}
+.q-icon, .q-title, .q-desc { display: block !important; }
+
+/* ── الملف الشخصي: إصلاح الظهور ── */
+#sec-profile.section.active-sec {
+  display: block !important;
+  overflow-y: auto !important;
+}
+.pv4-cover {
+  display: block !important;
+  position: relative !important;
+}
+.pv4-id-card { display: block !important; }
+.pv4-actions { display: flex !important; }
+.pv4-act { display: flex !important; flex-direction: column !important; align-items: center !important; }
+.pv4-edit-form { display: block !important; }
+
+/* ── الأزرار: تفعيل كامل ── */
+button:not(:disabled) { pointer-events: auto !important; cursor: pointer !important; }
+.bnav { pointer-events: auto !important; cursor: pointer !important; }
+.menu-btn { pointer-events: auto !important; cursor: pointer !important; }

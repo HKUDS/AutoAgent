@@ -44,6 +44,19 @@ function generateUID() {
    INIT
 ============================================================ */
 window.addEventListener('DOMContentLoaded', () => {
+  // ===== إجبار تحديث كاش SW القديم =====
+  if ('serviceWorker' in navigator && 'caches' in window) {
+    caches.keys().then(keys => {
+      keys.filter(k => k !== 'nabdh-v9' && k !== 'nabdh-static-v9')
+          .forEach(k => { caches.delete(k); console.log('[Cache] حُذف كاش قديم:', k); });
+    });
+    navigator.serviceWorker.getRegistrations().then(regs => {
+      regs.forEach(r => r.update());
+    });
+  }
+  // ===== إجبار إظهار التطبيق فوراً =====
+  const _appEl = document.getElementById('app');
+  if (_appEl) { _appEl.classList.remove('hidden'); _appEl.style.display = 'flex'; }
   updateSplash('جاري التحميل...');
   if (!myName) setTimeout(showNameModal, 2000);
 
@@ -1404,6 +1417,11 @@ function loadMyProfile() {
   if (myProfile) {
     myName = myProfile.name || myName;
     updateProfileUI();
+    // تحديث رابط الملف الشخصي في القائمة
+    const pLinkName = document.getElementById('menuProfileLinkName');
+    if (pLinkName && myProfile.name) pLinkName.textContent = myProfile.name;
+    const pIco = document.getElementById('menuProfileIco');
+    if (pIco && myProfile.emoji) pIco.textContent = myProfile.emoji;
   }
 }
 
