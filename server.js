@@ -360,9 +360,10 @@ function loadData() {
         news:         saved.news          || [],
         rides:        saved.rides         || [],
         waterReports: saved.waterReports  || [],
-        studyGroups:  saved.studyGroups   || {},
-        helpRequests: saved.helpRequests  || [],
-        polls:        saved.polls         || [],
+        studyGroups:      saved.studyGroups      || {},
+        hoodGroups:       saved.hoodGroups       || {},
+        helpRequests:     saved.helpRequests     || [],
+        polls:            saved.polls            || [],
         leaderboard:  saved.leaderboard   || [],
         referrals:    saved.referrals     || [],
         stats: { users:0, reports: saved.stats ? (saved.stats.reports||0) : 0,
@@ -376,7 +377,7 @@ function loadData() {
     skills:[], marketplace:[], chatRooms:{}, onlineUsers:{}, profiles:{},
     messages:{}, bloodRequests:[], bloodDonors:[], powerSchedule:[],
     images:{}, hospitals:[], news:[], rides:[], waterReports:[],
-    studyGroups:{}, helpRequests:[], polls:[],
+    studyGroups:{}, hoodGroups:{}, helpRequests:[], polls:[],
     stats:{ users:0, reports:0, lives_saved:0, cities:0 }
   };
 }
@@ -409,6 +410,7 @@ function saveData() {
         rides:        data.rides.slice(0,200),
         waterReports: data.waterReports.slice(0,200),
         studyGroups:  data.studyGroups,
+        hoodGroups:   data.hoodGroups,
         helpRequests: data.helpRequests.slice(0,200),
         polls:        data.polls.slice(0,100),
         leaderboard:  (data.leaderboard||[]).slice(0,2000),
@@ -3013,6 +3015,169 @@ app.get('/api/dashboard/full', (req, res) => {
   const result = { stats, top_areas, updated: now };
   cacheSet('dashboard_full', result, 30000);
   res.json(result);
+});
+
+/* ============================================================
+   🏘️ HOOD GROUPS - مجموعات الأحياء
+   ============================================================ */
+
+// GET all hood groups (optionally filter by area)
+app.get('/api/hood', (req, res) => {
+  let groups = Object.values(data.hoodGroups || {})
+    .sort((a, b) => (b.updatedAt || b.createdAt || 0) - (a.updatedAt || a.createdAt || 0));
+  if (req.query.area) {
+    const q = req.query.area.trim().toLowerCase();
+    groups = groups.filter(g => (g.area||'').toLowerCase().includes(q));
+  }
+  if (req.query.type) groups = groups.filter(g => g.type === req.query.type);
+  res.json(groups.slice(0, 100));
+});
+
+// GET single hood group
+app.get('/api/hood/:id', (req, res) => {
+  const g = (data.hoodGroups || {})[req.params.id];
+  if (!g) return res.status(404).json({ error: 'المجموعة غير موجودة' });
+  res.json(g);
+});
+
+// POST create hood group
+app.post('/api/hood', (req, res) => {
+  const { name, area, type, desc, contact, userId, author } = req.body;
+  if (!name || !area) return res.status(400).json({ error: 'اسم المجموعة والحي مطلوبان' });
+  const id = uuidv4();
+  const now = Date.now();
+  const group = {
+    id,
+    name: name.trim(),
+    area: area.trim(),
+    type: type || 'عام',          // نظافة | اجتماعات | ترشيح | مبادرة | عام
+    desc: (desc || '').trim(),
+    contact: contact || '',
+    members: userId ? [userId] : [],
+    posts: [],
+    nominations: [],
+    userId: userId || null,
+    author: author || 'مجهول',
+    createdAt: now,
+    updatedAt: now,
+    pinned: false
+  };
+  if (!data.hoodGroups) data.hoodGroups = {};
+  data.hoodGroups[id] = group;
+  saveData();
+  io.emit('new_hood_group', group);
+  res.json({ success: true, id, group });
+});
+
+// POST join hood group
+app.post('/api/hood/:id/join', (req, res) => {
+  const g = (data.hoodGroups || {})[req.params.id];
+  if (!g) return res.status(404).json({ error: 'المجموعة غير موجودة' });
+  if (!Array.isArray(g.members)) g.members = [];
+  const uid = req.body.userId;
+  if (uid && !g.members.includes(uid)) g.members.push(uid);
+  saveData();
+  io.emit('hood_join', { id: g.id, members: g.members });
+  res.json({ success: true, members: g.members });
+});
+
+// POST leave hood group
+app.post('/api/hood/:id/leave', (req, res) => {
+  const g = (data.hoodGroups || {})[req.params.id];
+  if (!g) return res.status(404).json({ error: 'المجموعة غير موجودة' });
+  const uid = req.body.userId;
+  g.members = (g.members || []).filter(m => m !== uid);
+  saveData();
+  io.emit('hood_leave', { id: g.id, members: g.members });
+  res.json({ success: true, members: g.members });
+});
+
+// POST add post/message to group
+app.post('/api/hood/:id/post', (req, res) => {
+  const g = (data.hoodGroups || {})[req.params.id];
+  if (!g) return res.status(404).json({ error: 'المجموعة غير موجودة' });
+  const { text, userId, author, postType } = req.body;
+  if (!text) return res.status(400).json({ error: 'النص مطلوب' });
+  const post = {
+    id: uuidv4(),
+    text: text.trim(),
+    postType: postType || 'message',   // message | meeting | initiative | nomination
+    userId: userId || null,
+    author: author || 'مجهول',
+    likes: [],
+    ts: Date.now()
+  };
+  if (!Array.isArray(g.posts)) g.posts = [];
+  g.posts.push(post);
+  if (g.posts.length > 200) g.posts = g.posts.slice(-200);
+  g.updatedAt = Date.now();
+  saveData();
+  io.emit('hood_post', { groupId: g.id, post });
+  res.json({ success: true, post });
+});
+
+// POST like a post inside group
+app.post('/api/hood/:id/post/:postId/like', (req, res) => {
+  const g = (data.hoodGroups || {})[req.params.id];
+  if (!g) return res.status(404).json({ error: 'المجموعة غير موجودة' });
+  const post = (g.posts || []).find(p => p.id === req.params.postId);
+  if (!post) return res.status(404).json({ error: 'المنشور غير موجود' });
+  const uid = req.body.userId;
+  if (!Array.isArray(post.likes)) post.likes = [];
+  const idx = post.likes.indexOf(uid);
+  if (idx === -1) post.likes.push(uid);
+  else post.likes.splice(idx, 1);
+  saveData();
+  res.json({ success: true, likes: post.likes.length });
+});
+
+// POST add nomination (ترشيح محل/مبادرة)
+app.post('/api/hood/:id/nominate', (req, res) => {
+  const g = (data.hoodGroups || {})[req.params.id];
+  if (!g) return res.status(404).json({ error: 'المجموعة غير موجودة' });
+  const { title, desc, userId, author } = req.body;
+  if (!title) return res.status(400).json({ error: 'عنوان الترشيح مطلوب' });
+  const nom = {
+    id: uuidv4(),
+    title: title.trim(),
+    desc: (desc || '').trim(),
+    votes: [],
+    userId: userId || null,
+    author: author || 'مجهول',
+    ts: Date.now()
+  };
+  if (!Array.isArray(g.nominations)) g.nominations = [];
+  g.nominations.push(nom);
+  g.updatedAt = Date.now();
+  saveData();
+  io.emit('hood_nomination', { groupId: g.id, nomination: nom });
+  res.json({ success: true, nomination: nom });
+});
+
+// POST vote on nomination
+app.post('/api/hood/:id/nominate/:nomId/vote', (req, res) => {
+  const g = (data.hoodGroups || {})[req.params.id];
+  if (!g) return res.status(404).json({ error: 'المجموعة غير موجودة' });
+  const nom = (g.nominations || []).find(n => n.id === req.params.nomId);
+  if (!nom) return res.status(404).json({ error: 'الترشيح غير موجود' });
+  const uid = req.body.userId;
+  if (!Array.isArray(nom.votes)) nom.votes = [];
+  const idx = nom.votes.indexOf(uid);
+  if (idx === -1) nom.votes.push(uid);
+  else nom.votes.splice(idx, 1);
+  saveData();
+  res.json({ success: true, votes: nom.votes.length });
+});
+
+// DELETE hood group (owner only)
+app.delete('/api/hood/:id', (req, res) => {
+  const g = (data.hoodGroups || {})[req.params.id];
+  if (!g) return res.status(404).json({ error: 'المجموعة غير موجودة' });
+  if (g.userId && g.userId !== req.body.userId) return res.status(403).json({ error: 'غير مصرح' });
+  delete data.hoodGroups[req.params.id];
+  saveData();
+  io.emit('hood_deleted', { id: req.params.id });
+  res.json({ success: true });
 });
 
 // ── Ping / heartbeat ──────────────────────────────────────────

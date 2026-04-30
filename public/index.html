@@ -262,6 +262,14 @@
         </div>
       </a>
 
+      <a onclick="goSection('hood');toggleMenu()" class="menu-item">
+        <div class="menu-item-ico">🏘️</div>
+        <div class="menu-item-body">
+          <div class="menu-item-title">مجموعات الأحياء</div>
+          <div class="menu-item-sub">نظافة · اجتماعات · مبادرات</div>
+        </div>
+      </a>
+
       <a onclick="goSection('study');toggleMenu()" class="menu-item">
         <div class="menu-item-ico">🎓</div>
         <div class="menu-item-body">
@@ -434,6 +442,7 @@
           <button class="quick-card q-weather" onclick="goSection('weather')">  <span class="q-icon">🌦️</span><span class="q-title">الطقس</span><span class="q-desc">حالة مدينتك</span></button>
           <button class="quick-card q-water"   onclick="goSection('water')">    <span class="q-icon">💧</span><span class="q-title">خريطة المياه</span><span class="q-desc">انقطاع وتوزيع</span></button>
           <button class="quick-card q-study"   onclick="goSection('study')">    <span class="q-icon">🎓</span><span class="q-title">مجموعات التعلم</span><span class="q-desc">تعلّم مع الآخرين</span></button>
+          <button class="quick-card q-hood"    onclick="goSection('hood')">     <span class="q-icon">🏘️</span><span class="q-title">مجموعات الأحياء</span><span class="q-desc">نظافة · مبادرات · ترشيح</span></button>
           <button class="quick-card q-help"    onclick="goSection('help')">     <span class="q-icon">📦</span><span class="q-title">طلبات المساعدة</span><span class="q-desc">أطلب أو قدّم</span></button>
           <button class="quick-card q-polls"   onclick="goSection('polls')">    <span class="q-icon">🗳️</span><span class="q-title">استطلاعات الرأي</span><span class="q-desc">شارك رأيك</span></button>
           <button class="quick-card q-dash"    onclick="goSection('dashboard')"><span class="q-icon">📊</span><span class="q-title">لوحة الإحصاءات</span><span class="q-desc">إحصاءات حية</span></button>
@@ -2097,6 +2106,49 @@
     </section>
 
     <!-- ======================================================
+         HOOD GROUPS - مجموعات الأحياء
+    ====================================================== -->
+    <section id="sec-hood" class="section">
+      <div class="sec-top hood-top">
+        <h2>🏘️ مجموعات الأحياء</h2>
+        <p>تواصل مع جيرانك — نظافة، اجتماعات، مبادرات، ترشيحات</p>
+      </div>
+      <div class="section-pad">
+
+        <!-- Filter bar -->
+        <div class="feature-search-bar" style="margin-bottom:.8rem">
+          <div class="fsb-row">
+            <span class="fsb-icon">🔍</span>
+            <input id="hoodSearchInp" class="fsb-inp" placeholder="ابحث عن حيّك أو مجموعة..." oninput="searchHoodGroups()"/>
+          </div>
+          <div style="display:flex;gap:.35rem;flex-wrap:wrap;margin-top:.5rem">
+            <button class="filt hood-type-filt active" onclick="filterHoodByType('all',this)">🌐 الكل</button>
+            <button class="filt hood-type-filt" onclick="filterHoodByType('نظافة',this)">🧹 نظافة</button>
+            <button class="filt hood-type-filt" onclick="filterHoodByType('اجتماعات',this)">📅 اجتماعات</button>
+            <button class="filt hood-type-filt" onclick="filterHoodByType('مبادرة',this)">💡 مبادرة</button>
+            <button class="filt hood-type-filt" onclick="filterHoodByType('ترشيح',this)">⭐ ترشيح</button>
+            <button class="filt hood-type-filt" onclick="filterHoodByType('عام',this)">💬 عام</button>
+          </div>
+        </div>
+
+        <!-- Create group button -->
+        <button class="btn-submit" style="width:100%;margin-bottom:1rem" onclick="openCreateHoodGroup()">
+          ➕ إنشاء مجموعة حي جديدة
+        </button>
+
+        <!-- Groups list -->
+        <div id="hoodGroupsList" class="hood-list">
+          <div class="skel-wrap">
+            <div class="skel skel-card"></div>
+            <div class="skel skel-card"></div>
+            <div class="skel skel-card"></div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ======================================================
          STUDY GROUPS - مجموعات التعلم
     ====================================================== -->
     <section id="sec-study" class="section">
@@ -2447,6 +2499,91 @@
       <div class="at-sub" id="atSub">حصلت على شارة</div>
     </div>
   </div>
+
+  <!-- ================================================================
+       🏘️ HOOD GROUP PAGE - صفحة مجموعة الحي
+  ================================================================ -->
+  <div id="hoodGroupPage" class="group-page hidden">
+    <div class="gp-header">
+      <button class="gp-back" onclick="closeHoodGroupPage()">← رجوع</button>
+      <div class="gp-title-wrap">
+        <div class="gp-avatar" id="hgpAvatar">🏘️</div>
+        <div>
+          <div class="gp-name" id="hgpName">المجموعة</div>
+          <div class="gp-meta" id="hgpMeta">الحي</div>
+        </div>
+      </div>
+      <button class="gp-action-btn" id="hgpJoinBtn" onclick="toggleJoinHoodGroup()">انضم</button>
+    </div>
+    <!-- Tabs -->
+    <div class="hood-tabs">
+      <button class="hood-tab active" onclick="switchHoodTab('posts',this)">💬 المنشورات</button>
+      <button class="hood-tab" onclick="switchHoodTab('nominations',this)">⭐ الترشيحات</button>
+      <button class="hood-tab" onclick="switchHoodTab('members',this)">👥 الأعضاء</button>
+    </div>
+    <!-- Posts tab -->
+    <div id="hoodTabPosts" class="hood-tab-content">
+      <div class="gp-compose">
+        <select id="hoodPostType" class="inp" style="margin-bottom:.5rem;width:100%">
+          <option value="message">💬 رسالة عامة</option>
+          <option value="meeting">📅 موعد اجتماع</option>
+          <option value="initiative">💡 مبادرة</option>
+          <option value="nomination">⭐ ترشيح محل/خدمة</option>
+        </select>
+        <div style="display:flex;gap:.5rem">
+          <textarea id="hoodPostText" class="inp ta" rows="2" placeholder="اكتب منشورك هنا..."></textarea>
+          <button class="gp-send-btn" onclick="submitHoodPost()">↑</button>
+        </div>
+      </div>
+      <div id="hoodPostsList" class="gp-msgs"></div>
+    </div>
+    <!-- Nominations tab -->
+    <div id="hoodTabNominations" class="hood-tab-content hidden">
+      <div style="padding:.8rem">
+        <button class="btn-submit" style="width:100%;margin-bottom:.8rem" onclick="openNominationForm()">➕ إضافة ترشيح</button>
+        <div id="hoodNomForm" class="form-card hidden" style="margin-bottom:.8rem">
+          <input id="nomTitle" class="inp" placeholder="اسم المحل أو الخدمة المُرشَّحة" style="margin-bottom:.5rem"/>
+          <textarea id="nomDesc" class="inp ta" rows="2" placeholder="تفاصيل الترشيح (اختياري)"></textarea>
+          <div style="display:flex;gap:.5rem;margin-top:.5rem">
+            <button class="btn-submit" style="flex:1" onclick="submitNomination()">✅ أرسل الترشيح</button>
+            <button class="fsb-btn" style="flex:1" onclick="closeNominationForm()">إلغاء</button>
+          </div>
+        </div>
+        <div id="hoodNomList"></div>
+      </div>
+    </div>
+    <!-- Members tab -->
+    <div id="hoodTabMembers" class="hood-tab-content hidden">
+      <div id="hoodMembersList" style="padding:.8rem"></div>
+    </div>
+  </div>
+
+  <!-- ================================================================
+       🏘️ CREATE HOOD GROUP MODAL
+  ================================================================ -->
+  <div id="createHoodModal" class="modal-overlay hidden" onclick="if(event.target===this)closeCreateHoodGroup()">
+    <div class="modal-card">
+      <div class="modal-header">
+        <span>🏘️ إنشاء مجموعة حي</span>
+        <button class="modal-close" onclick="closeCreateHoodGroup()">✕</button>
+      </div>
+      <div style="padding:1rem;display:flex;flex-direction:column;gap:.7rem">
+        <input id="hoodNewName"    class="inp" placeholder="اسم المجموعة *"/>
+        <input id="hoodNewArea"    class="inp" placeholder="اسم الحي أو المنطقة *"/>
+        <select id="hoodNewType"   class="inp">
+          <option value="عام">💬 عام</option>
+          <option value="نظافة">🧹 نظافة الحي</option>
+          <option value="اجتماعات">📅 اجتماعات ولقاءات</option>
+          <option value="مبادرة">💡 مبادرة اجتماعية</option>
+          <option value="ترشيح">⭐ ترشيح محلات وخدمات</option>
+        </select>
+        <textarea id="hoodNewDesc" class="inp ta" rows="3" placeholder="وصف المجموعة (اختياري)"></textarea>
+        <input id="hoodNewContact" class="inp" placeholder="معلومات التواصل (واتساب / تيليغرام)"/>
+        <button class="btn-submit" onclick="submitCreateHoodGroup()">✅ إنشاء المجموعة</button>
+      </div>
+    </div>
+  </div>
+
   <div id="groupPage" class="group-page hidden">
     <!-- Header -->
     <div class="gp-header">

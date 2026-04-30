@@ -2504,6 +2504,10 @@ a.share-btn-card {
 .q-study  { border-color:rgba(142,68,173,.35); background:rgba(142,68,173,.07); }
 .q-study:hover  { border-color:rgba(155,89,182,.6); box-shadow:0 8px 24px rgba(142,68,173,.25); }
 .q-study::before{ background:linear-gradient(135deg,#8e44ad,#9b59b6); }
+/* — hood — */
+.q-hood   { border-color:rgba(76,175,80,.35); background:rgba(76,175,80,.07); }
+.q-hood:hover   { border-color:rgba(76,175,80,.6); box-shadow:0 8px 24px rgba(76,175,80,.25); }
+.q-hood::before { background:linear-gradient(135deg,#388e3c,#4caf50); }
 /* — help — */
 .q-help   { border-color:rgba(230,126,34,.35); background:rgba(230,126,34,.07); }
 .q-help:hover   { border-color:rgba(231,76,60,.6);  box-shadow:0 8px 24px rgba(230,126,34,.25); }
@@ -2517,7 +2521,7 @@ a.share-btn-card {
 .q-dash:hover   { border-color:rgba(41,128,185,.6); box-shadow:0 8px 24px rgba(52,152,219,.25); }
 .q-dash::before { background:linear-gradient(135deg,#3498db,#2980b9); }
 /* — shared hover boost — */
-.q-hosp:hover,.q-news:hover,.q-rides:hover,.q-weather:hover,.q-water:hover,
+.q-hosp:hover,.q-news:hover,.q-rides:hover,.q-weather:hover,.q-water:hover,.q-hood:hover,
 .q-study:hover,.q-help:hover,.q-polls:hover,.q-dash:hover { transform:translateY(-3px) scale(1.02); }
 
 /* ============================================================
@@ -8888,4 +8892,159 @@ button:not(:disabled) { pointer-events: auto !important; cursor: pointer !import
 .sound-test-btn:hover {
   background: rgba(26,188,156,.3);
 }
+
+
+/* ============================================================
+   🏘️ HOOD GROUPS - مجموعات الأحياء CSS
+   ============================================================ */
+
+/* Section header */
+.hood-top { background: linear-gradient(135deg,#1a2a1a 0%,#0f2415 100%); }
+.hood-top h2 { color: #4caf50; }
+
+/* Groups list */
+.hood-list { display: flex; flex-direction: column; gap: .75rem; }
+
+/* Group card */
+.hood-card {
+  background: var(--dark3);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: .9rem;
+  cursor: pointer;
+  transition: border-color .2s, transform .15s;
+}
+.hood-card:hover { border-color: #4caf50; transform: translateY(-1px); }
+
+.hood-card-top { display: flex; align-items: flex-start; gap: .7rem; }
+.hood-card-ico  { font-size: 1.8rem; line-height: 1; min-width: 2.2rem; text-align: center; }
+.hood-card-info { flex: 1; min-width: 0; }
+.hood-card-name { font-weight: 700; color: var(--text); font-size: 1rem; }
+.hood-card-area { font-size: .8rem; color: var(--text2); margin-top: .15rem; }
+.hood-card-type-badge {
+  display: inline-block; margin-top: .3rem;
+  background: rgba(76,175,80,.15); color: #4caf50;
+  font-size: .72rem; padding: .15rem .55rem; border-radius: 99px;
+}
+.hood-card-desc {
+  font-size: .83rem; color: var(--text2); margin-top: .55rem;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.hood-card-footer {
+  display: flex; gap: .9rem; margin-top: .55rem;
+  font-size: .78rem; color: var(--text2);
+}
+.hood-card-time { margin-right: auto; }
+
+/* Join button on card */
+.hood-join-btn {
+  background: #4caf50; color: #fff; border: none;
+  border-radius: 99px; padding: .3rem .85rem; font-size: .8rem;
+  cursor: pointer; white-space: nowrap; transition: background .2s;
+  align-self: center;
+}
+.hood-join-btn:hover { background: #388e3c; }
+.hood-join-btn.joined { background: var(--dark4); color: #4caf50; border: 1px solid #4caf50; }
+
+/* Group page tabs */
+.hood-tabs {
+  display: flex; background: var(--dark2);
+  border-bottom: 1px solid var(--border);
+}
+.hood-tab {
+  flex: 1; background: none; border: none; color: var(--text2);
+  padding: .7rem .5rem; font-size: .85rem; cursor: pointer;
+  border-bottom: 2px solid transparent; transition: color .2s, border-color .2s;
+}
+.hood-tab.active { color: #4caf50; border-bottom-color: #4caf50; }
+
+/* Tab content */
+.hood-tab-content { overflow-y: auto; max-height: calc(100vh - 180px); }
+
+/* Compose area */
+.gp-compose {
+  padding: .8rem;
+  background: var(--dark2);
+  border-bottom: 1px solid var(--border);
+}
+
+/* Post item */
+.hood-post-item {
+  padding: .85rem 1rem;
+  border-bottom: 1px solid var(--border);
+}
+.hood-post-meta {
+  display: flex; align-items: center; gap: .5rem;
+  font-size: .8rem; color: var(--text2); margin-bottom: .4rem;
+}
+.hood-post-type-ico { font-size: 1rem; }
+.hood-post-author   { font-weight: 600; color: var(--text); }
+.hood-post-time     { margin-right: auto; }
+.hood-post-text     { font-size: .9rem; color: var(--text); line-height: 1.55; }
+.hood-like-btn {
+  margin-top: .4rem; background: none; border: 1px solid var(--border);
+  color: var(--text2); border-radius: 99px; padding: .2rem .7rem;
+  font-size: .78rem; cursor: pointer; transition: border-color .2s, color .2s;
+}
+.hood-like-btn:hover { border-color: #e74c3c; color: #e74c3c; }
+
+/* Nomination item */
+.hood-nom-item {
+  background: var(--dark3); border: 1px solid var(--border);
+  border-radius: var(--rs); padding: .8rem; margin-bottom: .6rem;
+}
+.hood-nom-title { font-weight: 700; color: #f1c40f; margin-bottom: .3rem; }
+.hood-nom-desc  { font-size: .85rem; color: var(--text2); margin-bottom: .5rem; }
+.hood-nom-footer { display: flex; align-items: center; justify-content: space-between; }
+.hood-nom-author { font-size: .78rem; color: var(--text2); }
+.hood-vote-btn {
+  background: rgba(241,196,15,.12); color: #f1c40f;
+  border: 1px solid rgba(241,196,15,.3); border-radius: 99px;
+  padding: .25rem .8rem; font-size: .8rem; cursor: pointer;
+  transition: background .2s;
+}
+.hood-vote-btn:hover { background: rgba(241,196,15,.25); }
+
+/* Members */
+.hood-member-row {
+  display: flex; align-items: center; gap: .7rem;
+  padding: .6rem 0; border-bottom: 1px solid var(--border);
+}
+.hood-member-ava  { font-size: 1.5rem; }
+.hood-member-name { font-size: .9rem; color: var(--text); flex: 1; }
+.hood-owner-badge {
+  background: rgba(76,175,80,.15); color: #4caf50;
+  font-size: .72rem; padding: .15rem .5rem; border-radius: 99px;
+}
+
+/* gp-action-btn (join in header) */
+.gp-action-btn {
+  background: #4caf50; color: #fff; border: none;
+  border-radius: 99px; padding: .35rem 1rem; font-size: .82rem;
+  cursor: pointer; white-space: nowrap; transition: background .2s;
+}
+.gp-action-btn:hover { background: #388e3c; }
+.gp-action-btn.joined { background: var(--dark4); color: #4caf50; border: 1px solid #4caf50; }
+
+/* Create modal card */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.65);
+  z-index: 9000; display: flex; align-items: center; justify-content: center;
+  padding: 1rem;
+}
+.modal-card {
+  background: var(--dark2); border: 1px solid var(--border);
+  border-radius: var(--r); width: 100%; max-width: 420px;
+  max-height: 90vh; overflow-y: auto;
+}
+.modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: .9rem 1rem; border-bottom: 1px solid var(--border);
+  font-weight: 700; color: var(--text); font-size: 1rem;
+}
+.modal-close {
+  background: none; border: none; color: var(--text2);
+  font-size: 1.2rem; cursor: pointer; padding: .2rem .5rem;
+}
+.modal-close:hover { color: var(--accent); }
 
