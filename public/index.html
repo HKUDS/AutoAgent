@@ -2129,6 +2129,13 @@
             <button class="filt hood-type-filt" onclick="filterHoodByType('ترشيح',this)">⭐ ترشيح</button>
             <button class="filt hood-type-filt" onclick="filterHoodByType('عام',this)">💬 عام</button>
           </div>
+          <!-- city filter -->
+          <div style="display:flex;gap:.4rem;align-items:center;margin-top:.45rem">
+            <span style="color:var(--text2);font-size:.8rem">📍</span>
+            <select id="hoodCityFilter" class="inp" style="flex:1;font-size:.82rem;padding:.35rem .6rem" onchange="filterHoodByCity(this.value)">
+              <option value="">جميع المدن والأحياء</option>
+            </select>
+          </div>
         </div>
 
         <!-- Create group button -->
@@ -2504,38 +2511,63 @@
        🏘️ HOOD GROUP PAGE - صفحة مجموعة الحي
   ================================================================ -->
   <div id="hoodGroupPage" class="group-page hidden">
-    <div class="gp-header">
+    <!-- Header -->
+    <div class="hgp-header">
       <button class="gp-back" onclick="closeHoodGroupPage()">← رجوع</button>
-      <div class="gp-title-wrap">
-        <div class="gp-avatar" id="hgpAvatar">🏘️</div>
-        <div>
+      <div class="gp-title-wrap" style="flex:1;min-width:0">
+        <div class="hgp-avatar" id="hgpAvatar">🏘️</div>
+        <div style="min-width:0">
           <div class="gp-name" id="hgpName">المجموعة</div>
           <div class="gp-meta" id="hgpMeta">الحي</div>
         </div>
       </div>
-      <button class="gp-action-btn" id="hgpJoinBtn" onclick="toggleJoinHoodGroup()">انضم</button>
+      <div class="hgp-actions">
+        <button class="hgp-share-btn" onclick="shareHoodGroup()" title="مشاركة">🔗</button>
+        <button class="gp-action-btn" id="hgpJoinBtn" onclick="toggleJoinHoodGroup()">انضم</button>
+      </div>
+    </div>
+    <!-- Stats bar -->
+    <div class="hgp-stats">
+      <span id="hgpStatMembers">👥 0 عضو</span>
+      <span id="hgpStatPosts">💬 0 منشور</span>
+      <span id="hgpStatNoms">⭐ 0 ترشيح</span>
+      <span id="hgpContact" class="hgp-contact hidden"></span>
     </div>
     <!-- Tabs -->
     <div class="hood-tabs">
       <button class="hood-tab active" onclick="switchHoodTab('posts',this)">💬 المنشورات</button>
+      <button class="hood-tab" onclick="switchHoodTab('meetings',this)">📅 الاجتماعات</button>
       <button class="hood-tab" onclick="switchHoodTab('nominations',this)">⭐ الترشيحات</button>
       <button class="hood-tab" onclick="switchHoodTab('members',this)">👥 الأعضاء</button>
     </div>
     <!-- Posts tab -->
     <div id="hoodTabPosts" class="hood-tab-content">
-      <div class="gp-compose">
-        <select id="hoodPostType" class="inp" style="margin-bottom:.5rem;width:100%">
+      <div class="hgp-compose">
+        <select id="hoodPostType" class="inp hgp-type-sel">
           <option value="message">💬 رسالة عامة</option>
           <option value="meeting">📅 موعد اجتماع</option>
           <option value="initiative">💡 مبادرة</option>
           <option value="nomination">⭐ ترشيح محل/خدمة</option>
         </select>
-        <div style="display:flex;gap:.5rem">
-          <textarea id="hoodPostText" class="inp ta" rows="2" placeholder="اكتب منشورك هنا..."></textarea>
-          <button class="gp-send-btn" onclick="submitHoodPost()">↑</button>
+        <!-- meeting datetime fields (shown when meeting selected) -->
+        <div id="hoodMeetingFields" class="hidden" style="display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.4rem">
+          <input type="date" id="hoodMeetingDate" class="inp" style="flex:1;min-width:120px" />
+          <input type="time" id="hoodMeetingTime" class="inp" style="flex:1;min-width:100px" />
+          <input id="hoodMeetingPlace" class="inp" placeholder="مكان الاجتماع" style="flex:2;min-width:150px" />
+        </div>
+        <div class="hgp-input-row">
+          <textarea id="hoodPostText" class="inp ta hgp-ta" rows="2" placeholder="اكتب منشورك هنا..."
+            onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();submitHoodPost()}"></textarea>
+          <button class="hgp-send-btn" onclick="submitHoodPost()">↑</button>
         </div>
       </div>
-      <div id="hoodPostsList" class="gp-msgs"></div>
+      <div id="hoodPostsList" class="hgp-posts-list"></div>
+    </div>
+    <!-- Meetings tab -->
+    <div id="hoodTabMeetings" class="hood-tab-content hidden">
+      <div style="padding:.8rem">
+        <div id="hoodMeetingsList" class="hgp-meetings-list"></div>
+      </div>
     </div>
     <!-- Nominations tab -->
     <div id="hoodTabNominations" class="hood-tab-content hidden">
@@ -2543,7 +2575,8 @@
         <button class="btn-submit" style="width:100%;margin-bottom:.8rem" onclick="openNominationForm()">➕ إضافة ترشيح</button>
         <div id="hoodNomForm" class="form-card hidden" style="margin-bottom:.8rem">
           <input id="nomTitle" class="inp" placeholder="اسم المحل أو الخدمة المُرشَّحة" style="margin-bottom:.5rem"/>
-          <textarea id="nomDesc" class="inp ta" rows="2" placeholder="تفاصيل الترشيح (اختياري)"></textarea>
+          <input id="nomCategory" class="inp" placeholder="الفئة: مطعم، صيدلية، سوبرماركت..." style="margin-bottom:.5rem"/>
+          <textarea id="nomDesc" class="inp ta" rows="2" placeholder="تفاصيل إضافية (العنوان، ساعات العمل...)"></textarea>
           <div style="display:flex;gap:.5rem;margin-top:.5rem">
             <button class="btn-submit" style="flex:1" onclick="submitNomination()">✅ أرسل الترشيح</button>
             <button class="fsb-btn" style="flex:1" onclick="closeNominationForm()">إلغاء</button>
@@ -2568,8 +2601,14 @@
         <button class="modal-close" onclick="closeCreateHoodGroup()">✕</button>
       </div>
       <div style="padding:1rem;display:flex;flex-direction:column;gap:.7rem">
-        <input id="hoodNewName"    class="inp" placeholder="اسم المجموعة *"/>
-        <input id="hoodNewArea"    class="inp" placeholder="اسم الحي أو المنطقة *"/>
+        <input id="hoodNewName"    class="inp" placeholder="اسم المجموعة مثال: حملة نظافة حي الرياض *"/>
+        <!-- area with geo autocomplete -->
+        <div style="position:relative">
+          <input id="hoodNewArea" class="inp" placeholder="📍 اسم الحي أو المنطقة *"
+            oninput="searchGeoInline('hoodNewArea','hoodAreaDrop')"
+            autocomplete="off"/>
+          <div id="hoodAreaDrop" class="geo-drop hidden"></div>
+        </div>
         <select id="hoodNewType"   class="inp">
           <option value="عام">💬 عام</option>
           <option value="نظافة">🧹 نظافة الحي</option>
@@ -2577,9 +2616,10 @@
           <option value="مبادرة">💡 مبادرة اجتماعية</option>
           <option value="ترشيح">⭐ ترشيح محلات وخدمات</option>
         </select>
-        <textarea id="hoodNewDesc" class="inp ta" rows="3" placeholder="وصف المجموعة (اختياري)"></textarea>
-        <input id="hoodNewContact" class="inp" placeholder="معلومات التواصل (واتساب / تيليغرام)"/>
-        <button class="btn-submit" onclick="submitCreateHoodGroup()">✅ إنشاء المجموعة</button>
+        <textarea id="hoodNewDesc" class="inp ta" rows="2" placeholder="وصف مختصر للمجموعة وأهدافها"></textarea>
+        <input id="hoodNewContact" class="inp" placeholder="💬 واتساب / تيليغرام للتواصل (اختياري)"/>
+        <input id="hoodNewMaxMembers" type="number" class="inp" placeholder="الحد الأقصى للأعضاء (اتركه فارغاً للمفتوح)" min="2" max="500"/>
+        <button class="btn-submit" style="margin-top:.3rem" onclick="submitCreateHoodGroup()">✅ إنشاء المجموعة</button>
       </div>
     </div>
   </div>

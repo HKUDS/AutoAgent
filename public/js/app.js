@@ -93,7 +93,7 @@ window.addEventListener('DOMContentLoaded', () => {
 async function initApp() {
   // مسح كاش localStorage القديم عند كل تشغيل جديد للتطبيق
   try {
-    const cacheVersion = '7.3';
+    const cacheVersion = '7.4';
     const storedVer = localStorage.getItem('_nabdh_cache_ver');
     if (storedVer !== cacheVersion) {
       // مسح جميع مفاتيح الكاش القديمة
@@ -9364,7 +9364,7 @@ function _loadSettingsUI() {
   if (snd) snd.checked = _nabdhSettings.soundEnabled !== false;
   // إصدار
   var sv = document.getElementById('settingsVersion');
-  if (sv) sv.textContent = 'v7.8';
+  if (sv) sv.textContent = 'v7.9';
   // قائمة المحظورين
   _renderBlockedList();
 }
@@ -10038,6 +10038,7 @@ onNewAlert = function(alert) {
 var _hoodGroups = [];
 var _hoodFilter = 'all';
 var _hoodSearch = '';
+var _hoodCityFilter = '';
 var _currentHoodGroup = null;
 var _myHoodGroups = JSON.parse(localStorage.getItem('_myHoodGroups') || '[]');
 
@@ -10060,6 +10061,10 @@ function renderHoodGroups() {
   if (!el) return;
   let list = _hoodGroups.slice();
   if (_hoodFilter !== 'all') list = list.filter(g => g.type === _hoodFilter);
+  if (_hoodCityFilter) {
+    const cf = _hoodCityFilter.toLowerCase();
+    list = list.filter(g => (g.area||'').toLowerCase().includes(cf));
+  }
   if (_hoodSearch) {
     const q = _hoodSearch.toLowerCase();
     list = list.filter(g =>
@@ -10068,8 +10073,10 @@ function renderHoodGroups() {
       (g.desc||'').toLowerCase().includes(q)
     );
   }
+  // populate city filter dropdown
+  _populateHoodCityFilter();
   if (!list.length) {
-    const emptyMsg = _hoodSearch || _hoodFilter !== 'all'
+    const emptyMsg = _hoodSearch || _hoodFilter !== 'all' || _hoodCityFilter
       ? '<div class="hood-empty"><div class="hood-empty-ico">🔍</div><div class="hood-empty-title">لا نتائج</div><div class="hood-empty-sub">جرّب تغيير الفلتر أو البحث بكلمة مختلفة</div></div>'
       : '<div class="hood-empty"><div class="hood-empty-ico">🏘️</div><div class="hood-empty-title">أنشئ أول مجموعة حي!</div><div class="hood-empty-sub">لا توجد مجموعات بعد.<br>اضغط على الزر أعلاه لتبدأ مجموعة في حيّك.</div></div>';
     el.innerHTML = emptyMsg;
@@ -10078,19 +10085,47 @@ function renderHoodGroups() {
   el.innerHTML = list.map(g => hoodGroupCard(g)).join('');
 }
 
+function _populateHoodCityFilter() {
+  const sel = document.getElementById('hoodCityFilter');
+  if (!sel || sel.dataset.populated) return;
+  const areas = [...new Set(_hoodGroups.map(g => (g.area||'').split(/[،,]/)[0].trim()).filter(Boolean))].sort();
+  if (!areas.length) return;
+  sel.innerHTML = '<option value="">جميع المدن والأحياء</option>' +
+    areas.map(a => `<option value="${a}">${a}</option>`).join('');
+  sel.dataset.populated = '1';
+}
+
+function filterHoodByCity(val) {
+  _hoodCityFilter = val || '';
+  const sel = document.getElementById('hoodCityFilter');
+  if (sel) delete sel.dataset.populated;
+  renderHoodGroups();
+}
+
 function hoodGroupCard(g) {
   const TYPE_ICO = { نظافة:'🧹', اجتماعات:'📅', مبادرة:'💡', ترشيح:'⭐', عام:'💬' };
   const ico = TYPE_ICO[g.type] || '🏘️';
   const joined = _myHoodGroups.includes(g.id);
   const membersCount = (g.members||[]).length;
   const postsCount = (g.posts||[]).length;
+  const nomsCount = (g.nominations||[]).length;
+  // last activity from posts
+  const lastPost = (g.posts||[]).length ? (g.posts[g.posts.length-1].ts) : null;
+  const lastActivity = lastPost || g.createdAt;
+  // upcoming meetings
+  const upcoming = (g.posts||[]).filter(p => p.postType==='meeting' && p.meetingDate && new Date(p.meetingDate+' '+(p.meetingTime||'00:00')) > new Date());
+  const hasMeeting = upcoming.length > 0;
   return `<div class="hood-card" onclick="openHoodGroupPage('${g.id}')">
     <div class="hood-card-top">
       <div class="hood-card-ico">${ico}</div>
       <div class="hood-card-info">
         <div class="hood-card-name">${g.name}</div>
         <div class="hood-card-area">📍 ${g.area}</div>
-        <div class="hood-card-type-badge">${g.type}</div>
+        <div class="hood-card-badges">
+          <span class="hood-card-type-badge">${g.type}</span>
+          ${hasMeeting ? '<span class="hood-meeting-badge">📅 اجتماع قادم</span>' : ''}
+          ${joined ? '<span class="hood-joined-badge">✓ منضم</span>' : ''}
+        </div>
       </div>
       <button class="hood-join-btn ${joined?'joined':''}"
         onclick="event.stopPropagation();quickJoinHood('${g.id}',this)">
@@ -10099,9 +10134,10 @@ function hoodGroupCard(g) {
     </div>
     ${g.desc ? `<div class="hood-card-desc">${g.desc}</div>` : ''}
     <div class="hood-card-footer">
-      <span>👥 ${membersCount} عضو</span>
-      <span>💬 ${postsCount} منشور</span>
-      <span class="hood-card-time">${_timeAgo(g.createdAt||g.updatedAt)}</span>
+      <span>👥 ${membersCount}</span>
+      <span>💬 ${postsCount}</span>
+      ${nomsCount ? `<span>⭐ ${nomsCount}</span>` : ''}
+      <span class="hood-card-time">${_timeAgo(lastActivity)}</span>
     </div>
   </div>`;
 }
@@ -10148,30 +10184,36 @@ function closeCreateHoodGroup() {
   });
 }
 async function submitCreateHoodGroup() {
-  const name    = (document.getElementById('hoodNewName')||{}).value?.trim();
-  const area    = (document.getElementById('hoodNewArea')||{}).value?.trim();
-  const type    = (document.getElementById('hoodNewType')||{}).value;
-  const desc    = (document.getElementById('hoodNewDesc')||{}).value?.trim();
-  const contact = (document.getElementById('hoodNewContact')||{}).value?.trim();
+  const name       = (document.getElementById('hoodNewName')||{}).value?.trim();
+  const area       = (document.getElementById('hoodNewArea')||{}).value?.trim();
+  const type       = (document.getElementById('hoodNewType')||{}).value;
+  const desc       = (document.getElementById('hoodNewDesc')||{}).value?.trim();
+  const contact    = (document.getElementById('hoodNewContact')||{}).value?.trim();
+  const maxMembers = parseInt((document.getElementById('hoodNewMaxMembers')||{}).value)||0;
   if (!name||!area) { showToast('اسم المجموعة والحي مطلوبان ❗', 'error'); return; }
-  const uid = localStorage.getItem('_nabdh_uid') || _getOrCreateUID();
+  const uid    = localStorage.getItem('_nabdh_uid') || _getOrCreateUID();
   const author = localStorage.getItem('_nabdh_name') || 'مجهول';
+  const submitBtn = document.querySelector('#createHoodModal .btn-submit');
+  if (submitBtn) { submitBtn.disabled=true; submitBtn.textContent='جارٍ الإنشاء...'; }
   try {
     const res = await fetch('/api/hood', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ name, area, type, desc, contact, userId:uid, author })
+      body: JSON.stringify({ name, area, type, desc, contact, maxMembers, userId:uid, author })
     });
     const data = await res.json();
     if (!data.success) throw new Error(data.error);
     _hoodGroups.unshift(data.group);
-    if (!_myHoodGroups.includes(data.id)) _myHoodGroups.push(data.id);
+    if (!_myHoodGroups.includes(data.group.id)) _myHoodGroups.push(data.group.id);
     localStorage.setItem('_myHoodGroups', JSON.stringify(_myHoodGroups));
+    // reset city filter cache
+    const sel=document.getElementById('hoodCityFilter'); if(sel) delete sel.dataset.populated;
     closeCreateHoodGroup();
     renderHoodGroups();
     showToast('🏘️ تم إنشاء المجموعة بنجاح!', 'success');
     playNotifSound && playNotifSound('achiev');
-    openHoodGroupPage(data.id);
+    openHoodGroupPage(data.group.id);
   } catch(e) { showToast('فشل الإنشاء: '+(e.message||''), 'error'); }
+  finally { if(submitBtn){ submitBtn.disabled=false; submitBtn.textContent='✅ إنشاء المجموعة'; } }
 }
 
 /* ── Hood Group Page ──────────────────────────────────── */
@@ -10183,16 +10225,40 @@ function openHoodGroupPage(id) {
   document.getElementById('hgpAvatar').textContent = TYPE_ICO[g.type]||'🏘️';
   document.getElementById('hgpName').textContent = g.name;
   document.getElementById('hgpMeta').textContent = '📍 '+g.area+' · '+g.type;
+  // stats bar
+  const members = g.members||[];
+  const posts = g.posts||[];
+  const noms = g.nominations||[];
+  const smEl = document.getElementById('hgpStatMembers'); if(smEl) smEl.textContent='👥 '+members.length+' عضو';
+  const spEl = document.getElementById('hgpStatPosts');   if(spEl) spEl.textContent='💬 '+posts.length+' منشور';
+  const snEl = document.getElementById('hgpStatNoms');    if(snEl) snEl.textContent='⭐ '+noms.length+' ترشيح';
+  const cEl  = document.getElementById('hgpContact');
+  if(cEl) { if(g.contact){ cEl.textContent='📞 '+g.contact; cEl.classList.remove('hidden'); } else cEl.classList.add('hidden'); }
+  // join button
   const uid = localStorage.getItem('_nabdh_uid') || _getOrCreateUID();
-  const joined = _myHoodGroups.includes(id) || (g.members||[]).includes(uid);
+  const joined = _myHoodGroups.includes(id) || members.includes(uid);
   const joinBtn = document.getElementById('hgpJoinBtn');
   if (joinBtn) { joinBtn.textContent = joined?'✓ منضم':'انضم'; joinBtn.classList.toggle('joined',joined); }
+  // meeting fields toggle on type change
+  const typeEl = document.getElementById('hoodPostType');
+  if (typeEl) typeEl.onchange = function(){ _toggleHoodMeetingFields(this.value); };
+  // reset compose
+  const ptEl = document.getElementById('hoodPostText'); if(ptEl) ptEl.value='';
+  if(typeEl) { typeEl.value='message'; _toggleHoodMeetingFields('message'); }
   switchHoodTab('posts', document.querySelector('.hood-tab'));
   renderHoodPosts(g);
+  renderHoodMeetings(g);
   renderHoodNominations(g);
   renderHoodMembers(g);
   document.getElementById('hoodGroupPage').classList.remove('hidden');
   document.getElementById('hoodGroupPage').scrollTop = 0;
+}
+
+function _toggleHoodMeetingFields(type) {
+  const f = document.getElementById('hoodMeetingFields');
+  if (!f) return;
+  if (type === 'meeting') { f.classList.remove('hidden'); f.style.display='flex'; }
+  else { f.classList.add('hidden'); f.style.display='none'; }
 }
 
 function closeHoodGroupPage() {
@@ -10207,7 +10273,7 @@ function switchHoodTab(tab, btn) {
   else {
     document.querySelectorAll('.hood-tab').forEach((b,i)=>{ if(i===0) b.classList.add('active'); });
   }
-  const map = { posts:'hoodTabPosts', nominations:'hoodTabNominations', members:'hoodTabMembers' };
+  const map = { posts:'hoodTabPosts', meetings:'hoodTabMeetings', nominations:'hoodTabNominations', members:'hoodTabMembers' };
   const el = document.getElementById(map[tab]);
   if (el) el.classList.remove('hidden');
 }
@@ -10218,22 +10284,79 @@ function renderHoodPosts(g) {
   if (!el) return;
   const posts = (g.posts||[]).slice().reverse();
   if (!posts.length) {
-    el.innerHTML = '<p style="text-align:center;color:var(--text2);padding:2rem">لا توجد منشورات بعد</p>';
+    el.innerHTML = '<div class="hood-empty" style="padding:1.5rem"><div class="hood-empty-ico">💬</div><div class="hood-empty-title">لا توجد منشورات بعد</div><div class="hood-empty-sub">كن أول من يكتب!</div></div>';
     return;
   }
   const PT_ICO = { message:'💬', meeting:'📅', initiative:'💡', nomination:'⭐' };
-  el.innerHTML = posts.map(p => `
-    <div class="hood-post-item">
+  const PT_COLOR = { message:'var(--accent)', meeting:'#3498db', initiative:'#f1c40f', nomination:'#e67e22' };
+  const uid = localStorage.getItem('_nabdh_uid') || '';
+  el.innerHTML = posts.map(p => {
+    const liked = (p.likes||[]).includes(uid);
+    const meetInfo = (p.postType==='meeting' && p.meetingDate) ? `
+      <div class="hood-meeting-info">
+        <span>📅 ${p.meetingDate}${p.meetingTime?' — ⏰ '+p.meetingTime:''}</span>
+        ${p.meetingPlace?`<span>📍 ${p.meetingPlace}</span>`:''}
+        <button class="hood-cal-btn" onclick="addHoodMeetingToCalendar('${encodeURIComponent(JSON.stringify({title:g.name,date:p.meetingDate,time:p.meetingTime||'',place:p.meetingPlace||''}))}')">＋ التقويم</button>
+      </div>` : '';
+    return `<div class="hood-post-item hood-post-${p.postType||'message'}">
       <div class="hood-post-meta">
-        <span class="hood-post-type-ico">${PT_ICO[p.postType]||'💬'}</span>
+        <span class="hood-post-type-ico" style="color:${PT_COLOR[p.postType]||'var(--accent)'}">${PT_ICO[p.postType]||'💬'}</span>
         <span class="hood-post-author">${p.author}</span>
         <span class="hood-post-time">${_timeAgo(p.ts)}</span>
       </div>
       <div class="hood-post-text">${p.text}</div>
-      <button class="hood-like-btn" onclick="likeHoodPost('${g.id}','${p.id}',this)">
-        ❤️ ${(p.likes||[]).length}
+      ${meetInfo}
+      <button class="hood-like-btn ${liked?'liked':''}" onclick="likeHoodPost('${g.id}','${p.id}',this)">
+        ${liked?'❤️':'🤍'} ${(p.likes||[]).length}
       </button>
-    </div>`).join('');
+    </div>`;
+  }).join('');
+}
+
+/* ── Meetings ─────────────────────────────────────────── */
+function renderHoodMeetings(g) {
+  const el = document.getElementById('hoodMeetingsList');
+  if (!el) return;
+  const now = new Date();
+  const meetings = (g.posts||[])
+    .filter(p => p.postType==='meeting' && p.meetingDate)
+    .sort((a,b) => new Date(a.meetingDate+' '+(a.meetingTime||'00:00')) - new Date(b.meetingDate+' '+(b.meetingTime||'00:00')));
+  if (!meetings.length) {
+    el.innerHTML = '<div class="hood-empty" style="padding:1.5rem"><div class="hood-empty-ico">📅</div><div class="hood-empty-title">لا توجد اجتماعات مجدولة</div><div class="hood-empty-sub">أضف اجتماعاً من تبويب المنشورات</div></div>';
+    return;
+  }
+  el.innerHTML = meetings.map(p => {
+    const dt = new Date(p.meetingDate+' '+(p.meetingTime||'00:00'));
+    const isPast = dt < now;
+    return `<div class="hood-meeting-card ${isPast?'past':'upcoming'}">
+      <div class="hmc-date">
+        <div class="hmc-day">${dt.getDate()}</div>
+        <div class="hmc-mon">${dt.toLocaleDateString('ar-SA',{month:'short'})}</div>
+      </div>
+      <div class="hmc-info">
+        <div class="hmc-title">${p.text}</div>
+        ${p.meetingTime?`<div class="hmc-time">⏰ ${p.meetingTime}</div>`:''}
+        ${p.meetingPlace?`<div class="hmc-place">📍 ${p.meetingPlace}</div>`:''}
+        <div class="hmc-author">${p.author} · ${_timeAgo(p.ts)}</div>
+      </div>
+      <div class="hmc-actions">
+        ${!isPast?`<button class="hood-cal-btn" onclick="addHoodMeetingToCalendar('${encodeURIComponent(JSON.stringify({title:g.name+': '+p.text,date:p.meetingDate,time:p.meetingTime||'',place:p.meetingPlace||''}))}')">📆</button>`:''}
+        <span class="hmc-status ${isPast?'past':'upcoming'}">${isPast?'انتهى':'قادم'}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function addHoodMeetingToCalendar(encoded) {
+  try {
+    const d = JSON.parse(decodeURIComponent(encoded));
+    const dtStr = d.date.replace(/-/g,'') + (d.time ? 'T'+d.time.replace(':','')+'00' : '');
+    const url = 'https://calendar.google.com/calendar/render?action=TEMPLATE'
+      + '&text=' + encodeURIComponent(d.title)
+      + '&dates=' + dtStr + '/' + dtStr
+      + (d.place ? '&location=' + encodeURIComponent(d.place) : '');
+    window.open(url, '_blank');
+  } catch(e) {}
 }
 
 async function submitHoodPost() {
@@ -10242,23 +10365,36 @@ async function submitHoodPost() {
   const textEl = document.getElementById('hoodPostText');
   const text = (textEl||{}).value?.trim();
   if (!text) { showToast('اكتب شيئاً أولاً ❗','error'); return; }
-  const uid    = localStorage.getItem('_nabdh_uid') || _getOrCreateUID();
-  const author = localStorage.getItem('_nabdh_name') || 'مجهول';
+  const uid      = localStorage.getItem('_nabdh_uid') || _getOrCreateUID();
+  const author   = localStorage.getItem('_nabdh_name') || 'مجهول';
   const postType = (document.getElementById('hoodPostType')||{}).value || 'message';
+  // gather meeting fields
+  const meetingDate  = postType==='meeting' ? (document.getElementById('hoodMeetingDate')||{}).value||'' : '';
+  const meetingTime  = postType==='meeting' ? (document.getElementById('hoodMeetingTime')||{}).value||'' : '';
+  const meetingPlace = postType==='meeting' ? (document.getElementById('hoodMeetingPlace')||{}).value?.trim()||'' : '';
+  const btn = document.querySelector('.hgp-send-btn');
+  if (btn) { btn.disabled=true; btn.textContent='...'; }
   try {
     const res = await fetch('/api/hood/'+g.id+'/post', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ text, postType, userId:uid, author })
+      body: JSON.stringify({ text, postType, meetingDate, meetingTime, meetingPlace, userId:uid, author })
     });
     const d = await res.json();
     if (!d.success) throw new Error(d.error);
     if (!Array.isArray(g.posts)) g.posts = [];
     g.posts.push(d.post);
     textEl.value = '';
+    // clear meeting fields
+    ['hoodMeetingDate','hoodMeetingTime','hoodMeetingPlace'].forEach(id => { const e=document.getElementById(id); if(e) e.value=''; });
     renderHoodPosts(g);
+    renderHoodMeetings(g);
+    // update stats
+    const spEl = document.getElementById('hgpStatPosts');
+    if(spEl) spEl.textContent='💬 '+g.posts.length+' منشور';
     showToast('✅ نُشر منشورك!','success');
     playNotifSound && playNotifSound('msg');
-  } catch(e) { showToast('فشل النشر','error'); }
+  } catch(e) { showToast('فشل النشر: '+(e.message||''),'error'); }
+  finally { if(btn){ btn.disabled=false; btn.textContent='↑'; } }
 }
 
 async function likeHoodPost(groupId, postId, btn) {
@@ -10289,6 +10425,8 @@ async function toggleJoinHoodGroup() {
   const uid = localStorage.getItem('_nabdh_uid') || _getOrCreateUID();
   const joined = _myHoodGroups.includes(g.id);
   const endpoint = joined ? 'leave' : 'join';
+  const btn = document.getElementById('hgpJoinBtn');
+  if (btn) { btn.disabled=true; }
   try {
     await fetch('/api/hood/'+g.id+'/'+endpoint, {
       method:'POST', headers:{'Content-Type':'application/json'},
@@ -10300,37 +10438,65 @@ async function toggleJoinHoodGroup() {
     } else {
       _myHoodGroups.push(g.id);
       if (!g.members) g.members=[];
-      g.members.push(uid);
+      if (!g.members.includes(uid)) g.members.push(uid);
     }
     localStorage.setItem('_myHoodGroups', JSON.stringify(_myHoodGroups));
-    const btn = document.getElementById('hgpJoinBtn');
     const newJoined = !joined;
-    if (btn) { btn.textContent=newJoined?'✓ منضم':'انضم'; btn.classList.toggle('joined',newJoined); }
-    showToast(newJoined?'✅ انضممت للمجموعة!':'تم مغادرة المجموعة', newJoined?'success':'info');
+    if (btn) { btn.textContent=newJoined?'✓ منضم':'انضم'; btn.classList.toggle('joined',newJoined); btn.disabled=false; }
+    // update stats bar
+    const smEl = document.getElementById('hgpStatMembers');
+    if(smEl) smEl.textContent='👥 '+g.members.length+' عضو';
+    showToast(newJoined?'✅ انضممت للمجموعة!':'👋 تم مغادرة المجموعة', newJoined?'success':'info');
+    if(newJoined) playNotifSound && playNotifSound('achiev');
     renderHoodMembers(g);
-  } catch(e) { showToast('تعذّرت العملية','error'); }
+    renderHoodGroups(); // refresh card badge
+  } catch(e) { showToast('تعذّرت العملية','error'); if(btn) btn.disabled=false; }
+}
+
+/* ── Share group link ─────────────────────────────────── */
+function shareHoodGroup() {
+  const g = _currentHoodGroup;
+  if (!g) return;
+  const url = window.location.origin + '/#hood';
+  const text = `🏘️ مجموعة حي "${g.name}" (${g.area})\nانضم معنا في نبض السودان:\n${url}`;
+  if (navigator.share) {
+    navigator.share({ title: g.name, text, url }).catch(()=>{});
+  } else {
+    // fallback: copy to clipboard
+    navigator.clipboard.writeText(text).then(() => showToast('✅ تم نسخ رابط المجموعة!','success')).catch(()=>{
+      showToast('🔗 '+url, 'info');
+    });
+  }
 }
 
 /* ── Nominations ──────────────────────────────────────── */
 function renderHoodNominations(g) {
   const el = document.getElementById('hoodNomList');
   if (!el) return;
-  const noms = (g.nominations||[]).slice().reverse();
+  const uid = localStorage.getItem('_nabdh_uid') || '';
+  const noms = (g.nominations||[]).slice().sort((a,b)=>(b.votes||[]).length-(a.votes||[]).length);
   if (!noms.length) {
-    el.innerHTML = '<p style="text-align:center;color:var(--text2);padding:1.5rem">لا توجد ترشيحات بعد</p>';
+    el.innerHTML = '<div class="hood-empty" style="padding:1.5rem"><div class="hood-empty-ico">⭐</div><div class="hood-empty-title">لا توجد ترشيحات بعد</div><div class="hood-empty-sub">رشّح محلاً أو خدمة في حيّك</div></div>';
     return;
   }
-  el.innerHTML = noms.map(n => `
-    <div class="hood-nom-item">
-      <div class="hood-nom-title">⭐ ${n.title}</div>
+  el.innerHTML = noms.map((n,i) => {
+    const voted = (n.votes||[]).includes(uid);
+    const rank = i < 3 ? ['🥇','🥈','🥉'][i] : '';
+    return `<div class="hood-nom-item">
+      <div class="hood-nom-top">
+        ${rank?`<span class="hood-nom-rank">${rank}</span>`:''}
+        <div class="hood-nom-title">⭐ ${n.title}</div>
+        ${n.category?`<span class="hood-nom-cat">${n.category}</span>`:''}
+      </div>
       ${n.desc?`<div class="hood-nom-desc">${n.desc}</div>`:''}
       <div class="hood-nom-footer">
         <span class="hood-nom-author">بقلم ${n.author}</span>
-        <button class="hood-vote-btn" onclick="voteNomination('${g.id}','${n.id}',this)">
-          👍 ${(n.votes||[]).length} تأييد
+        <button class="hood-vote-btn ${voted?'voted':''}" onclick="voteNomination('${g.id}','${n.id}',this)">
+          ${voted?'✅':'👍'} ${(n.votes||[]).length} تأييد
         </button>
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
 function openNominationForm() {
@@ -10344,26 +10510,29 @@ function closeNominationForm() {
 async function submitNomination() {
   const g = _currentHoodGroup;
   if (!g) return;
-  const title = (document.getElementById('nomTitle')||{}).value?.trim();
-  const desc  = (document.getElementById('nomDesc')||{}).value?.trim();
-  if (!title) { showToast('عنوان الترشيح مطلوب ❗','error'); return; }
+  const title    = (document.getElementById('nomTitle')||{}).value?.trim();
+  const category = (document.getElementById('nomCategory')||{}).value?.trim();
+  const desc     = (document.getElementById('nomDesc')||{}).value?.trim();
+  if (!title) { showToast('اسم الترشيح مطلوب ❗','error'); return; }
   const uid    = localStorage.getItem('_nabdh_uid') || _getOrCreateUID();
   const author = localStorage.getItem('_nabdh_name') || 'مجهول';
   try {
     const res = await fetch('/api/hood/'+g.id+'/nominate', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ title, desc, userId:uid, author })
+      body: JSON.stringify({ title, category, desc, userId:uid, author })
     });
     const d = await res.json();
     if (!d.success) throw new Error(d.error);
     if (!Array.isArray(g.nominations)) g.nominations=[];
     g.nominations.push(d.nomination);
-    document.getElementById('nomTitle').value='';
-    document.getElementById('nomDesc').value='';
+    ['nomTitle','nomCategory','nomDesc'].forEach(id => { const e=document.getElementById(id); if(e) e.value=''; });
     closeNominationForm();
     renderHoodNominations(g);
+    // update stats
+    const snEl = document.getElementById('hgpStatNoms');
+    if(snEl) snEl.textContent='⭐ '+g.nominations.length+' ترشيح';
     showToast('⭐ تم إرسال الترشيح!','success');
-  } catch(e) { showToast('فشل إرسال الترشيح','error'); }
+  } catch(e) { showToast('فشل إرسال الترشيح: '+(e.message||''),'error'); }
 }
 
 async function voteNomination(groupId, nomId, btn) {
@@ -10393,16 +10562,23 @@ function renderHoodMembers(g) {
   if (!el) return;
   const members = g.members||[];
   if (!members.length) {
-    el.innerHTML = '<p style="text-align:center;color:var(--text2);padding:2rem">لا يوجد أعضاء بعد — كن الأول!</p>';
+    el.innerHTML = '<div class="hood-empty" style="padding:1.5rem"><div class="hood-empty-ico">👥</div><div class="hood-empty-title">لا يوجد أعضاء بعد</div><div class="hood-empty-sub">كن الأول وانضم للمجموعة!</div></div>';
     return;
   }
-  el.innerHTML = `<div style="color:var(--text2);margin-bottom:.5rem;font-size:.85rem">👥 ${members.length} عضو</div>`
-    + members.map((uid,i) => `
-    <div class="hood-member-row">
-      <div class="hood-member-ava">${String.fromCodePoint(0x1F464)}</div>
-      <div class="hood-member-name">عضو ${i+1}</div>
-      ${uid===g.userId?'<span class="hood-owner-badge">منشئ</span>':''}
-    </div>`).join('');
+  // try to get profile names from cache
+  const profiles = window._allProfiles || [];
+  el.innerHTML = `<div class="hood-members-header">👥 ${members.length} عضو</div>`
+    + members.map((uid, i) => {
+      const profile = profiles.find(p => p.userId===uid || p.id===uid);
+      const name  = profile ? (profile.name || profile.displayName || 'مستخدم') : (uid===g.userId ? g.author||'المنشئ' : 'عضو '+(i+1));
+      const ava   = profile ? (profile.avatar || '👤') : (uid===g.userId ? '👑' : '👤');
+      const isOwner = uid === g.userId;
+      return `<div class="hood-member-row">
+        <div class="hood-member-ava">${ava}</div>
+        <div class="hood-member-name">${name}</div>
+        ${isOwner ? '<span class="hood-owner-badge">👑 منشئ</span>' : ''}
+      </div>`;
+    }).join('');
 }
 
 /* ── Real-time socket events ─────────────────────────── */
@@ -10410,14 +10586,20 @@ if (typeof socket !== 'undefined' && socket) {
   socket.on('new_hood_group', function(group) {
     if (!_hoodGroups.find(g=>g.id===group.id)) {
       _hoodGroups.unshift(group);
+      const sel=document.getElementById('hoodCityFilter'); if(sel) delete sel.dataset.populated;
       renderHoodGroups();
     }
-    playNotifSound && playNotifSound('nearby');
+    playNotifSound && playNotifSound('hood');
     showToast('🏘️ مجموعة حي جديدة: '+group.name+' — '+group.area, 'info');
   });
   socket.on('hood_post', function(ev) {
     const g = _hoodGroups.find(x=>x.id===ev.groupId);
     if (g) {
+      // sound only for joined groups
+      if (_myHoodGroups.includes(ev.groupId)) {
+        playNotifSound && playNotifSound('msg');
+        showToast('💬 منشور جديد في «'+g.name+'»: '+((ev.post||{}).text||'').slice(0,40), 'info');
+      }
       if (!Array.isArray(g.posts)) g.posts=[];
       if (!g.posts.find(p=>p.id===ev.post.id)) g.posts.push(ev.post);
       if (_currentHoodGroup && _currentHoodGroup.id===ev.groupId) renderHoodPosts(g);
@@ -10436,6 +10618,11 @@ if (typeof socket !== 'undefined' && socket) {
       if (_currentHoodGroup && _currentHoodGroup.id===ev.groupId) renderHoodNominations(g);
     }
   });
+}
+
+/* ── Sound: hood type ────────────────────────────────── */
+if (typeof _soundDefs !== 'undefined') {
+  _soundDefs.hood = { freqs:[440,550,660,550], durs:[0.1,0.1,0.15,0.1], wave:'sine' };
 }
 
 /* ── Helper: UID ──────────────────────────────────────── */

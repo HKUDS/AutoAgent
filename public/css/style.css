@@ -9057,3 +9057,201 @@ button:not(:disabled) { pointer-events: auto !important; cursor: pointer !import
 .hood-empty-ico  { font-size: 3rem; margin-bottom: .8rem; }
 .hood-empty-title{ font-size: 1.1rem; font-weight: 700; color: var(--text); margin-bottom: .4rem; }
 .hood-empty-sub  { font-size: .85rem; color: var(--text2); line-height: 1.6; }
+
+/* ══════════════════════════════════════════════════════
+   🏘️  HOOD GROUPS — ENHANCED STYLES v7.9
+   ══════════════════════════════════════════════════════ */
+
+/* Card badges */
+.hood-card-badges { display:flex; gap:.3rem; flex-wrap:wrap; margin-top:.25rem; }
+.hood-card-type-badge {
+  display:inline-block; font-size:.7rem; padding:.15rem .5rem;
+  background:rgba(76,175,80,.15); color:#4caf50;
+  border:1px solid rgba(76,175,80,.3); border-radius:99px;
+}
+.hood-meeting-badge {
+  display:inline-block; font-size:.7rem; padding:.15rem .5rem;
+  background:rgba(52,152,219,.15); color:#3498db;
+  border:1px solid rgba(52,152,219,.3); border-radius:99px;
+}
+.hood-joined-badge {
+  display:inline-block; font-size:.7rem; padding:.15rem .5rem;
+  background:rgba(76,175,80,.2); color:#4caf50;
+  border:1px solid #4caf50; border-radius:99px;
+}
+
+/* ── Hood Group Page header ───────────────────────────── */
+.hgp-header {
+  display:flex; align-items:center; gap:.6rem;
+  padding:.8rem 1rem; background:var(--dark2);
+  border-bottom:1px solid var(--border); position:sticky; top:0; z-index:10;
+}
+.hgp-avatar {
+  font-size:2.2rem; width:2.6rem; height:2.6rem;
+  display:flex; align-items:center; justify-content:center;
+  background:rgba(76,175,80,.12); border-radius:50%; flex-shrink:0;
+}
+.hgp-actions { display:flex; align-items:center; gap:.4rem; flex-shrink:0; }
+.hgp-share-btn {
+  background:rgba(76,175,80,.1); border:1px solid rgba(76,175,80,.3);
+  color:#4caf50; border-radius:99px; width:2.1rem; height:2.1rem;
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer; font-size:1rem; transition:background .2s;
+}
+.hgp-share-btn:hover { background:rgba(76,175,80,.25); }
+
+/* Stats bar */
+.hgp-stats {
+  display:flex; gap:.5rem; flex-wrap:wrap; align-items:center;
+  padding:.45rem 1rem; background:rgba(76,175,80,.05);
+  border-bottom:1px solid var(--border); font-size:.78rem; color:var(--text2);
+}
+.hgp-contact { color:#4caf50; }
+
+/* Compose area */
+.hgp-compose { padding:.75rem; border-bottom:1px solid var(--border); background:var(--dark3); }
+.hgp-type-sel { margin-bottom:.45rem; width:100%; }
+.hgp-input-row { display:flex; gap:.5rem; align-items:flex-end; }
+.hgp-ta { flex:1; resize:none; min-height:44px; }
+.hgp-send-btn {
+  background:#4caf50; color:#fff; border:none;
+  border-radius:50%; width:2.4rem; height:2.4rem; flex-shrink:0;
+  font-size:1.1rem; cursor:pointer; transition:background .2s;
+  display:flex; align-items:center; justify-content:center;
+}
+.hgp-send-btn:hover { background:#388e3c; }
+.hgp-send-btn:disabled { background:var(--dark4); color:var(--text2); }
+
+/* Posts list */
+.hgp-posts-list { padding:.6rem; }
+.hood-post-item {
+  background:var(--dark3); border:1px solid var(--border);
+  border-radius:var(--rs); padding:.75rem; margin-bottom:.55rem;
+  transition:border-color .2s;
+}
+.hood-post-item:hover { border-color:rgba(76,175,80,.3); }
+.hood-post-item.hood-post-meeting  { border-left:3px solid #3498db; }
+.hood-post-item.hood-post-initiative{ border-left:3px solid #f1c40f; }
+.hood-post-item.hood-post-nomination{ border-left:3px solid #e67e22; }
+.hood-post-meta {
+  display:flex; align-items:center; gap:.45rem; margin-bottom:.4rem;
+  font-size:.8rem;
+}
+.hood-post-type-ico { font-size:.95rem; }
+.hood-post-author   { font-weight:600; color:var(--text); }
+.hood-post-time     { margin-right:auto; color:var(--text2); font-size:.74rem; }
+.hood-post-text     { font-size:.9rem; color:var(--text); line-height:1.6; }
+.hood-like-btn {
+  margin-top:.5rem; background:transparent;
+  border:1px solid var(--border); color:var(--text2);
+  border-radius:99px; padding:.2rem .7rem; font-size:.8rem;
+  cursor:pointer; transition:all .2s;
+}
+.hood-like-btn:hover { border-color:#e74c3c; color:#e74c3c; }
+.hood-like-btn.liked { border-color:#e74c3c; color:#e74c3c; background:rgba(231,76,60,.08); }
+
+/* Meeting info block inside post */
+.hood-meeting-info {
+  display:flex; flex-wrap:wrap; gap:.4rem; align-items:center;
+  margin:.45rem 0 .3rem; padding:.4rem .6rem;
+  background:rgba(52,152,219,.08); border:1px solid rgba(52,152,219,.2);
+  border-radius:var(--rs); font-size:.8rem; color:#3498db;
+}
+.hood-cal-btn {
+  background:rgba(52,152,219,.15); border:1px solid rgba(52,152,219,.35);
+  color:#3498db; border-radius:99px; padding:.15rem .55rem;
+  font-size:.75rem; cursor:pointer; transition:background .2s;
+}
+.hood-cal-btn:hover { background:rgba(52,152,219,.3); }
+
+/* ── Meetings tab ──────────────────────────────────────── */
+.hgp-meetings-list { display:flex; flex-direction:column; gap:.6rem; }
+.hood-meeting-card {
+  display:flex; gap:.75rem; align-items:flex-start;
+  background:var(--dark3); border:1px solid var(--border);
+  border-radius:var(--rs); padding:.8rem; transition:border-color .2s;
+}
+.hood-meeting-card.upcoming { border-left:3px solid #3498db; }
+.hood-meeting-card.past     { border-left:3px solid var(--border); opacity:.65; }
+.hmc-date {
+  display:flex; flex-direction:column; align-items:center;
+  justify-content:center; min-width:2.6rem; text-align:center;
+  background:rgba(52,152,219,.1); border-radius:var(--rs); padding:.35rem .5rem;
+}
+.hmc-day  { font-size:1.3rem; font-weight:800; color:#3498db; line-height:1; }
+.hmc-mon  { font-size:.7rem; color:var(--text2); }
+.hmc-info { flex:1; }
+.hmc-title { font-weight:600; color:var(--text); font-size:.9rem; margin-bottom:.2rem; }
+.hmc-time, .hmc-place { font-size:.8rem; color:var(--text2); }
+.hmc-author { font-size:.75rem; color:var(--text2); margin-top:.25rem; }
+.hmc-actions { display:flex; flex-direction:column; align-items:flex-end; gap:.3rem; }
+.hmc-status {
+  font-size:.72rem; padding:.12rem .45rem; border-radius:99px;
+}
+.hmc-status.upcoming { background:rgba(52,152,219,.15); color:#3498db; }
+.hmc-status.past     { background:rgba(127,140,141,.12); color:var(--text2); }
+
+/* ── Nominations improved ─────────────────────────────── */
+.hood-nom-item {
+  background:var(--dark3); border:1px solid var(--border);
+  border-radius:var(--rs); padding:.8rem; margin-bottom:.6rem;
+  transition:border-color .2s;
+}
+.hood-nom-item:hover { border-color:rgba(241,196,15,.3); }
+.hood-nom-top { display:flex; align-items:center; gap:.4rem; flex-wrap:wrap; margin-bottom:.3rem; }
+.hood-nom-rank { font-size:1.1rem; }
+.hood-nom-title { font-weight:700; color:#f1c40f; flex:1; }
+.hood-nom-cat {
+  font-size:.72rem; padding:.12rem .45rem;
+  background:rgba(241,196,15,.1); color:#f1c40f;
+  border:1px solid rgba(241,196,15,.25); border-radius:99px;
+}
+.hood-nom-desc  { font-size:.85rem; color:var(--text2); margin-bottom:.5rem; }
+.hood-nom-footer { display:flex; align-items:center; justify-content:space-between; }
+.hood-nom-author { font-size:.78rem; color:var(--text2); }
+.hood-vote-btn {
+  background:rgba(241,196,15,.12); color:#f1c40f;
+  border:1px solid rgba(241,196,15,.3); border-radius:99px;
+  padding:.25rem .8rem; font-size:.8rem; cursor:pointer; transition:all .2s;
+}
+.hood-vote-btn:hover  { background:rgba(241,196,15,.25); }
+.hood-vote-btn.voted  { background:rgba(39,174,96,.15); color:#27ae60; border-color:rgba(39,174,96,.4); }
+
+/* ── Members improved ─────────────────────────────────── */
+.hood-members-header {
+  font-size:.85rem; color:var(--text2); margin-bottom:.6rem; padding-bottom:.5rem;
+  border-bottom:1px solid var(--border);
+}
+.hood-member-row {
+  display:flex; align-items:center; gap:.7rem;
+  padding:.55rem 0; border-bottom:1px solid rgba(255,255,255,.04);
+}
+.hood-member-ava  { font-size:1.5rem; width:2rem; text-align:center; }
+.hood-member-name { font-size:.9rem; color:var(--text); flex:1; }
+.hood-owner-badge {
+  background:rgba(241,196,15,.12); color:#f1c40f;
+  font-size:.72rem; padding:.12rem .45rem; border-radius:99px;
+  border:1px solid rgba(241,196,15,.3);
+}
+
+/* ── City filter in list ──────────────────────────────── */
+#hoodCityFilter {
+  background:var(--dark3); border:1px solid var(--border);
+  color:var(--text); border-radius:var(--rs);
+}
+#hoodCityFilter option { background:var(--dark2); }
+
+/* ── Geo drop for hood area input ────────────────────── */
+#hoodAreaDrop { top:100%; z-index:100; }
+
+/* ── q-hood quick card ───────────────────────────────── */
+.q-hood {
+  border-color: rgba(76,175,80,.35);
+  background: rgba(76,175,80,.07);
+}
+.q-hood:hover {
+  border-color: rgba(76,175,80,.65);
+  box-shadow: 0 6px 20px rgba(76,175,80,.2);
+}
+.q-hood::before { background: linear-gradient(135deg, rgba(76,175,80,.06), rgba(46,125,50,.04)); }
+

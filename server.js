@@ -3096,7 +3096,7 @@ app.post('/api/hood/:id/leave', (req, res) => {
 app.post('/api/hood/:id/post', (req, res) => {
   const g = (data.hoodGroups || {})[req.params.id];
   if (!g) return res.status(404).json({ error: 'المجموعة غير موجودة' });
-  const { text, userId, author, postType } = req.body;
+  const { text, userId, author, postType, meetingDate, meetingTime, meetingPlace } = req.body;
   if (!text) return res.status(400).json({ error: 'النص مطلوب' });
   const post = {
     id: uuidv4(),
@@ -3107,6 +3107,12 @@ app.post('/api/hood/:id/post', (req, res) => {
     likes: [],
     ts: Date.now()
   };
+  // meeting fields
+  if (postType === 'meeting') {
+    if (meetingDate)  post.meetingDate  = meetingDate;
+    if (meetingTime)  post.meetingTime  = meetingTime;
+    if (meetingPlace) post.meetingPlace = meetingPlace.trim();
+  }
   if (!Array.isArray(g.posts)) g.posts = [];
   g.posts.push(post);
   if (g.posts.length > 200) g.posts = g.posts.slice(-200);
@@ -3135,11 +3141,12 @@ app.post('/api/hood/:id/post/:postId/like', (req, res) => {
 app.post('/api/hood/:id/nominate', (req, res) => {
   const g = (data.hoodGroups || {})[req.params.id];
   if (!g) return res.status(404).json({ error: 'المجموعة غير موجودة' });
-  const { title, desc, userId, author } = req.body;
+  const { title, category, desc, userId, author } = req.body;
   if (!title) return res.status(400).json({ error: 'عنوان الترشيح مطلوب' });
   const nom = {
     id: uuidv4(),
     title: title.trim(),
+    category: (category || '').trim(),
     desc: (desc || '').trim(),
     votes: [],
     userId: userId || null,
