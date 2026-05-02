@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: nabdh
+    runtime: node
+    plan: free
+    region: oregon
+    buildCommand: npm install --production=false
+    startCommand: node server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+    autoDeploy: true

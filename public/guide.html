@@ -1,0 +1,1265 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>نبض — دليل المستخدم الشامل</title>
+  <link rel="icon" href="/favicon.svg"/>
+  <style>
+    :root {
+      --bg: #0a0e1a;
+      --bg2: #0f1524;
+      --bg3: #141928;
+      --card: #161d2e;
+      --card2: #1a2235;
+      --border: rgba(26,188,156,.18);
+      --green: #1abc9c;
+      --green2: #16a085;
+      --blue: #3498db;
+      --red: #e74c3c;
+      --yellow: #f39c12;
+      --purple: #9b59b6;
+      --orange: #e67e22;
+      --text: #e8eaf0;
+      --text2: #a0a8bb;
+      --text3: #6b7280;
+      --glow: 0 0 20px rgba(26,188,156,.25);
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    /* ===== SCROLLBAR ===== */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg2); }
+    ::-webkit-scrollbar-thumb { background: var(--green); border-radius: 3px; }
+
+    /* ===== NAV ===== */
+    .top-nav {
+      position: fixed; top: 0; right: 0; left: 0; z-index: 999;
+      background: rgba(10,14,26,.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: .75rem 1.5rem;
+    }
+    .nav-brand {
+      display: flex; align-items: center; gap: .6rem;
+      font-size: 1.3rem; font-weight: 700; color: var(--green);
+      text-decoration: none;
+    }
+    .nav-brand span { font-size: 1.5rem; }
+    .nav-cta {
+      background: var(--green); color: #000;
+      padding: .5rem 1.2rem; border-radius: 25px;
+      font-weight: 700; font-size: .9rem;
+      text-decoration: none; transition: .2s;
+    }
+    .nav-cta:hover { background: var(--green2); transform: scale(1.05); }
+
+    /* ===== HERO ===== */
+    .hero {
+      min-height: 100vh;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      text-align: center;
+      padding: 6rem 1.5rem 4rem;
+      position: relative; overflow: hidden;
+    }
+    .hero-bg {
+      position: absolute; inset: 0; z-index: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 50% 0%, rgba(26,188,156,.12) 0%, transparent 70%),
+        radial-gradient(ellipse 60% 40% at 80% 100%, rgba(52,152,219,.08) 0%, transparent 60%);
+    }
+    .hero-particles {
+      position: absolute; inset: 0; z-index: 0;
+      overflow: hidden;
+    }
+    .hero-particles span {
+      position: absolute; border-radius: 50%;
+      background: var(--green); opacity: .06;
+      animation: float linear infinite;
+    }
+    @keyframes float {
+      0% { transform: translateY(100vh) scale(0); opacity: 0; }
+      10% { opacity: .06; }
+      90% { opacity: .06; }
+      100% { transform: translateY(-10vh) scale(1); opacity: 0; }
+    }
+    .hero-content { position: relative; z-index: 1; max-width: 780px; }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: .5rem;
+      background: rgba(26,188,156,.12); border: 1px solid rgba(26,188,156,.3);
+      color: var(--green); padding: .4rem 1rem; border-radius: 25px;
+      font-size: .85rem; font-weight: 600; margin-bottom: 1.5rem;
+    }
+    .hero-badge .dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--green); animation: pulse 2s infinite;
+    }
+    @keyframes pulse { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:.4; transform:scale(.7); } }
+    .hero h1 {
+      font-size: clamp(2.2rem, 6vw, 4rem);
+      font-weight: 900; letter-spacing: -.02em;
+      background: linear-gradient(135deg, #fff 30%, var(--green) 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      margin-bottom: .75rem;
+    }
+    .hero-sub {
+      font-size: clamp(1rem, 2.5vw, 1.25rem);
+      color: var(--text2); margin-bottom: 2.5rem; line-height: 1.9;
+    }
+    .hero-btns { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--green), var(--green2));
+      color: #000; padding: .85rem 2rem; border-radius: 30px;
+      font-weight: 800; font-size: 1rem; text-decoration: none;
+      box-shadow: 0 4px 24px rgba(26,188,156,.35);
+      transition: .25s; display: flex; align-items: center; gap: .5rem;
+    }
+    .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 8px 32px rgba(26,188,156,.5); }
+    .btn-secondary {
+      background: transparent; color: var(--text);
+      border: 1.5px solid var(--border); padding: .85rem 2rem;
+      border-radius: 30px; font-weight: 700; font-size: 1rem;
+      text-decoration: none; transition: .25s;
+      display: flex; align-items: center; gap: .5rem;
+    }
+    .btn-secondary:hover { border-color: var(--green); color: var(--green); }
+    .hero-stats {
+      display: flex; gap: 2.5rem; justify-content: center;
+      margin-top: 3rem; flex-wrap: wrap;
+    }
+    .hero-stat { text-align: center; }
+    .hero-stat .num {
+      font-size: 1.8rem; font-weight: 900; color: var(--green);
+      display: block; line-height: 1;
+    }
+    .hero-stat .lbl { font-size: .8rem; color: var(--text3); margin-top: .25rem; }
+
+    /* ===== SECTIONS ===== */
+    section { padding: 5rem 1.5rem; }
+    .container { max-width: 1100px; margin: 0 auto; }
+    .sec-header { text-align: center; margin-bottom: 3.5rem; }
+    .sec-badge {
+      display: inline-block; background: rgba(26,188,156,.1);
+      border: 1px solid rgba(26,188,156,.25); color: var(--green);
+      padding: .3rem .9rem; border-radius: 20px;
+      font-size: .8rem; font-weight: 700; margin-bottom: .8rem;
+    }
+    .sec-header h2 {
+      font-size: clamp(1.7rem, 4vw, 2.5rem);
+      font-weight: 800; color: var(--text);
+    }
+    .sec-header p { color: var(--text2); margin-top: .6rem; font-size: 1.05rem; }
+
+    /* ===== FEATURE GRID ===== */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1.25rem;
+    }
+    .feature-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px; padding: 1.5rem;
+      transition: .3s; cursor: pointer;
+      position: relative; overflow: hidden;
+    }
+    .feature-card::before {
+      content: ''; position: absolute;
+      top: 0; right: 0; left: 0; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--accent, var(--green)), transparent);
+      transform: scaleX(0); transition: .3s;
+    }
+    .feature-card:hover { border-color: rgba(26,188,156,.4); transform: translateY(-4px); box-shadow: var(--glow); }
+    .feature-card:hover::before { transform: scaleX(1); }
+    .feature-icon { font-size: 2rem; margin-bottom: .75rem; display: block; }
+    .feature-card h3 { font-size: 1.1rem; font-weight: 700; color: var(--text); margin-bottom: .5rem; }
+    .feature-card p { font-size: .9rem; color: var(--text2); line-height: 1.7; }
+    .feature-tags { display: flex; gap: .4rem; flex-wrap: wrap; margin-top: .75rem; }
+    .ftag {
+      font-size: .72rem; padding: .2rem .6rem; border-radius: 10px;
+      background: rgba(26,188,156,.08); color: var(--green);
+      border: 1px solid rgba(26,188,156,.2);
+    }
+
+    /* ===== HOW IT WORKS ===== */
+    .steps { display: flex; flex-direction: column; gap: 1.5rem; position: relative; }
+    .steps::before {
+      content: ''; position: absolute;
+      right: 1.75rem; top: 0; bottom: 0; width: 2px;
+      background: linear-gradient(to bottom, var(--green), transparent);
+    }
+    .step {
+      display: flex; gap: 1.5rem; align-items: flex-start;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 14px; padding: 1.25rem 1.5rem;
+      transition: .25s;
+    }
+    .step:hover { border-color: var(--green); }
+    .step-num {
+      min-width: 40px; height: 40px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--green), var(--green2));
+      color: #000; font-weight: 900; font-size: .95rem;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; box-shadow: 0 0 12px rgba(26,188,156,.4);
+    }
+    .step h4 { font-size: 1rem; font-weight: 700; margin-bottom: .3rem; }
+    .step p { font-size: .9rem; color: var(--text2); }
+
+    /* ===== SECTIONS SHOWCASE ===== */
+    .showcase-tabs {
+      display: flex; gap: .5rem; flex-wrap: wrap;
+      justify-content: center; margin-bottom: 2rem;
+    }
+    .stab {
+      padding: .5rem 1.1rem; border-radius: 25px; font-size: .85rem;
+      font-weight: 600; cursor: pointer; border: none;
+      background: var(--card2); color: var(--text2);
+      border: 1px solid var(--border); transition: .2s;
+    }
+    .stab.active, .stab:hover {
+      background: var(--green); color: #000;
+      border-color: var(--green);
+    }
+    .showcase-panels { position: relative; }
+    .showcase-panel {
+      display: none; animation: fadeIn .3s ease;
+    }
+    .showcase-panel.active { display: block; }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+    .panel-inner {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem; align-items: center;
+    }
+    @media (max-width: 700px) { .panel-inner { grid-template-columns: 1fr; } }
+    .panel-info h3 {
+      font-size: 1.5rem; font-weight: 800; margin-bottom: .75rem;
+      color: var(--text);
+    }
+    .panel-info p { color: var(--text2); line-height: 1.8; margin-bottom: 1rem; }
+    .panel-features { list-style: none; }
+    .panel-features li {
+      padding: .4rem 0; border-bottom: 1px solid rgba(255,255,255,.05);
+      color: var(--text2); font-size: .92rem; display: flex; gap: .6rem;
+    }
+    .panel-features li::before { content: '✅'; flex-shrink: 0; }
+    .panel-visual {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px; padding: 1.5rem;
+      min-height: 220px;
+      display: flex; flex-direction: column; gap: .75rem;
+      justify-content: center;
+    }
+    .mock-row {
+      background: var(--bg3); border-radius: 10px;
+      padding: .65rem 1rem; display: flex;
+      align-items: center; gap: .75rem; font-size: .88rem;
+    }
+    .mock-icon { font-size: 1.2rem; flex-shrink: 0; }
+    .mock-text { flex: 1; }
+    .mock-badge {
+      font-size: .7rem; padding: .2rem .6rem; border-radius: 8px;
+      font-weight: 700;
+    }
+    .badge-red { background: rgba(231,76,60,.2); color: #e74c3c; }
+    .badge-green { background: rgba(26,188,156,.2); color: var(--green); }
+    .badge-yellow { background: rgba(243,156,18,.2); color: #f39c12; }
+    .badge-blue { background: rgba(52,152,219,.2); color: var(--blue); }
+
+    /* ===== POINTS ===== */
+    .levels-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 1rem;
+    }
+    .level-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 14px; padding: 1.2rem; text-align: center;
+      transition: .25s;
+    }
+    .level-card:hover { border-color: var(--green); transform: translateY(-3px); }
+    .level-card .lv-icon { font-size: 2rem; margin-bottom: .5rem; display: block; }
+    .level-card .lv-name { font-weight: 800; color: var(--text); }
+    .level-card .lv-pts { font-size: .8rem; color: var(--text3); margin-top: .2rem; }
+    .level-card .lv-num {
+      margin-top: .5rem; font-size: .72rem;
+      color: var(--green); font-weight: 700;
+      background: rgba(26,188,156,.1); border-radius: 8px;
+      padding: .2rem .5rem; display: inline-block;
+    }
+
+    .badges-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+      gap: 1rem; margin-top: 2rem;
+    }
+    .badge-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 14px; padding: 1rem; text-align: center;
+      transition: .25s;
+    }
+    .badge-card:hover { border-color: rgba(243,156,18,.4); transform: translateY(-3px); box-shadow: 0 4px 20px rgba(243,156,18,.15); }
+    .badge-card .bd-icon { font-size: 2rem; display: block; margin-bottom: .4rem; }
+    .badge-card .bd-name { font-weight: 700; font-size: .95rem; }
+    .badge-card .bd-pts { font-size: .78rem; color: var(--yellow); margin-top: .2rem; }
+    .badge-card .bd-desc { font-size: .78rem; color: var(--text3); margin-top: .3rem; line-height: 1.5; }
+
+    /* ===== CHALLENGES ===== */
+    .challenges-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1rem;
+    }
+    .challenge-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 14px; padding: 1.25rem;
+      display: flex; gap: 1rem; align-items: flex-start;
+      transition: .25s;
+    }
+    .challenge-card:hover { border-color: rgba(52,152,219,.4); transform: translateY(-2px); }
+    .ch-icon { font-size: 1.8rem; flex-shrink: 0; }
+    .ch-title { font-weight: 700; color: var(--text); }
+    .ch-desc { font-size: .85rem; color: var(--text2); margin: .3rem 0 .5rem; }
+    .ch-reward {
+      display: inline-flex; gap: .3rem; align-items: center;
+      font-size: .8rem; font-weight: 700; color: var(--yellow);
+      background: rgba(243,156,18,.1); border-radius: 8px; padding: .2rem .6rem;
+    }
+
+    /* ===== FAQ ===== */
+    .faq-list { display: flex; flex-direction: column; gap: .75rem; }
+    .faq-item {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 12px; overflow: hidden;
+    }
+    .faq-q {
+      padding: 1rem 1.25rem; font-weight: 700; cursor: pointer;
+      display: flex; justify-content: space-between; align-items: center;
+      transition: .2s;
+    }
+    .faq-q:hover { color: var(--green); }
+    .faq-q .arrow { transition: .25s; color: var(--text3); }
+    .faq-item.open .faq-q .arrow { transform: rotate(180deg); color: var(--green); }
+    .faq-a {
+      max-height: 0; overflow: hidden; transition: max-height .35s ease;
+      padding: 0 1.25rem; color: var(--text2); line-height: 1.8; font-size: .93rem;
+    }
+    .faq-item.open .faq-a { max-height: 300px; padding: 0 1.25rem 1rem; }
+
+    /* ===== CTA ===== */
+    .cta-section {
+      background: linear-gradient(135deg, rgba(26,188,156,.08), rgba(52,152,219,.05));
+      border: 1px solid rgba(26,188,156,.15);
+      border-radius: 24px; padding: 4rem 2rem;
+      text-align: center; margin: 3rem auto;
+      max-width: 700px;
+    }
+    .cta-section h2 {
+      font-size: clamp(1.6rem, 4vw, 2.4rem); font-weight: 900;
+      margin-bottom: 1rem;
+    }
+    .cta-section p { color: var(--text2); margin-bottom: 2rem; font-size: 1.05rem; }
+    .cta-btns { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+
+    /* ===== FOOTER ===== */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 2rem 1.5rem; text-align: center;
+      color: var(--text3); font-size: .85rem;
+    }
+    footer a { color: var(--green); text-decoration: none; }
+
+    /* ===== DIVIDER ===== */
+    .divider {
+      height: 1px; background: var(--border);
+      margin: 0 auto; max-width: 200px;
+    }
+
+    /* ===== MOBILE ===== */
+    @media (max-width: 600px) {
+      .hero-stats { gap: 1.5rem; }
+      .steps::before { display: none; }
+      section { padding: 3.5rem 1rem; }
+    }
+
+    /* ===== SCROLL REVEAL ===== */
+    .reveal { opacity: 0; transform: translateY(28px); transition: .6s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    /* ===== QUICK BADGES ROW ===== */
+    .quick-badges {
+      display: flex; flex-wrap: wrap; gap: .6rem;
+      justify-content: center; margin-top: 1.5rem;
+    }
+    .quick-badge {
+      padding: .4rem .9rem; border-radius: 20px; font-size: .82rem;
+      font-weight: 600; border: 1px solid;
+    }
+    .qb-green { border-color: rgba(26,188,156,.4); color: var(--green); background: rgba(26,188,156,.07); }
+    .qb-blue { border-color: rgba(52,152,219,.4); color: var(--blue); background: rgba(52,152,219,.07); }
+    .qb-red { border-color: rgba(231,76,60,.4); color: var(--red); background: rgba(231,76,60,.07); }
+    .qb-yellow { border-color: rgba(243,156,18,.4); color: var(--yellow); background: rgba(243,156,18,.07); }
+    .qb-purple { border-color: rgba(155,89,182,.4); color: var(--purple); background: rgba(155,89,182,.07); }
+
+    /* ===== TECH STACK ===== */
+    .tech-row {
+      display: flex; flex-wrap: wrap; gap: 1rem;
+      justify-content: center; margin-top: 1.5rem;
+    }
+    .tech-item {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 12px; padding: .75rem 1.25rem;
+      text-align: center; min-width: 100px;
+      transition: .25s;
+    }
+    .tech-item:hover { border-color: var(--green); }
+    .tech-item .ti-icon { font-size: 1.5rem; margin-bottom: .3rem; display: block; }
+    .tech-item .ti-name { font-size: .82rem; font-weight: 700; color: var(--text2); }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="top-nav">
+  <a href="#" class="nav-brand"><span>💚</span> نبض</a>
+  <a href="https://sudan-1.onrender.com" target="_blank" class="nav-cta">🚀 افتح التطبيق</a>
+</nav>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-particles" id="heroParticles"></div>
+  <div class="hero-content">
+    <div class="hero-badge"><span class="dot"></span> مباشر الآن · السودان والعالم</div>
+    <h1>نبض<br/>صوت المجتمع الحي</h1>
+    <p class="hero-sub">
+      تطبيق مجتمعي متكامل يجمع الأخبار اللحظية، الأسعار، الخرائط الحية،<br/>
+      خدمات الطوارئ، والتواصل المجتمعي في منصة واحدة مجانية.
+    </p>
+    <div class="hero-btns">
+      <a href="https://sudan-1.onrender.com" target="_blank" class="btn-primary">
+        ⚡ ابدأ الآن مجاناً
+      </a>
+      <a href="#features" class="btn-secondary">
+        📖 استعرض المميزات
+      </a>
+    </div>
+    <div class="hero-stats">
+      <div class="hero-stat"><span class="num">23+</span><span class="lbl">قسم متكامل</span></div>
+      <div class="hero-stat"><span class="num">145+</span><span class="lbl">واجهة برمجية</span></div>
+      <div class="hero-stat"><span class="num">388+</span><span class="lbl">وظيفة تفاعلية</span></div>
+      <div class="hero-stat"><span class="num">18</span><span class="lbl">ولاية سودانية</span></div>
+    </div>
+  </div>
+</header>
+
+<!-- WHAT IS NABDH -->
+<section style="background: var(--bg2); padding-top: 4rem; padding-bottom: 4rem;">
+  <div class="container">
+    <div class="sec-header reveal">
+      <span class="sec-badge">ما هو نبض؟</span>
+      <h2>المنصة المجتمعية الأولى للسودان</h2>
+      <p>نبض هو تطبيق ويب تقدمي (PWA) يعمل من المتصفح مباشرةً — لا تحتاج لتحميل أي شيء</p>
+    </div>
+    <div class="quick-badges reveal">
+      <span class="quick-badge qb-green">✅ مجاني 100%</span>
+      <span class="quick-badge qb-blue">📱 يعمل على جميع الأجهزة</span>
+      <span class="quick-badge qb-red">🔴 بيانات لحظية مباشرة</span>
+      <span class="quick-badge qb-yellow">⚡ سريع وخفيف</span>
+      <span class="quick-badge qb-purple">🔒 آمن وخصوصيتك محفوظة</span>
+      <span class="quick-badge qb-green">🌐 يدعم العربية بالكامل</span>
+      <span class="quick-badge qb-blue">📴 يعمل بدون إنترنت جزئياً</span>
+      <span class="quick-badge qb-red">🆘 نداء الاستغاثة الفوري</span>
+    </div>
+  </div>
+</section>
+
+<!-- HOW TO USE -->
+<section id="how">
+  <div class="container">
+    <div class="sec-header reveal">
+      <span class="sec-badge">كيف تبدأ؟</span>
+      <h2>أربع خطوات فقط</h2>
+      <p>ابدأ الاستخدام الكامل في أقل من دقيقتين</p>
+    </div>
+    <div class="steps">
+      <div class="step reveal">
+        <div class="step-num">1</div>
+        <div>
+          <h4>افتح التطبيق في المتصفح</h4>
+          <p>افتح الرابط <strong>sudan-1.onrender.com</strong> من أي متصفح (Chrome, Safari, Firefox). لا تحتاج لتسجيل حساب لتصفح معظم الأقسام.</p>
+        </div>
+      </div>
+      <div class="step reveal">
+        <div class="step-num">2</div>
+        <div>
+          <h4>ثبّته كتطبيق على هاتفك</h4>
+          <p>اضغط على زر "⬇️ ثبّت التطبيق" من القائمة الجانبية أو اختر "إضافة إلى الشاشة الرئيسية" من متصفحك. سيعمل كتطبيق عادي بعد ذلك.</p>
+        </div>
+      </div>
+      <div class="step reveal">
+        <div class="step-num">3</div>
+        <div>
+          <h4>فعّل خاصية الموقع الجغرافي</h4>
+          <p>اسمح للتطبيق بالوصول لموقعك لتحصل على بيانات مخصصة لمنطقتك: أسعار الصرف، الأدوية القريبة، التنبيهات المحلية، وأوقات الصلاة الدقيقة.</p>
+        </div>
+      </div>
+      <div class="step reveal">
+        <div class="step-num">4</div>
+        <div>
+          <h4>أكمل ملفك الشخصي واربح نقاطاً</h4>
+          <p>أدخل اسمك ومنطقتك من قسم "الملف الشخصي". ابدأ بالمشاركة لكسب النقاط والشارات والارتقاء في لوحة المتصدرين.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section id="features" style="background: var(--bg2);">
+  <div class="container">
+    <div class="sec-header reveal">
+      <span class="sec-badge">المميزات</span>
+      <h2>كل ما تحتاجه في مكان واحد</h2>
+      <p>٢٣ قسماً متكاملاً يغطي جميع احتياجات المجتمع</p>
+    </div>
+    <div class="features-grid">
+
+      <div class="feature-card reveal" style="--accent:#e74c3c;">
+        <span class="feature-icon">🗺️</span>
+        <h3>الخريطة الحية</h3>
+        <p>خريطة تفاعلية تُظهر جميع البلاغات والأشخاص والأحداث في لحظتها الفعلية. تدعم أربعة أنماط عرض وطبقات متعددة.</p>
+        <div class="feature-tags">
+          <span class="ftag">🔴 خطر</span><span class="ftag">🟡 تحذير</span><span class="ftag">🔵 معلومة</span><span class="ftag">🌡️ كثافة حرارية</span>
+        </div>
+      </div>
+
+      <div class="feature-card reveal" style="--accent:#e67e22;">
+        <span class="feature-icon">📢</span>
+        <h3>بلّغ الآن</h3>
+        <p>أبلغ عن أي حادث أو أزمة فوراً مع الموقع الجغرافي والصور. تنتشر التنبيهات للمستخدمين في المنطقة خلال ثوانٍ.</p>
+        <div class="feature-tags">
+          <span class="ftag">📍 موقع تلقائي</span><span class="ftag">📸 صور</span><span class="ftag">⚡ فوري</span>
+        </div>
+      </div>
+
+      <div class="feature-card reveal" style="--accent:#e74c3c;">
+        <span class="feature-icon">🆘</span>
+        <h3>نداء الاستغاثة (SOS)</h3>
+        <p>في حالات الطوارئ القصوى — يُرسل نداء فوري لجميع المستخدمين ضمن نطاق 100 كم ويضع موقعك على الخريطة على الفور.</p>
+        <div class="feature-tags">
+          <span class="ftag">🚨 طوارئ</span><span class="ftag">📡 100 كم</span><span class="ftag">⚡ فوري</span>
+        </div>
+      </div>
+
+      <div class="feature-card reveal" style="--accent:#3498db;">
+        <span class="feature-icon">💱</span>
+        <h3>صرّاف الشعب</h3>
+        <p>أسعار الصرف اللحظية بالجنيه السوداني (SDG) مقابل الدولار واليورو والريال. مُبلَّغ عنها من المجتمع مباشرةً مع مخطط تاريخي.</p>
+        <div class="feature-tags">
+          <span class="ftag">💵 USD</span><span class="ftag">💶 EUR</span><span class="ftag">💸 SDG</span><span class="ftag">📊 مخطط</span>
+        </div>
+      </div>
+
+      <div class="feature-card reveal" style="--accent:#2ecc71;">
+        <span class="feature-icon">💊</span>
+        <h3>دواء موجود</h3>
+        <p>ابحث عن أي دواء في أقرب صيدلية لموقعك. يمكنك أيضاً إضافة معلومة توافر دواء لمساعدة المجتمع.</p>
+        <div class="feature-tags">
+          <span class="ftag">📍 قريب مني</span><span class="ftag">✅ متوفر</span><span class="ftag">❌ غير متوفر</span>
+        </div>
+      </div>
+
+      <div class="feature-card reveal" style="--accent:#e74c3c;">
+        <span class="feature-icon">🩸</span>
+        <h3>بنك الدم</h3>
+        <p>ابحث عن متبرع بالدم حسب فصيلتك وموقعك، أو سجّل نفسك كمتبرع، أو أرسل طلب دم عاجل.</p>
+        <div class="feature-tags">
+          <span class="ftag">A+</span><span class="ftag">B+</span><span class="ftag">O+</span><span class="ftag">AB+</span><span class="ftag">+4 فصائل</span>
+        </div>
+      </div>
+
+      <div class="feature-card reveal" style="--accent:#f39c12;">
+        <span class="feature-icon">⚡</span>
+        <h3>جدول الكهرباء</h3>
+        <p>تقارير انقطاع وجداول الكهرباء مُبلَّغ عنها من المجتمع لكل منطقة. صوّت للتأكيد أو أضف جدولاً جديداً.</p>
+        <div class="feature-tags">
+          <span class="ftag">🗳️ تصويت</span><span class="ftag">📅 جداول</span><span class="ftag">📍 بالمنطقة</span>
+        </div>
+      </div>
+
+      <div class="feature-card reveal" style="--accent:#9b59b6;">
+        <span class="feature-icon">🕌</span>
+        <h3>أوقات الصلاة</h3>
+        <p>أوقات الصلاة الدقيقة حسب موقعك الجغرافي مع عداد تنازلي للصلاة القادمة ودعم لجميع المناطق.</p>
+        <div class="feature-tags">
+          <span class="ftag">⏰ عداد</span><span class="ftag">📍 جغرافي</span><span class="ftag">🌙 هجري</span>
+        </div>
+      </div>
+
+      <div class="feature-card reveal" style="--accent:#1abc9c;">
+        <span class="feature-icon">🏥</span>
+        <h3>دليل المستشفيات</h3>
+        <p>دليل شامل للمستشفيات والعيادات والمختبرات والصيدليات مع خاصية البحث وتقييم الخدمة.</p>
+        <div class="feature-tags">
+          <span class="ftag">🏥 مستشفى</span><span class="ftag">🏨 عيادة</span><span class="ftag">🔬 مختبر</span><span class="ftag">⭐ تقييم</span>
+        </div>
+      </div>
+
+      <div class="feature-card reveal" style="--accent:#3498db;">
+        <span class="feature-icon">🛒</span>
+        <h3>سوق P2P المباشر</h3>
+        <p>بيع واشترِ وتبادل مباشرةً بين الأشخاص. إلكترونيات، ملابس، أغذية، سيارات، عقارات، خدمات وأكثر.</p>
+        <div class="feature-tags">
+          <span class="ftag">بيع</span><span class="ftag">شراء</span><span class="ftag">تبادل</span><span class="ftag">📸 صور</span>
+        </div>
+      </div>
+
+      <div class="feature-card reveal" style="--accent:#2ecc71;">
+        <span class="feature-icon">🤝</span>
+        <h3>بورصة المهارات</h3>
+        <p>قدّم مهارتك واطلب مهارة أخرى بالمقايضة أو الأجر. منصة تبادل خدمات بين أبناء المجتمع.</p>
+        <div class="feature-tags">
+          <span class="ftag">💡 تقديم</span><span class="ftag">🔍 طلب</span><span class="ftag">🔄 تبادل</span>
+        </div>
+      </div>
+
+      <div class="feature-card reveal" style="--accent:#e67e22;">
+        <span class="feature-icon">🚗</span>
+        <h3>مشاركة التنقل</h3>
+        <p>وفّر تنقلك مع جيرانك — ابحث عن رحلة مشتركة أو أعلن عن رحلتك لتشارك التكلفة.</p>
+        <div class="feature-tags">
+          <span class="ftag">🗓️ موعد</span><span class="ftag">💺 مقاعد</span><span class="ftag">💰 سعر</span>
+        </div>
+      </div>
+
+      <div class="feature-card reveal" style="--accent:#9b59b6;">
+        <span class="feature-icon">🎓</span>
+        <h3>مجموعات التعلم</h3>
+        <p>غرف دراسية بمستويات مختلفة (ابتدائي حتى مهني). دردشة جماعية ومكالمات صوتية/مرئية WebRTC مدمجة.</p>
+        <div class="feature-tags">
+          <span class="ftag">💬 دردشة</span><span class="ftag">🎙️ صوتي</span><span class="ftag">📹 مرئي</span>
+        </div>
+      </div>
+
+      <div class="feature-card reveal" style="--accent:#e74c3c;">
+        <span class="feature-icon">📦</span>
+        <h3>طلبات المساعدة</h3>
+        <p>اطلب مساعدة في الغذاء أو الدواء أو المواصلات أو المأوى أو المال. علّم طلبك "عاجل" للأولوية.</p>
+        <div class="feature-tags">
+          <span class="ftag">🍞 غذاء</span><span class="ftag">💊 دواء</span><span class="ftag">🚌 نقل</span><span class="ftag">🏠 مأوى</span>
+        </div>
+      </div>
+
+      <div class="feature-card reveal" style="--accent:#3498db;">
+        <span class="feature-icon">🗳️</span>
+        <h3>استطلاعات الرأي</h3>
+        <p>شارك برأيك في القضايا المجتمعية وتابع نتائج الاستطلاعات بشكل مباشر ولحظي.</p>
+        <div class="feature-tags">
+          <span class="ftag">📊 نتائج حية</span><span class="ftag">🗳️ تصويت</span>
+        </div>
+      </div>
+
+      <div class="feature-card reveal" style="--accent:#1abc9c;">
+        <span class="feature-icon">📰</span>
+        <h3>الأخبار المحلية</h3>
+        <p>أخبار من المجتمع ومصنّفة (سياسة، اقتصاد، أمن، صحة، رياضة). التحقق بالتصويت الجماعي.</p>
+        <div class="feature-tags">
+          <span class="ftag">سياسة</span><span class="ftag">اقتصاد</span><span class="ftag">أمن</span><span class="ftag">صحة</span>
+        </div>
+      </div>
+
+      <div class="feature-card reveal" style="--accent:#3498db;">
+        <span class="feature-icon">💬</span>
+        <h3>الرسائل المباشرة</h3>
+        <p>تراسل مباشر بين المستخدمين مع دعم النصوص والصور والرسائل الصوتية ومؤشر الكتابة.</p>
+        <div class="feature-tags">
+          <span class="ftag">📸 صور</span><span class="ftag">🎙️ صوت</span><span class="ftag">⌨️ مؤشر كتابة</span>
+        </div>
+      </div>
+
+      <div class="feature-card reveal" style="--accent:#2ecc71;">
+        <span class="feature-icon">🔍</span>
+        <h3>البحث عن الأشخاص</h3>
+        <p>ابحث عن أي شخص بالاسم أو الرقم أو البريد الإلكتروني أو الشركة. يمكنك تحديد موقعه على الخريطة.</p>
+        <div class="feature-tags">
+          <span class="ftag">👤 اسم</span><span class="ftag">📞 هاتف</span><span class="ftag">✉️ بريد</span>
+        </div>
+      </div>
+
+      <div class="feature-card reveal" style="--accent:#f39c12;">
+        <span class="feature-icon">💧</span>
+        <h3>خريطة المياه</h3>
+        <p>صوّت على حالة المياه في منطقتك (موجودة/مقطوعة/ضعيفة) وتابع تقارير المنطقة.</p>
+        <div class="feature-tags">
+          <span class="ftag">✅ موجودة</span><span class="ftag">❌ مقطوعة</span><span class="ftag">⚠️ ضعيفة</span>
+        </div>
+      </div>
+
+      <div class="feature-card reveal" style="--accent:#3498db;">
+        <span class="feature-icon">🌤️</span>
+        <h3>الطقس</h3>
+        <p>حالة الطقس الآنية حسب موقعك مع إمكانية البحث عن أي مدينة. نصائح تكيّف مع الأحوال الجوية.</p>
+        <div class="feature-tags">
+          <span class="ftag">🌡️ درجة حرارة</span><span class="ftag">💨 رياح</span><span class="ftag">💧 رطوبة</span>
+        </div>
+      </div>
+
+      <div class="feature-card reveal" style="--accent:#9b59b6;">
+        <span class="feature-icon">🎤</span>
+        <h3>صوت الحي</h3>
+        <p>ارفع مشكلة في حيّك أو منطقتك (كهرباء، ماء، طرق، صحة، أمن) وصوّت المجتمع عليها.</p>
+        <div class="feature-tags">
+          <span class="ftag">⚡ كهرباء</span><span class="ftag">💧 ماء</span><span class="ftag">🛣️ طرق</span>
+        </div>
+      </div>
+
+      <div class="feature-card reveal" style="--accent:#1abc9c;">
+        <span class="feature-icon">📊</span>
+        <h3>لوحة الإحصاءات</h3>
+        <p>إحصاءات شاملة: المستخدمون الآن، التقارير الإجمالية، الأرواح المنقذة، أكثر المدن نشاطاً.</p>
+        <div class="feature-tags">
+          <span class="ftag">👥 مباشر</span><span class="ftag">📈 تقارير</span><span class="ftag">🏙️ مدن</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- SECTION SHOWCASE -->
+<section id="showcase">
+  <div class="container">
+    <div class="sec-header reveal">
+      <span class="sec-badge">جولة في الأقسام</span>
+      <h2>استكشف كل قسم بالتفصيل</h2>
+      <p>اضغط على أي قسم لعرض تفاصيله</p>
+    </div>
+
+    <div class="showcase-tabs reveal">
+      <button class="stab active" data-panel="p1">🗺️ الخريطة</button>
+      <button class="stab" data-panel="p2">💱 الصراف</button>
+      <button class="stab" data-panel="p3">🩸 الدم</button>
+      <button class="stab" data-panel="p4">🛒 السوق</button>
+      <button class="stab" data-panel="p5">🎓 التعلم</button>
+      <button class="stab" data-panel="p6">👤 الملف</button>
+    </div>
+
+    <div class="showcase-panels reveal">
+
+      <!-- خريطة -->
+      <div class="showcase-panel active" id="p1">
+        <div class="panel-inner">
+          <div class="panel-info">
+            <h3>🗺️ الخريطة الحية</h3>
+            <p>قلب تطبيق نبض — خريطة تفاعلية تُظهر كل ما يحدث في السودان والعالم لحظةً بلحظة.</p>
+            <ul class="panel-features">
+              <li>أربعة أنماط عرض: داكن، فاتح، أقمار اصطناعية، طبوغرافي</li>
+              <li>طبقات: تنبيهات، أشخاص، كثافة حرارية، حدود الولايات</li>
+              <li>فلاتر: خطر، تحذير، معلومة، أشخاص، SOS، قريب مني</li>
+              <li>أدوات عائمة: بلّغ الآن، نداء الاستغاثة، موقعي الحالي</li>
+              <li>بحث بالمنطقة أو الحي</li>
+              <li>عداد التنبيهات والأشخاص المتصلين</li>
+            </ul>
+          </div>
+          <div class="panel-visual">
+            <div class="mock-row">
+              <span class="mock-icon">🔴</span>
+              <span class="mock-text">حريق في منطقة الرياض، الخرطوم</span>
+              <span class="mock-badge badge-red">خطر</span>
+            </div>
+            <div class="mock-row">
+              <span class="mock-icon">🟡</span>
+              <span class="mock-text">تدهور طريق شارع النيل</span>
+              <span class="mock-badge badge-yellow">تحذير</span>
+            </div>
+            <div class="mock-row">
+              <span class="mock-icon">🔵</span>
+              <span class="mock-text">فعالية ثقافية في المركز</span>
+              <span class="mock-badge badge-blue">معلومة</span>
+            </div>
+            <div class="mock-row">
+              <span class="mock-icon">🆘</span>
+              <span class="mock-text">نداء استغاثة — حي العمارات</span>
+              <span class="mock-badge badge-red">عاجل</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- صراف -->
+      <div class="showcase-panel" id="p2">
+        <div class="panel-inner">
+          <div class="panel-info">
+            <h3>💱 صرّاف الشعب</h3>
+            <p>أسعار الصرف الشعبية اللحظية — يُشاركها المجتمع من كل مكان في السودان.</p>
+            <ul class="panel-features">
+              <li>سعر الدولار، اليورو، الريال السعودي مقابل الجنيه</li>
+              <li>مخطط تاريخي يُظهر التذبذبات</li>
+              <li>أعلى سعر، أدنى سعر، المتوسط اليومي</li>
+              <li>أضف سعرك الآن مع تحديد موقعك</li>
+              <li>تحديث تلقائي لحظي عبر Socket.IO</li>
+              <li>مقارنة بين مناطق مختلفة</li>
+            </ul>
+          </div>
+          <div class="panel-visual">
+            <div class="mock-row">
+              <span class="mock-icon">💵</span>
+              <span class="mock-text">دولار أمريكي (USD)</span>
+              <span class="mock-badge badge-green">SDG 1,850</span>
+            </div>
+            <div class="mock-row">
+              <span class="mock-icon">💶</span>
+              <span class="mock-text">يورو أوروبي (EUR)</span>
+              <span class="mock-badge badge-blue">SDG 2,010</span>
+            </div>
+            <div class="mock-row">
+              <span class="mock-icon">💸</span>
+              <span class="mock-text">ريال سعودي (SAR)</span>
+              <span class="mock-badge badge-yellow">SDG 493</span>
+            </div>
+            <div class="mock-row">
+              <span class="mock-icon">📊</span>
+              <span class="mock-text">مخطط آخر 7 أيام</span>
+              <span class="mock-badge badge-green">↗ صاعد</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- دم -->
+      <div class="showcase-panel" id="p3">
+        <div class="panel-inner">
+          <div class="panel-info">
+            <h3>🩸 بنك الدم</h3>
+            <p>منصة تبرع الدم — تربط المحتاجين بالمتبرعين في أسرع وقت.</p>
+            <ul class="panel-features">
+              <li>البحث عن متبرع بالفصيلة والمدينة</li>
+              <li>إرسال طلب دم عاجل مع إشعار فوري</li>
+              <li>تسجيل كمتبرع دائم</li>
+              <li>دعم جميع الفصائل الثماني</li>
+              <li>إحصاءات التبرع بالمنطقة</li>
+              <li>تنبيهات الطوارئ للمتبرعين القريبين</li>
+            </ul>
+          </div>
+          <div class="panel-visual">
+            <div class="mock-row">
+              <span class="mock-icon">🩸</span>
+              <span class="mock-text">طلب عاجل — فصيلة O+</span>
+              <span class="mock-badge badge-red">عاجل</span>
+            </div>
+            <div class="mock-row">
+              <span class="mock-icon">✅</span>
+              <span class="mock-text">متبرع متاح — A+ — الخرطوم</span>
+              <span class="mock-badge badge-green">متاح</span>
+            </div>
+            <div class="mock-row">
+              <span class="mock-icon">📍</span>
+              <span class="mock-text">3 متبرعين في نطاق 5 كم</span>
+              <span class="mock-badge badge-blue">قريب</span>
+            </div>
+            <div class="mock-row">
+              <span class="mock-icon">🏆</span>
+              <span class="mock-text">+25 نقطة مكافأة التبرع</span>
+              <span class="mock-badge badge-yellow">مكافأة</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- سوق -->
+      <div class="showcase-panel" id="p4">
+        <div class="panel-inner">
+          <div class="panel-info">
+            <h3>🛒 سوق P2P المباشر</h3>
+            <p>سوق شعبي رقمي — بيع واشترِ مباشرةً بدون وسيط.</p>
+            <ul class="panel-features">
+              <li>نشر إعلان مع صور متعددة</li>
+              <li>9 فئات: إلكترونيات، ملابس، أغذية، أدوية، سيارات، عقارات، خدمات...</li>
+              <li>دعم عدة عملات: SDG، دولار، يورو، ريال، تبادل</li>
+              <li>فلتر "قريب مني" للعثور على الأقرب</li>
+              <li>تعديل وحذف إعلانك في أي وقت</li>
+              <li>نظام الإعجاب والمشاهدات لمتابعة الاهتمام</li>
+            </ul>
+          </div>
+          <div class="panel-visual">
+            <div class="mock-row">
+              <span class="mock-icon">📱</span>
+              <span class="mock-text">iPhone 13 — حالة ممتازة</span>
+              <span class="mock-badge badge-yellow">SDG 450K</span>
+            </div>
+            <div class="mock-row">
+              <span class="mock-icon">🚗</span>
+              <span class="mock-text">تويوتا 2018 — خرطوم</span>
+              <span class="mock-badge badge-blue">للبيع</span>
+            </div>
+            <div class="mock-row">
+              <span class="mock-icon">🔄</span>
+              <span class="mock-text">تبادل أدوات كهربائية</span>
+              <span class="mock-badge badge-green">تبادل</span>
+            </div>
+            <div class="mock-row">
+              <span class="mock-icon">📍</span>
+              <span class="mock-text">إعلانات على بعد 2 كم</span>
+              <span class="mock-badge badge-green">قريب</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- تعلم -->
+      <div class="showcase-panel" id="p5">
+        <div class="panel-inner">
+          <div class="panel-info">
+            <h3>🎓 مجموعات التعلم</h3>
+            <p>غرف دراسية افتراضية تجمع الطلاب والمعلمين في بيئة تعليمية تفاعلية.</p>
+            <ul class="panel-features">
+              <li>7 مستويات: ابتدائي، متوسط، ثانوي، جامعي، مهني، عام، لغات</li>
+              <li>دردشة نصية جماعية لحظية</li>
+              <li>مكالمات صوتية ومرئية مدمجة (WebRTC)</li>
+              <li>مؤشر الكتابة الحي</li>
+              <li>مشاركة الملفات والصور</li>
+              <li>20 نقطة مكافأة عن كل 5 رسائل دراسية</li>
+            </ul>
+          </div>
+          <div class="panel-visual">
+            <div class="mock-row">
+              <span class="mock-icon">🎒</span>
+              <span class="mock-text">مجموعة ثانوي — الرياضيات</span>
+              <span class="mock-badge badge-blue">15 عضو</span>
+            </div>
+            <div class="mock-row">
+              <span class="mock-icon">🎓</span>
+              <span class="mock-text">مجموعة جامعي — طب</span>
+              <span class="mock-badge badge-green">نشط</span>
+            </div>
+            <div class="mock-row">
+              <span class="mock-icon">🔧</span>
+              <span class="mock-text">مجموعة مهني — برمجة</span>
+              <span class="mock-badge badge-yellow">8 عضو</span>
+            </div>
+            <div class="mock-row">
+              <span class="mock-icon">🎙️</span>
+              <span class="mock-text">مكالمة صوتية جارية...</span>
+              <span class="mock-badge badge-red">مباشر</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ملف -->
+      <div class="showcase-panel" id="p6">
+        <div class="panel-inner">
+          <div class="panel-info">
+            <h3>👤 الملف الشخصي</h3>
+            <p>هويتك الرقمية في نبض — أكمله لتحصل على أقصى استفادة من المنصة.</p>
+            <ul class="panel-features">
+              <li>صورة شخصية وصورة غلاف مخصصة</li>
+              <li>اسم مستعار وإيموجي شخصي</li>
+              <li>إخفاء رقم الهاتف (اختياري)</li>
+              <li>شارة التوثيق للحسابات الموثوقة</li>
+              <li>عرض نقاطك ومستواك وشاراتك</li>
+              <li>QR Code شخصي للمشاركة السريعة</li>
+            </ul>
+          </div>
+          <div class="panel-visual">
+            <div class="mock-row">
+              <span class="mock-icon">⭐</span>
+              <span class="mock-text">المستوى 4 — متقدم</span>
+              <span class="mock-badge badge-yellow">250 نقطة</span>
+            </div>
+            <div class="mock-row">
+              <span class="mock-icon">🏆</span>
+              <span class="mock-text">شارة بطل المجتمع</span>
+              <span class="mock-badge badge-green">مكتسب</span>
+            </div>
+            <div class="mock-row">
+              <span class="mock-icon">🔥</span>
+              <span class="mock-text">سلسلة 7 أيام متواصلة</span>
+              <span class="mock-badge badge-red">نشط</span>
+            </div>
+            <div class="mock-row">
+              <span class="mock-icon">📊</span>
+              <span class="mock-text">المركز 12 في لوحة المتصدرين</span>
+              <span class="mock-badge badge-blue">أسبوعي</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- POINTS SYSTEM -->
+<section id="points" style="background: var(--bg2);">
+  <div class="container">
+    <div class="sec-header reveal">
+      <span class="sec-badge">نظام المكافآت</span>
+      <h2>اربح نقاطاً وارتقِ في المستويات</h2>
+      <p>كل مساهمة تُقرّبك من لقب "أسطورة نبض"</p>
+    </div>
+
+    <h3 style="font-size:1.1rem; color:var(--text2); margin-bottom:1rem; text-align:center;" class="reveal">المستويات الستة</h3>
+    <div class="levels-grid reveal">
+      <div class="level-card"><span class="lv-icon">🌱</span><span class="lv-name">جديد</span><span class="lv-pts">0 – 20 نقطة</span><span class="lv-num">المستوى 1</span></div>
+      <div class="level-card"><span class="lv-icon">📗</span><span class="lv-name">مبتدئ</span><span class="lv-pts">20 – 80 نقطة</span><span class="lv-num">المستوى 2</span></div>
+      <div class="level-card"><span class="lv-icon">⚡</span><span class="lv-name">نشيط</span><span class="lv-pts">80 – 200 نقطة</span><span class="lv-num">المستوى 3</span></div>
+      <div class="level-card"><span class="lv-icon">🔥</span><span class="lv-name">متقدم</span><span class="lv-pts">200 – 500 نقطة</span><span class="lv-num">المستوى 4</span></div>
+      <div class="level-card"><span class="lv-icon">🌟</span><span class="lv-name">نجم</span><span class="lv-pts">500 – 1000 نقطة</span><span class="lv-num">المستوى 5</span></div>
+      <div class="level-card"><span class="lv-icon">👑</span><span class="lv-name">أسطورة</span><span class="lv-pts">1000+ نقطة</span><span class="lv-num">المستوى 6</span></div>
+    </div>
+
+    <h3 style="font-size:1.1rem; color:var(--text2); margin: 2.5rem 0 .5rem; text-align:center;" class="reveal">شارات الإنجاز</h3>
+    <div class="badges-grid reveal">
+      <div class="badge-card"><span class="bd-icon">🚨</span><span class="bd-name">أول بلاغ</span><span class="bd-pts">+10 نقطة</span><span class="bd-desc">أرسل أول بلاغ حقيقي</span></div>
+      <div class="badge-card"><span class="bd-icon">🤝</span><span class="bd-name">مساعد</span><span class="bd-pts">+45 نقطة</span><span class="bd-desc">ردّ على طلبات المساعدة</span></div>
+      <div class="badge-card"><span class="bd-icon">🦸</span><span class="bd-name">بطل المجتمع</span><span class="bd-pts">+100 نقطة</span><span class="bd-desc">قدّم مساعدة كبرى</span></div>
+      <div class="badge-card"><span class="bd-icon">📰</span><span class="bd-name">مراسل ميداني</span><span class="bd-pts">+120 نقطة</span><span class="bd-desc">غطاء إخباري مستمر</span></div>
+      <div class="badge-card"><span class="bd-icon">🩸</span><span class="bd-name">واهب الحياة</span><span class="bd-pts">+50 نقطة</span><span class="bd-desc">التسجيل أو التبرع بالدم</span></div>
+      <div class="badge-card"><span class="bd-icon">🔗</span><span class="bd-name">الرابط</span><span class="bd-pts">+50 نقطة</span><span class="bd-desc">دعوة أصدقاء للتطبيق</span></div>
+      <div class="badge-card"><span class="bd-icon">👁️</span><span class="bd-name">اليقظ</span><span class="bd-pts">+40 نقطة</span><span class="bd-desc">التحقق من التنبيهات</span></div>
+      <div class="badge-card"><span class="bd-icon">🎓</span><span class="bd-name">العالم</span><span class="bd-pts">+30 نقطة</span><span class="bd-desc">المشاركة في التعلم</span></div>
+      <div class="badge-card"><span class="bd-icon">🔥</span><span class="bd-name">المتواصل</span><span class="bd-pts">+70 نقطة</span><span class="bd-desc">7 أيام نشاط متواصل</span></div>
+      <div class="badge-card"><span class="bd-icon">⭐</span><span class="bd-name">أسطورة نبض</span><span class="bd-pts">+500 نقطة</span><span class="bd-desc">إنجاز المستوى الأعلى</span></div>
+    </div>
+
+    <h3 style="font-size:1.1rem; color:var(--text2); margin: 2.5rem 0 .5rem; text-align:center;" class="reveal">التحديات اليومية</h3>
+    <div class="challenges-grid reveal">
+      <div class="challenge-card"><span class="ch-icon">🚨</span><div><div class="ch-title">بلاغ عاجل</div><div class="ch-desc">أرسل بلاغاً حقيقياً واحداً</div><span class="ch-reward">⭐ +10 نقطة + شارة 🚨</span></div></div>
+      <div class="challenge-card"><span class="ch-icon">🩸</span><div><div class="ch-title">واهب الدم</div><div class="ch-desc">سجّل أو اطلب تبرعاً بالدم</div><span class="ch-reward">⭐ +25 نقطة + شارة 🩸</span></div></div>
+      <div class="challenge-card"><span class="ch-icon">📲</span><div><div class="ch-title">ناشر الخير</div><div class="ch-desc">شارك التطبيق مع 3 أشخاص</div><span class="ch-reward">⭐ +15 نقطة</span></div></div>
+      <div class="challenge-card"><span class="ch-icon">📚</span><div><div class="ch-title">الطالب النشيط</div><div class="ch-desc">أرسل 5 رسائل في مجموعة دراسية</div><span class="ch-reward">⭐ +20 نقطة + شارة 🎓</span></div></div>
+      <div class="challenge-card"><span class="ch-icon">🤝</span><div><div class="ch-title">يد العون</div><div class="ch-desc">ردّ على طلب مساعدة</div><span class="ch-reward">⭐ +30 نقطة + شارة 🤝</span></div></div>
+      <div class="challenge-card"><span class="ch-icon">🗳️</span><div><div class="ch-title">الناخب النشيط</div><div class="ch-desc">صوّت على 5 تنبيهات مختلفة</div><span class="ch-reward">⭐ +10 نقطة</span></div></div>
+      <div class="challenge-card"><span class="ch-icon">🛒</span><div><div class="ch-title">السوق النشط</div><div class="ch-desc">انشر إعلاناً في السوق</div><span class="ch-reward">⭐ +15 نقطة + شارة 🛒</span></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- GEOGRAPHIC COVERAGE -->
+<section id="coverage">
+  <div class="container">
+    <div class="sec-header reveal">
+      <span class="sec-badge">التغطية الجغرافية</span>
+      <h2>يشمل كل السودان والعالم</h2>
+      <p>بيانات جغرافية شاملة لجميع الولايات والمدن والأحياء</p>
+    </div>
+    <div class="features-grid reveal">
+      <div class="feature-card" style="--accent:#1abc9c;">
+        <span class="feature-icon">🇸🇩</span>
+        <h3>18 ولاية سودانية</h3>
+        <p>تغطية كاملة لجميع ولايات السودان مع بيانات المدن والأحياء: الخرطوم، الجزيرة، نهر النيل، البحر الأحمر، كسلا، القضارف، نيالا، والمزيد.</p>
+      </div>
+      <div class="feature-card" style="--accent:#3498db;">
+        <span class="feature-icon">🌍</span>
+        <h3>تغطية عالمية</h3>
+        <p>يدعم التطبيق أيضاً المدن العالمية للمغتربين السودانيين في مصر، السعودية، الإمارات، قطر، وجميع أنحاء العالم.</p>
+      </div>
+      <div class="feature-card" style="--accent:#9b59b6;">
+        <span class="feature-icon">📍</span>
+        <h3>البحث بالحي</h3>
+        <p>ابحث بدقة حتى مستوى الحي والشارع. الخرطوم وحدها تضم أكثر من 22 حياً في قاعدة البيانات الجغرافية.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TECH -->
+<section style="background: var(--bg2);">
+  <div class="container">
+    <div class="sec-header reveal">
+      <span class="sec-badge">التقنية</span>
+      <h2>مبني على أحدث التقنيات</h2>
+      <p>بنية تحتية قوية تضمن السرعة والأمان والموثوقية</p>
+    </div>
+    <div class="tech-row reveal">
+      <div class="tech-item"><span class="ti-icon">⚙️</span><span class="ti-name">Node.js</span></div>
+      <div class="tech-item"><span class="ti-icon">🔌</span><span class="ti-name">Socket.IO</span></div>
+      <div class="tech-item"><span class="ti-icon">🗺️</span><span class="ti-name">Leaflet</span></div>
+      <div class="tech-item"><span class="ti-icon">📱</span><span class="ti-name">PWA</span></div>
+      <div class="tech-item"><span class="ti-icon">🎙️</span><span class="ti-name">WebRTC</span></div>
+      <div class="tech-item"><span class="ti-icon">🚀</span><span class="ti-name">Express 5</span></div>
+      <div class="tech-item"><span class="ti-icon">🌐</span><span class="ti-name">REST API</span></div>
+      <div class="tech-item"><span class="ti-icon">📦</span><span class="ti-name">Service Worker</span></div>
+    </div>
+    <div class="quick-badges reveal" style="margin-top:1.5rem;">
+      <span class="quick-badge qb-green">145+ واجهة API</span>
+      <span class="quick-badge qb-blue">388+ وظيفة JavaScript</span>
+      <span class="quick-badge qb-yellow">23,500+ سطر كود</span>
+      <span class="quick-badge qb-purple">SW v9 · Cache فوري</span>
+      <span class="quick-badge qb-red">RTL عربي كامل</span>
+      <span class="quick-badge qb-green">متوافق مع كل الهواتف</span>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section id="faq">
+  <div class="container">
+    <div class="sec-header reveal">
+      <span class="sec-badge">الأسئلة الشائعة</span>
+      <h2>أسئلة يسألها المستخدمون</h2>
+    </div>
+    <div class="faq-list reveal">
+
+      <div class="faq-item">
+        <div class="faq-q">هل التطبيق مجاني تماماً؟ <span class="arrow">▼</span></div>
+        <div class="faq-a">نعم، نبض مجاني 100% بدون أي رسوم أو اشتراكات. جميع الخدمات متاحة للجميع بلا استثناء.</div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">هل يحتاج التطبيق لتسجيل حساب؟ <span class="arrow">▼</span></div>
+        <div class="faq-a">يمكنك تصفح معظم الأقسام بدون تسجيل. لكن لنشر البلاغات والمشاركة في المجتمع وكسب النقاط، يُنصح بإنشاء ملف شخصي بسيط (اسم + موقع).</div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">كيف أثبّت التطبيق على هاتفي؟ <span class="arrow">▼</span></div>
+        <div class="faq-a">من Chrome أو Safari، افتح الرابط ثم اضغط على "إضافة إلى الشاشة الرئيسية" من قائمة المتصفح. أو اضغط على زر "ثبّت التطبيق" داخل القائمة الجانبية في نبض نفسه.</div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">هل يعمل التطبيق بدون إنترنت؟ <span class="arrow">▼</span></div>
+        <div class="faq-a">نعم جزئياً! بفضل Service Worker، يتم تخزين أساسيات التطبيق محلياً. عند انقطاع الإنترنت تظهر صفحة Offline مع البيانات المخزنة مسبقاً.</div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">هل بياناتي الشخصية آمنة؟ <span class="arrow">▼</span></div>
+        <div class="faq-a">نعم. يمكنك إخفاء رقم هاتفك من إعدادات الملف الشخصي. لا يُشارك أي معلومات شخصية مع طرف ثالث. التطبيق يستخدم HTTPS مشفراً.</div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">ما هو نداء الاستغاثة SOS وكيف يعمل؟ <span class="arrow">▼</span></div>
+        <div class="faq-a">في حالات الطوارئ القصوى فقط — اضغط زر SOS، سيُرسل نداء فوري لجميع المستخدمين في نطاق 100 كيلومتر مع إظهار موقعك على الخريطة الحية للجميع.</div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">كيف تعمل نقاط المكافآت؟ <span class="arrow">▼</span></div>
+        <div class="faq-a">كل مساهمة تمنحك نقاطاً: بلاغ (+10)، تبرع دم (+25)، رد مساعدة (+30)... تتراكم النقاط لترفع مستواك من "جديد" إلى "أسطورة" مع شارات حصرية ومركز في لوحة المتصدرين.</div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">هل التطبيق متاح خارج السودان؟ <span class="arrow">▼</span></div>
+        <div class="faq-a">نعم! يمكن استخدامه من أي مكان في العالم. يدعم البحث الجغرافي العالمي ويتيح للمغتربين السودانيين متابعة أخبار الوطن والتواصل مع المجتمع.</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section>
+  <div class="container">
+    <div class="cta-section reveal">
+      <h2>جاهز للانضمام لمجتمع نبض؟</h2>
+      <p>أكثر من مجرد تطبيق — نبض هو صوت كل مواطن سوداني يريد مجتمعاً أفضل.</p>
+      <div class="cta-btns">
+        <a href="https://sudan-1.onrender.com" target="_blank" class="btn-primary">
+          ⚡ افتح نبض الآن
+        </a>
+        <a href="https://sudan-1.onrender.com/?section=report" target="_blank" class="btn-secondary">
+          📢 أبلغ عن حدث
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <p>💚 <strong>نبض</strong> — مجتمع للجميع · السودان والعالم</p>
+  <p style="margin-top:.5rem;">
+    <a href="https://sudan-1.onrender.com" target="_blank">sudan-1.onrender.com</a>
+    &nbsp;·&nbsp; الإصدار v7.6 &nbsp;·&nbsp; Service Worker v9
+  </p>
+  <p style="margin-top:.75rem; color: var(--text3); font-size:.78rem;">
+    مبني بـ ❤️ لخدمة المجتمع السوداني
+  </p>
+</footer>
+
+<script>
+  // === Particles ===
+  (function(){
+    var c = document.getElementById('heroParticles');
+    for(var i=0;i<18;i++){
+      var s = document.createElement('span');
+      var sz = Math.random()*60+20;
+      s.style.cssText = [
+        'width:'+sz+'px','height:'+sz+'px',
+        'right:'+(Math.random()*100)+'%',
+        'animation-duration:'+(Math.random()*20+15)+'s',
+        'animation-delay:'+(Math.random()*15)+'s'
+      ].join(';');
+      c.appendChild(s);
+    }
+  })();
+
+  // === Tabs ===
+  document.querySelectorAll('.stab').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      var p = btn.dataset.panel;
+      document.querySelectorAll('.stab').forEach(function(b){b.classList.remove('active');});
+      document.querySelectorAll('.showcase-panel').forEach(function(panel){panel.classList.remove('active');});
+      btn.classList.add('active');
+      document.getElementById(p).classList.add('active');
+    });
+  });
+
+  // === FAQ ===
+  document.querySelectorAll('.faq-q').forEach(function(q){
+    q.addEventListener('click',function(){
+      var item = q.parentElement;
+      var wasOpen = item.classList.contains('open');
+      document.querySelectorAll('.faq-item').forEach(function(i){i.classList.remove('open');});
+      if(!wasOpen) item.classList.add('open');
+    });
+  });
+
+  // === Scroll Reveal ===
+  var observer = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if(e.isIntersecting){ e.target.classList.add('visible'); }
+    });
+  },{ threshold:0.1 });
+  document.querySelectorAll('.reveal').forEach(function(el){ observer.observe(el); });
+
+  // === Animated counters ===
+  function animateCounter(el, target, suffix){
+    var start = 0;
+    var dur = 1800;
+    var step = target / (dur/16);
+    var current = start;
+    var timer = setInterval(function(){
+      current += step;
+      if(current >= target){ current = target; clearInterval(timer); }
+      el.textContent = Math.floor(current) + suffix;
+    },16);
+  }
+  var heroObserver = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if(e.isIntersecting){
+        var nums = e.target.querySelectorAll('.num');
+        var data = [
+          {val:23, suf:'+'},{val:145, suf:'+'},{val:388, suf:'+'},{val:18, suf:''}
+        ];
+        nums.forEach(function(n,i){ if(data[i]) animateCounter(n, data[i].val, data[i].suf); });
+        heroObserver.unobserve(e.target);
+      }
+    });
+  },{threshold:.5});
+  var heroStats = document.querySelector('.hero-stats');
+  if(heroStats) heroObserver.observe(heroStats);
+</script>
+</body>
+</html>

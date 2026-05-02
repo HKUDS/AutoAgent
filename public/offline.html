@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>نبض — غير متصل</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #0a0e1a;
+      color: #e8eaf6;
+      font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      text-align: center;
+    }
+    .logo { font-size: 4rem; animation: pulse 2s ease-in-out infinite; margin-bottom: 1rem; }
+    @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.1)} }
+    h1 { font-size: 1.6rem; color: #1abc9c; margin-bottom: .6rem; }
+    p  { color: #8892a4; font-size: .95rem; line-height: 1.6; margin-bottom: 1.5rem; }
+    .offline-icon {
+      font-size: 3rem;
+      background: rgba(26,188,156,.1);
+      border: 2px solid rgba(26,188,156,.3);
+      border-radius: 50%;
+      width: 90px; height: 90px;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 1.2rem;
+    }
+    .btn {
+      background: #1abc9c;
+      color: #0a0e1a;
+      border: none;
+      padding: .75rem 2rem;
+      border-radius: 25px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      transition: opacity .2s;
+      margin: .3rem;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .btn:hover { opacity: .85; }
+    .btn-ghost {
+      background: transparent;
+      color: #1abc9c;
+      border: 1px solid rgba(26,188,156,.4);
+    }
+    .cached-note {
+      margin-top: 2rem;
+      background: rgba(26,188,156,.07);
+      border: 1px solid rgba(26,188,156,.2);
+      border-radius: 12px;
+      padding: 1rem 1.5rem;
+      max-width: 340px;
+    }
+    .cached-note h3 { font-size: .9rem; color: #1abc9c; margin-bottom: .4rem; }
+    .cached-note p  { font-size: .8rem; color: #8892a4; margin: 0; }
+    .wave {
+      display: flex; gap: 4px; align-items: flex-end;
+      justify-content: center; height: 30px; margin: 1rem 0;
+    }
+    .wave span {
+      width: 5px; background: #1abc9c; border-radius: 3px;
+      animation: wave 1.2s ease-in-out infinite;
+      opacity: .6;
+    }
+    .wave span:nth-child(2) { animation-delay: .1s; }
+    .wave span:nth-child(3) { animation-delay: .2s; }
+    .wave span:nth-child(4) { animation-delay: .3s; }
+    .wave span:nth-child(5) { animation-delay: .4s; }
+    @keyframes wave {
+      0%,100%{height:8px} 50%{height:26px}
+    }
+  </style>
+</head>
+<body>
+  <div class="logo">💓</div>
+  <h1>نبض — بدون إنترنت</h1>
+  <div class="wave">
+    <span></span><span></span><span></span><span></span><span></span>
+  </div>
+  <p>أنت حالياً غير متصل بالإنترنت.<br/>بعض المحتوى المحفوظ قد يكون متاحاً.</p>
+
+  <button class="btn" onclick="tryReload()">🔄 إعادة المحاولة</button>
+  <a href="/" class="btn btn-ghost">🏠 الصفحة الرئيسية</a>
+
+  <div class="cached-note">
+    <h3>💾 وضع عدم الاتصال</h3>
+    <p>نبض يحفظ نسخة من آخر البيانات تلقائياً حتى تتمكن من الاطلاع عليها دون إنترنت</p>
+  </div>
+
+  <script>
+    function tryReload() {
+      if (navigator.onLine) {
+        location.href = '/';
+      } else {
+        const btn = document.querySelector('.btn');
+        btn.textContent = '❌ لا يزال غير متصل...';
+        setTimeout(() => btn.textContent = '🔄 إعادة المحاولة', 2500);
+      }
+    }
+    // Auto-redirect when back online
+    window.addEventListener('online', () => { location.href = '/'; });
+  </script>
+</body>
+</html>

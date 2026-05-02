@@ -1,0 +1,55 @@
+{
+  "name": "نبض — صوت المدينة الحي",
+  "short_name": "نبض",
+  "description": "تطبيق المدينة الحي — أخبار، أسعار، خرائط، رسائل مباشرة من مجتمعك",
+  "start_url": "/?pwa=1",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui", "browser"],
+  "background_color": "#0a0e1a",
+  "theme_color": "#1abc9c",
+  "orientation": "portrait-primary",
+  "lang": "ar",
+  "dir": "rtl",
+  "categories": ["news", "social", "utilities", "lifestyle"],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "بلّغ الآن",
+      "short_name": "تبليغ",
+      "description": "أرسل تقريراً عاجلاً",
+      "url": "/?section=report",
+      "icons": [{ "src": "/favicon.svg", "sizes": "any" }]
+    },
+    {
+      "name": "الخريطة الحية",
+      "short_name": "الخريطة",
+      "description": "اطلع على خريطة الأحداث",
+      "url": "/?section=map",
+      "icons": [{ "src": "/favicon.svg", "sizes": "any" }]
+    },
+    {
+      "name": "صرّاف الشعب",
+      "short_name": "الصرف",
+      "description": "تحقق من أسعار الصرف",
+      "url": "/?section=exchange",
+      "icons": [{ "src": "/favicon.svg", "sizes": "any" }]
+    },
+    {
+      "name": "رسائلي",
+      "short_name": "رسائل",
+      "description": "افتح صندوق الرسائل",
+      "url": "/?section=messages",
+      "icons": [{ "src": "/favicon.svg", "sizes": "any" }]
+    }
+  ],
+  "icons": [
+    { "src": "/favicon.svg",      "sizes": "any",     "type": "image/svg+xml", "purpose": "any" },
+    { "src": "/favicon.svg",      "sizes": "any",     "type": "image/svg+xml", "purpose": "maskable" },
+    { "src": "/images/icon-192.png", "sizes": "192x192", "type": "image/png",    "purpose": "any" },
+    { "src": "/images/icon-512.png", "sizes": "512x512", "type": "image/png",    "purpose": "any" },
+    { "src": "/images/icon-512.png", "sizes": "512x512", "type": "image/png",    "purpose": "maskable" }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false
+}
