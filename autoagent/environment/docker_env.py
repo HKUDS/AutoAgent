@@ -5,6 +5,7 @@ from constant import BASE_IMAGES, AI_USER, GITHUB_AI_TOKEN
 import time
 import socket
 import json
+import secrets
 from pathlib import Path
 import shutil
 wd = Path(__file__).parent.resolve()
@@ -38,6 +39,7 @@ class DockerEnv:
         self.git_clone = config.git_clone
         self.setup_package = config.setup_package
         self.communication_port = config.communication_port
+        self.command_token = secrets.token_hex(32)
         self.conda_path = config.conda_path
         
     def init_container(self):
@@ -100,7 +102,7 @@ class DockerEnv:
             "-v", f"{self.local_workplace}:{self.docker_workplace}",
             "-w", f"{self.docker_workplace}", "-p", f"{self.communication_port}:{self.communication_port}", BASE_IMAGES,
             "/bin/bash", "-c", 
-            f"python3 {self.docker_workplace}/tcp_server.py --workplace {self.workplace_name} --conda_path {self.conda_path} --port {self.communication_port}"
+            f"python3 {self.docker_workplace}/tcp_server.py --workplace {self.workplace_name} --conda_path {self.conda_path} --port {self.communication_port} --token {self.command_token}"
         ]
         # execute the docker command
         result = subprocess.run(docker_command, capture_output=True, text=True)
@@ -159,7 +161,8 @@ class DockerEnv:
         
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.connect((hostname, port))
-            s.sendall(command.encode())
+            payload = json.dumps({"token": self.command_token, "command": command})
+            s.sendall(payload.encode())
             
             partial_line = ""
             while True:
