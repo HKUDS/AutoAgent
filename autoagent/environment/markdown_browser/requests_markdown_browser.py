@@ -93,14 +93,27 @@ class RequestsMarkdownBrowser(AbstractMarkdownBrowser):
     def address(self) -> str:
         """Return the address of the current page."""
         return self.history[-1][0]
+    def _contained_path(self, root: str, candidate: str) -> str:
+        root_path = os.path.realpath(os.path.abspath(os.path.expanduser(root)))
+        candidate_path = os.path.realpath(os.path.abspath(os.path.expanduser(candidate)))
+        if os.path.commonpath([root_path, candidate_path]) != root_path:
+            raise ValueError(f"Path escapes the workspace: {candidate}")
+        return candidate_path
+
     def _convert_docker_to_local(self, path: str) -> str:
-        assert self.docker_workplace in path, f"The path must be a absolute path from `{self.docker_workplace}/` directory"
-        local_path = path.replace(self.docker_workplace, self.local_workplace)
-        return local_path
+        docker_root = pathlib.PurePosixPath(self.docker_workplace)
+        docker_path = pathlib.PurePosixPath(path)
+        try:
+            relative_path = docker_path.relative_to(docker_root)
+        except ValueError as exc:
+            raise ValueError(f"The path must be an absolute path under `{self.docker_workplace}/`") from exc
+        local_path = os.path.join(self.local_workplace, *relative_path.parts)
+        return self._contained_path(self.local_workplace, local_path)
+
     def _convert_local_to_docker(self, path: str) -> str:
-        assert self.local_workplace in path, f"The path must be a absolute path from `{self.local_workplace}/` directory"
-        docker_path = path.replace(self.local_workplace, self.docker_workplace)
-        return docker_path
+        local_path = self._contained_path(self.local_workplace, path)
+        relative_path = os.path.relpath(local_path, os.path.realpath(os.path.abspath(self.local_workplace)))
+        return pathlib.PurePosixPath(self.docker_workplace, *pathlib.PurePath(relative_path).parts).as_posix()
 
     def set_address(self, uri_or_path: str) -> None:
         """Sets the address of the current page.
