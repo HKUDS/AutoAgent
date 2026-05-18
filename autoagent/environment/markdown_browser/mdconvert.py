@@ -789,6 +789,8 @@ class ImageConverter(MediaConverter):
         ]
 
         response = client.chat.completions.create(model=model, messages=messages)
+        if not response.choices or response.choices[0].message is None or response.choices[0].message.content is None:
+            raise ValueError("LLM returned empty or filtered response")
         return response.choices[0].message.content
 
 
