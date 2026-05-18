@@ -61,6 +61,8 @@ def translate_content(content, target_lang):
         ],
     )
 
+    if not message.content or message.content[0].text is None:
+        raise ValueError("LLM returned empty or filtered response")
     return message.content[0].text
 
 
