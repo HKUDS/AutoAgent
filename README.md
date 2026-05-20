@@ -364,6 +364,13 @@ OPENAI_API_KEY=your_api_key_for_openai_compatible_endpoints
 COMPLETION_MODEL=openai/grok-2-latest API_BASE_URL=https://api.x.ai/v1 auto main
 ```
 
+For Tuning Engines, use your workspace inference key and model alias:
+
+```bash
+OPENAI_API_KEY=sk-te-...
+COMPLETION_MODEL=openai/<your-model-alias> API_BASE_URL=https://api.tuningengines.com/v1 auto main
+```
+
 ##### OpenRouter (e.g., DeepSeek-R1)
 
 We recommend using OpenRouter as LLM provider of DeepSeek-R1 temporarily. Because official API of DeepSeek-R1 can not be used efficiently.
@@ -520,7 +527,6 @@ Rome wasn't built in a day. AutoAgent stands on the shoulders of giants, and we 
       url={https://arxiv.org/abs/2502.05957},
 }
 ```
-
 
 
 
