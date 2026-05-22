@@ -394,6 +394,22 @@ DEEPSEEK_API_KEY=your_deepseek_api_key
 COMPLETION_MODEL=deepseek/deepseek-chat auto main
 ```
 
+##### MiniMax
+
+* set the `MINIMAX_API_KEY` in the `.env` file. MiniMax exposes an OpenAI-compatible endpoint, so we route requests through the `openai/` provider in LiteLLM.
+
+```bash
+MINIMAX_API_KEY=your_minimax_api_key
+```
+
+* run the following command to start Auto-Deep-Research.
+
+```bash
+OPENAI_API_KEY=$MINIMAX_API_KEY COMPLETION_MODEL=openai/MiniMax-M2.7 API_BASE_URL=https://api.minimax.io/v1 auto main
+```
+
+> Available models: `MiniMax-M2.7`, `MiniMax-M2.7-highspeed`. Use `https://api.minimaxi.com/v1` as `API_BASE_URL` for the Mainland China region.
+
 
 After the CLI mode is started, you can see the start page of AutoAgent: 
 
