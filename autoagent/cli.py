@@ -182,7 +182,9 @@ def update_guidance(context_variables):
 @click.option('--test_pull_name', default='autoagent_mirror', help='the name of the test pull')
 @click.option('--git_clone', default=True, help='whether to clone a mirror of the repository')
 @click.option('--local_env', default=False, help='whether to use local environment')
-def main(container_name: str, port: int, test_pull_name: str, git_clone: bool, local_env: bool):
+@click.option('--search-provider', type=click.Choice(['bing', 'parallel']), default='bing', show_default=True,
+              help='Select the web search provider.')
+def main(container_name: str, port: int, test_pull_name: str, git_clone: bool, local_env: bool, search_provider: str):
     """
     Run deep research with a given model, container name, port
     """ 
@@ -212,7 +214,7 @@ def main(container_name: str, port: int, test_pull_name: str, git_clone: bool, l
     
     clear_screen()
 
-    context_variables = {"working_dir": docker_config.workplace_name, "code_env": code_env, "web_env": web_env, "file_env": file_env}
+    context_variables = {"working_dir": docker_config.workplace_name, "code_env": code_env, "web_env": web_env, "file_env": file_env, "search_provider": search_provider}
 
     # select the mode
     while True:
@@ -318,7 +320,9 @@ def user_mode(model: str, context_variables: dict, debug: bool = True):
 @click.option('--container_name', default='deepresearch', help='the function to get the agent')
 @click.option('--port', default=12346, help='the port to run the container')
 @click.option('--local_env', default=False, help='whether to use local environment')
-def deep_research(container_name: str, port: int, local_env: bool):
+@click.option('--search-provider', type=click.Choice(['bing', 'parallel']), default='bing', show_default=True,
+              help='Select the web search provider.')
+def deep_research(container_name: str, port: int, local_env: bool, search_provider: str):
     """
     Run deep research with a given model, container name, port
     """ 
@@ -348,7 +352,7 @@ def deep_research(container_name: str, port: int, local_env: bool):
     
     clear_screen()
 
-    context_variables = {"working_dir": docker_config.workplace_name, "code_env": code_env, "web_env": web_env, "file_env": file_env}
+    context_variables = {"working_dir": docker_config.workplace_name, "code_env": code_env, "web_env": web_env, "file_env": file_env, "search_provider": search_provider}
 
     update_guidance(context_variables)
 

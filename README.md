@@ -257,6 +257,9 @@ You can run `auto main` to start full part of AutoAgent, including `user mode`, 
 - `FN_CALL`: Enable function calling (default: None). Most of time, you could ignore this option because we have already set the default value based on the model name.
 - `git_clone`: Clone the AutoAgent repository to the local environment (only support with the `auto main` command, default: True)
 - `test_pull_name`: The name of the test pull. (only support with the `auto main` command, default: 'autoagent_mirror')
+- `--search-provider`: Select the `web_search` provider (`bing` by default, or `parallel`). The `parallel` option uses the keyless MCP endpoint `https://search.parallel.ai/mcp`; it does not require an API key.
+
+For example, run `auto main --search-provider parallel` or `auto deep-research --search-provider parallel` to opt in. The existing browser-based navigation tools are unchanged. Requests identify the calling project with `User-Agent: AutoAgent/<installed version>` (or stable `AutoAgent` when package metadata is unavailable) for project-level aggregate MCP attribution. With `parallel` selected, query text is sent to Parallel Search; the integration adds no user- or device-specific identifiers.
 
 #### More details about `git_clone` and `test_pull_name`] 
 

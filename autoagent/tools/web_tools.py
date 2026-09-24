@@ -13,6 +13,7 @@ import tiktoken
 from datetime import datetime
 from autoagent.util import function_to_json
 from autoagent.tools.md_obs import flatten_md_axtree_to_str
+from autoagent.tools.parallel_search import ParallelSearchMCP, dispatch_search
 # def with_env(env: BrowserEnv):
 #     """将env注入到工具函数中的装饰器"""
 #     def decorator(func):
@@ -342,25 +343,33 @@ def visit_url(context_variables, url: str):
 @register_tool("web_search")
 def web_search(context_variables, query: str):
     """
-    Performs a web search on 'https://www.bing.com/search' with the given query.
+    Performs a web search with the selected provider.
     Args:
         query: The query to search for.
     """
-    env: BrowserEnv = context_variables.get("web_env", None)
-    assert env is not None, "web_env is not set"
-    try:
-        # action_str = f"_visit_page('https://www.google.com.sg/search?q={quote_plus(query)}&hl=en')"
-        action_str = f"_visit_page('https://www.bing.com/search?q={quote_plus(query)}&FORM=QBLH&hl=en')"
+    def bing_search(search_query: str):
+        env: BrowserEnv = context_variables.get("web_env", None)
+        assert env is not None, "web_env is not set"
+        try:
+            action_str = f"_visit_page('https://www.bing.com/search?q={quote_plus(search_query)}&FORM=QBLH&hl=en')"
 
-        obs = env.step(action_str)
-        web_obs = to_web_obs(obs)
-    except Exception as e:
-        return f"Error encountered when taking action: {action_str}\nError: {e}"
-    ret_value = wrap_return_value(web_obs)
-    return Result(
+            obs = env.step(action_str)
+            web_obs = to_web_obs(obs)
+        except Exception as error:
+            return f"Error encountered when taking action: {action_str}\nError: {error}"
+        ret_value = wrap_return_value(web_obs)
+        return Result(
             value=ret_value,
-            image=web_obs.screenshot, 
+            image=web_obs.screenshot,
         )
+
+    def parallel_search(search_query: str):
+        try:
+            return Result(value=ParallelSearchMCP().search(search_query))
+        except Exception as error:
+            return f"Error encountered while searching the Parallel MCP endpoint.\nError: {error}"
+
+    return dispatch_search(context_variables, query, bing_search, parallel_search)
 @register_tool("sleep")
 def sleep(context_variables):
     """
