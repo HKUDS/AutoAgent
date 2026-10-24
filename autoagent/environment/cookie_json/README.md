@@ -13,10 +13,11 @@ We recommend you to use the Google Chrome browser with the extension "Export coo
 
 ![export](../../../assets/cookies/export.png)
 
-3. After you have exported all cookies, use the following command to convert them to python code:
+3. From the AutoAgent repository root, run the following command to convert
+   the exported cookies to Python code:
 
 ```bash
-cd path/to/MetaChain && python autoagent/environment/browser_cookies.py
+python autoagent/environment/browser_cookies.py
 ```
 
 ## Recommended websites

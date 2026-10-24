@@ -409,7 +409,9 @@ After the CLI mode is started, you can see the start page of AutoAgent:
 
 #### Import browser cookies to browser environment
 
-You can import the browser cookies to the browser environment to let the agent better access some specific websites. For more details, please refer to the [cookies](./AutoAgent/environment/cookie_json/README.md) folder.
+You can import browser cookies into the browser environment to let the agent access
+some websites. For details, see the [cookies](./autoagent/environment/cookie_json/README.md)
+guide.
 
 #### Add your own API keys for third-party Tool Platforms
 
