@@ -373,6 +373,7 @@ def deep_research(container_name: str, port: int, local_env: bool):
         style=style
     )
     client = MetaChain(log_path=logger)
+    upload_infos = []
     while True: 
         # query = ask_text("Tell me what you want to do:")
         query = session.prompt(
@@ -399,6 +400,8 @@ def deep_research(container_name: str, port: int, local_env: bool):
         if hasattr(agent, "name"): 
             agent_name = agent.name
             console.print(f"[bold green][bold magenta]@{agent_name}[/bold magenta] will help you, be patient...[/bold green]")
+            if upload_infos:
+                query = "{}\n\nUser uploaded files:\n{}".format(query, "\n".join(upload_infos))
             messages.append({"role": "user", "content": query})
             response = client.run(agent, messages, context_variables, debug=False)
             messages.extend(response.messages)
@@ -418,9 +421,12 @@ def deep_research(container_name: str, port: int, local_env: bool):
         elif agent == "select": 
             code_env: DockerEnv = context_variables["code_env"]
             local_workplace = code_env.local_workplace
+            docker_workplace = code_env.docker_workplace
             files_dir = os.path.join(local_workplace, "files")
+            docker_files_dir = os.path.join(docker_workplace, "files")
             os.makedirs(files_dir, exist_ok=True)
-            select_and_copy_files(files_dir, console)
+            upload_infos.extend(select_and_copy_files(files_dir, console, docker_files_dir) or [])
+            agent = agents["System_Triage_Agent"]
         else: 
             console.print(f"[bold red]Unknown agent: {agent}[/bold red]")
     
