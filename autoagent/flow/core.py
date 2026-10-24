@@ -152,16 +152,21 @@ class EventEngineCls:
 
         tasks = set()
         try:
-            while len(queue) or len(tasks):
-                this_batch_events = (
-                    queue[:max_async_events] if max_async_events else queue
-                )
-                queue = queue[max_async_events:] if max_async_events else []
-                new_tasks = {
+            while queue or tasks:
+                if max_async_events and max_async_events > 0:
+                    available_slots = max_async_events - len(tasks)
+                    this_batch_events = (
+                        queue[:available_slots] if available_slots > 0 else []
+                    )
+                    queue = queue[len(this_batch_events):]
+                else:
+                    this_batch_events = queue
+                    queue = []
+
+                tasks.update(
                     asyncio.create_task(run_event(*run_event_input))
                     for run_event_input in this_batch_events
-                }
-                tasks.update(new_tasks)
+                )
                 done, tasks = await asyncio.wait(
                     tasks, return_when=asyncio.FIRST_COMPLETED
                 )
