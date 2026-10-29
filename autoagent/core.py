@@ -305,12 +305,14 @@ class MetaChain:
         self,
         agent: Agent,
         messages: List,
-        context_variables: dict = {},
+        context_variables: dict | None = None,
         model_override: str = None,
         debug: bool = False,
         max_turns: int = float("inf"),
         execute_tools: bool = True,
     ):
+        if context_variables is None:
+            context_variables = {}
         active_agent = agent
         context_variables = copy.deepcopy(context_variables)
         history = copy.deepcopy(messages)
