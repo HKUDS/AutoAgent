@@ -506,6 +506,8 @@ class MetaChain:
         stream: bool,
         debug: bool,
     ) -> Message:
+        if context_variables is None:
+            context_variables = {}
         context_variables = defaultdict(str, context_variables)
         instructions = (
             agent.instructions(context_variables)
