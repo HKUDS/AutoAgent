@@ -83,11 +83,13 @@ Please encapsulate your final answer (answer ONLY) within <solution> and </solut
 def run_in_client_non_async(
     agent: Agent,
     messages: List,
-    context_variables: dict = {},
+    context_variables: dict | None = None,
     logger: MetaChainLogger = None,
 ):
     """
     """
+    if context_variables is None:
+        context_variables = {}
     client = MetaChain(log_path=logger)
 
     MAX_RETRY = 3
