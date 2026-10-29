@@ -30,7 +30,7 @@ def case_not_resolved(failure_reason: str, take_away_message: str):
 async def run_in_client(
     agent: Agent,
     messages: List,
-    context_variables: dict = {},
+    context_variables: dict | None = None,
     logger: MetaChainLogger = None,
     meta_agent: Agent = None,
     docker_config: DockerConfig = None,
@@ -38,6 +38,8 @@ async def run_in_client(
 ):
     """
     """
+    if context_variables is None:
+        context_variables = {}
     client = MetaChain(log_path=logger)
 
     MAX_RETRY = 3
