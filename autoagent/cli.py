@@ -7,7 +7,6 @@ from constant import DOCKER_WORKPLACE_NAME
 from autoagent.io_utils import read_yaml_file, get_md5_hash_bytext, read_file
 from autoagent.environment.utils import setup_metachain
 from autoagent.types import Response
-from autoagent import MetaChain
 from autoagent.util import ask_text, single_select_menu, print_markdown, debug_print, UserCompleter
 from prompt_toolkit import PromptSession
 from prompt_toolkit.completion import Completer, Completion
@@ -41,7 +40,6 @@ import re
 from autoagent.cli_utils.metachain_meta_agent import meta_agent
 from autoagent.cli_utils.metachain_meta_workflow import meta_workflow
 from autoagent.cli_utils.file_select import select_and_copy_files
-from evaluation.utils import update_progress, check_port_available, run_evaluation, clean_msg
 from constant import COMPLETION_MODEL
 @click.group()
 def cli():
