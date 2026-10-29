@@ -116,11 +116,13 @@ class MetaChain:
         self,
         agent: Agent,
         history: List,
-        context_variables: dict,
+        context_variables: dict | None = None,
         model_override: str,
         stream: bool,
         debug: bool,
     ) -> Message:
+        if context_variables is None:
+            context_variables = {}
         context_variables = defaultdict(str, context_variables)
         instructions = (
             agent.instructions(context_variables)
@@ -397,13 +399,15 @@ class MetaChain:
         self,
         agent: Agent,
         messages: List,
-        context_variables: dict = {},
+        context_variables: dict | None = None,
         model_override: str = None,
         stream: bool = False,
         debug: bool = True,
         max_turns: int = float("inf"),
         execute_tools: bool = True,
     ) -> Response:
+        if context_variables is None:
+            context_variables = {}
         if stream:
             return self.run_and_stream(
                 agent=agent,
