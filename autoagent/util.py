@@ -112,6 +112,9 @@ def merge_chunk(final_response: dict, delta: dict) -> None:
     tool_calls = delta.get("tool_calls")
     if tool_calls and len(tool_calls) > 0:
         index = tool_calls[0].pop("index")
+        final_response.setdefault("tool_calls", [])
+        while len(final_response["tool_calls"]) <= index:
+            final_response["tool_calls"].append({})
         merge_fields(final_response["tool_calls"][index], tool_calls[0])
 
 

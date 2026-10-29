@@ -13,6 +13,8 @@ class MetaChainLogger:
         self.debug = DEBUG
         
     def _write_log(self, message: str):
+        if self.log_path is None:
+            return
         with open(self.log_path, 'a') as f:
             f.write(message + '\n')
     def _warp_args(self, args_dict: str):
@@ -40,6 +42,19 @@ class MetaChainLogger:
             print_str = escape(log_str)
             if MC_MODE: print_str = f"[grey58]{print_str}[/grey58]"
             self.console.print(print_str, highlight=True, emoji=True)
+        log_str = self._wrap_title(title) + "\n" + log_str
+        if self.log_path: self._write_log(log_str) 
+    def error(self, *args: str, **kwargs: dict):
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        message = "\n".join(map(str, args))
+        color = kwargs.get("color", "red")
+        if MC_MODE: color = "grey58"
+        title = kwargs.get("title", "ERROR")
+        log_str = f"[{timestamp}]\n{message}"
+        self.console.print(self._wrap_title(title, f"bold {color}"))
+        print_str = escape(log_str)
+        if MC_MODE: print_str = f"[grey58]{print_str}[/grey58]"
+        self.console.print(print_str, highlight=True, emoji=True)
         log_str = self._wrap_title(title) + "\n" + log_str
         if self.log_path: self._write_log(log_str) 
     def lprint(self, *args: str, **kwargs: dict):
