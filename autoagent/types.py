@@ -2,7 +2,9 @@ from litellm.types.utils import ChatCompletionMessageToolCall, Function, Message
 from typing import List, Callable, Union, Optional, Tuple, Dict
 
 # Third-party imports
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
+import base64
+import binascii
 
 AgentFunction = Callable[[], Union[str, "Agent", dict]]
 
@@ -39,3 +41,25 @@ class Result(BaseModel):
     agent: Optional[Agent] = None
     context_variables: dict = {}
     image: Optional[str] = None # base64 encoded image
+
+    @field_validator("image")
+    @classmethod
+    def _validate_image_base64(cls, v: Optional[str]) -> Optional[str]:
+        if v is None:
+            return v
+        try:
+            base64.b64decode(v, validate=True)
+        except (binascii.Error, ValueError) as exc:
+            raise ValueError("image must be a base64 encoded string") from exc
+        return v
+
+    def to_dict(self) -> dict:
+        d = {
+            "value": self.value,
+            "context_variables": self.context_variables,
+        }
+        if self.agent is not None:
+            d["agent"] = self.agent.name
+        if self.image is not None:
+            d["image"] = self.image
+        return d
