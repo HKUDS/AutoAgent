@@ -231,10 +231,12 @@ class MetaChain:
         self,
         tool_calls: List[ChatCompletionMessageToolCall],
         functions: List[AgentFunction],
-        context_variables: dict,
-        debug: bool,
+        context_variables: dict | None = None,
+        debug: bool = False,
         handle_mm_func: Callable[[], str] = None,
     ) -> Response:
+        if context_variables is None:
+            context_variables = {}
         function_map = {f.__name__: f for f in functions}
         partial_response = Response(
             messages=[], agent=None, context_variables={})
