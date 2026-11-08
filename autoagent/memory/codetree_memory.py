@@ -97,7 +97,7 @@ class DummyReranker(Reranker):
                 continue
             else:
                 result_path.append(result['file'])
-            wrapped_reranked_results = f"Code path: {result['file']}\n"
+            wrapped_reranked_results += f"Code path: {result['file']}\n"
             wrapped_reranked_results += f"Code content:\n{result['content']}...\n"
             wrapped_reranked_results += "---\n"
         return wrapped_reranked_results
