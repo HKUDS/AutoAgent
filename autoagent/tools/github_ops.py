@@ -69,7 +69,7 @@ def push_changes(context_variables, commit_message, file_paths=None):
     # stage the files
     # if file_paths:
     env: Union[DockerEnv, LocalEnv] = context_variables.get("code_env", LocalEnv())
-    stage_result = stage_files(env, file_paths)
+    stage_result = stage_files(context_variables, file_paths)
     if stage_result['status'] != 0:
         return json.dumps({'status': 'error', 'message': f"Failed to stage files: {stage_result['result']}"}, indent=4)
     
