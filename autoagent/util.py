@@ -107,6 +107,7 @@ def merge_fields(target, source):
 
 def merge_chunk(final_response: dict, delta: dict) -> None:
     delta.pop("role", None)
+    delta.pop("sender", None)
     merge_fields(final_response, delta)
 
     tool_calls = delta.get("tool_calls")
