@@ -837,7 +837,7 @@ I want to use the tool named {message["tool_calls"][0]["function"]["name"]}, wit
 def interleave_user_into_messages(messages: list[dict]) -> list[dict]:
     new_messages = []
     for idx, message in enumerate(messages):
-        if message["role"] == "assistant" and messages[idx-1]["role"] == "assistant":
+        if idx > 0 and message["role"] == "assistant" and messages[idx-1]["role"] == "assistant":
             # 在两个连续的 assistant 消息之间插入一个空的 user 消息
             new_messages.append({
                 "role": "user",
