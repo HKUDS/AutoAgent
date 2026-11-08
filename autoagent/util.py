@@ -337,7 +337,7 @@ def function_to_json(func) -> dict:
             param_info = get_type_info(param.annotation, type_map)
             if isinstance(param_info, dict) and "additionalProperties" in param_info:
                 del param_info["additionalProperties"]
-            parameters[param.name] = get_type_info(param.annotation, type_map)
+            parameters[param.name] = param_info
         except KeyError as e:
             raise KeyError(f"Unknown type annotation {param.annotation} for parameter {param.name}: {str(e)}")
 
