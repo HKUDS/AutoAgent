@@ -97,7 +97,7 @@ class Registry:
                 wrapped_func = func
             try:
                 file_path = os.path.abspath(inspect.getfile(func))
-            except:
+            except Exception:
                 file_path = "Unknown"
             
             # 获取函数信息
