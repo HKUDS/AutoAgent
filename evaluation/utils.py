@@ -221,7 +221,7 @@ def run_evaluation(
                     logger.info(f"Error cleaning up process {p.pid}: {str(e)}", title='warning', color='red')
                     try:
                         p.kill()
-                    except:
+                    except Exception:
                         pass
 
             # 快速清空队列
